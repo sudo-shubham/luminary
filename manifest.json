@@ -1,0 +1,24 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "Luminary",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "Luminary",
+  "start_url": "/index.html",
+  "theme_color": "#ffffff",
+  "id": "luminary",
+  "categories": [
+    "graphics",
+    "multimedia",
+    "photo",
+    "photo &amp; video",
+    "productivity",
+    "social",
+    "travel",
+    "utilities",
+    "weather"
+  ],
+  "lang": "en"
+}

@@ -1,0 +1,2103 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Luminary — Location-Aware Photography Assistant</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            obsidian: '#0b0d10',
+            camera: '#131720',
+            dial: '#1a202c',
+            borderline: '#262d3a',
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* Tactile camera dial slider styling */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+    input[type="range"]:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 6px;
+      border-radius: 9999px;
+      background: #262d3a;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #f59e0b;
+      border: 2px solid #0b0d10;
+      margin-top: -7px;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.3);
+      transition: transform 0.15s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.12);
+    }
+    input[type="range"]::-moz-range-track {
+      height: 6px;
+      border-radius: 9999px;
+      background: #262d3a;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #f59e0b;
+      border: 2px solid #0b0d10;
+    }
+    body {
+      background-color: #0b0d10;
+      color: #f1f5f9;
+      overflow-x: hidden;
+    }
+  </style>
+</head>
+<body class="font-sans antialiased min-h-screen flex flex-col selection:bg-amber-500/30 selection:text-amber-200">
+
+  <!-- Toast Notification Container (Safe replacement for alert()) -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none max-w-xs sm:max-w-sm"></div>
+
+  <!-- Top Navigation Header -->
+  <header class="sticky top-0 z-40 bg-obsidian/95 backdrop-blur-md border-b border-borderline">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <!-- Brand Identity -->
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20 text-obsidian font-bold text-lg">
+          ◎
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold tracking-tight text-white leading-none">LUMINARY</h1>
+          <p class="text-[10px] sm:text-[11px] font-mono text-slate-400 uppercase tracking-wider mt-0.5">Camera Settings Assistant</p>
+        </div>
+      </div>
+
+      <!-- Right Controls: Live Clock, Time Shift & Beginner/Pro Toggle -->
+      <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+        <!-- Live Local Clock Pill -->
+        <div class="flex items-center gap-2 bg-camera border border-borderline rounded-xl px-3 py-1.5 shadow-inner">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="Live Clock"></span>
+          <div class="leading-tight">
+            <div id="liveWallClock" class="text-xs sm:text-sm font-mono font-bold text-white tracking-tight">--:--:-- --</div>
+            <div id="liveWallTz" class="text-[9px] font-mono text-slate-400 uppercase">LOCAL TIME</div>
+          </div>
+        </div>
+
+        <!-- Beginner vs Pro Mode Toggle -->
+        <div class="flex items-center bg-dial border border-borderline rounded-xl p-1" role="group" aria-label="Experience Mode">
+          <button type="button" id="modeBeginnerBtn" onclick="window.setAppMode('beginner')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-obsidian transition">
+            Beginner
+          </button>
+          <button type="button" id="modeProBtn" onclick="window.setAppMode('pro')" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition">
+            Pro
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Compact Top Location & Lighting Strip (Always accessible without pushing settings down) -->
+  <div class="bg-camera/80 border-b border-borderline">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-2.5">
+      <!-- Active Location & Phase Summary -->
+      <div class="flex items-center gap-2.5 flex-wrap">
+        <button type="button" onclick="window.useMyLocation()" id="gpsBtn" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-semibold transition active:scale-95">
+          <span>📍</span> Use GPS
+        </button>
+        <div class="flex items-center gap-2">
+          <span id="stripLocationName" class="text-sm font-bold text-white">New Delhi, India</span>
+          <span id="stripPhaseBadge" class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+            GOLDEN HOUR
+          </span>
+          <span id="stripEvBadge" class="hidden sm:inline-block text-[11px] font-mono font-semibold text-emerald-400">EV 11.5</span>
+        </div>
+      </div>
+
+      <!-- Quick Time Shift Scrubber -->
+      <div class="flex items-center gap-1.5 bg-obsidian border border-borderline rounded-xl px-2.5 py-1">
+        <span class="text-[10px] font-mono text-slate-400 hidden sm:inline">TIME:</span>
+        <button type="button" onclick="window.shiftTime(-1)" class="px-2.5 py-1 rounded-lg bg-dial hover:bg-slate-700 text-xs font-mono text-slate-200 transition active:scale-95">-1h</button>
+        <span id="headerTimeDisplay" class="text-xs font-mono font-semibold text-amber-400 min-w-[46px] text-center">LIVE</span>
+        <button type="button" onclick="window.shiftTime(1)" class="px-2.5 py-1 rounded-lg bg-dial hover:bg-slate-700 text-xs font-mono text-slate-200 transition active:scale-95">+1h</button>
+        <button type="button" onclick="window.resetTime()" id="resetTimeBtn" class="hidden text-[11px] font-mono text-sky-400 hover:underline px-1.5">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Workspace: Camera Settings FIRST (Primary Focus on Mobile & Left Hero on Desktop) -->
+  <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 py-5 grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
+
+    <!-- =======================================================================
+         PRIMARY COLUMN (7 cols desktop, FIRST on mobile): CAMERA SETTINGS HERO
+         ======================================================================= -->
+    <div class="lg:col-span-7 space-y-5">
+
+      <!-- HERO CARD: Recommended Camera Settings & Quick Shot Selector -->
+      <section class="bg-camera border-2 border-amber-500/25 rounded-2xl p-4 sm:p-6 shadow-2xl space-y-5">
+
+        <!-- Hero Header -->
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2.5">
+            <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-300 font-mono text-xs font-bold">M / Av</span>
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-white leading-tight">Recommended Camera Settings</h2>
+              <p class="text-[11px] text-slate-400" id="heroSubtitle">Auto-calculated for your current light & subject</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="window.resetExposureOverrides()" id="resetSimBtn" class="hidden px-2.5 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-xs font-mono text-amber-300 hover:bg-amber-500/25 transition">
+              ↺ Auto-Reset
+            </button>
+            <button type="button" onclick="window.copyRecipeToClipboard()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-dial hover:bg-slate-700 border border-borderline text-xs font-medium text-slate-200 transition active:scale-95">
+              <span>📋</span> Copy
+            </button>
+          </div>
+        </div>
+
+        <!-- Integrated Quick Subject & Gear Bar (Zero-scroll tuning) -->
+        <div class="bg-obsidian/80 border border-borderline rounded-2xl p-3.5 space-y-3">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[11px] font-mono uppercase tracking-wider text-slate-400">1. What are you shooting?</span>
+              <span class="text-[10px] font-mono text-slate-500">Tap to recalculate</span>
+            </div>
+            <div class="grid grid-cols-3 sm:grid-cols-7 gap-1.5" id="styleButtonsGrid">
+              <button type="button" data-style="landscape" onclick="window.setStyle('landscape')" class="style-btn px-2 py-2 rounded-xl border text-xs font-medium transition">🏔️ Scenic</button>
+              <button type="button" data-style="portrait" onclick="window.setStyle('portrait')" class="style-btn px-2 py-2 rounded-xl border text-xs font-medium transition">🧑 Portrait</button>
+              <button type="button" data-style="street" onclick="window.setStyle('street')" class="style-btn px-2 py-2 rounded-xl border text-xs font-medium transition">🚶 Street</button>
+              <button type="button" data-style="action" onclick="window.setStyle('action')" class="style-btn px-2 py-2 rounded-xl border text-xs font-medium transition">⚡ Action</button>
+              <button type="button" data-style="night" onclick="window.setStyle('night')" class="style-btn px-2 py-2 rounded-xl border text-xs font-medium transition">✨ Night</button>
+              <button type="button" data-style="astro" onclick="window.setStyle('astro')" class="style-btn px-2 py-2 rounded-xl border text-xs font-medium transition">🌌 Astro</button>
+              <button type="button" data-style="longexp" onclick="window.setStyle('longexp')" class="style-btn px-2 py-2 rounded-xl border text-xs font-medium transition">🌊 Silk</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+            <div class="flex items-center gap-2 bg-camera border border-borderline rounded-xl px-3 py-1.5">
+              <span class="text-[10px] font-mono text-slate-400 uppercase shrink-0">Lens:</span>
+              <select id="gearSelect" onchange="window.setGear(this.value)" class="w-full bg-transparent text-xs font-semibold text-white focus:outline-none cursor-pointer">
+                <option value="custom" class="bg-obsidian">⚙️ Custom Lens (Prime / Zoom)</option>
+                <option value="kit" class="bg-obsidian" selected>Kit Lens (18–55mm f/3.5–f/22)</option>
+                <option value="prime" class="bg-obsidian">Fast Prime (50mm f/1.8–f/16)</option>
+                <option value="prozoom" class="bg-obsidian">Pro Zoom (24–70mm f/2.8–f/22)</option>
+                <option value="phone" class="bg-obsidian">Phone Pro (24mm Fixed f/1.8)</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-2 bg-camera border border-borderline rounded-xl px-3 py-1.5">
+              <span class="text-[10px] font-mono text-slate-400 uppercase shrink-0">Hold:</span>
+              <select id="supportSelect" onchange="window.setSupport(this.value)" class="w-full bg-transparent text-xs font-semibold text-white focus:outline-none cursor-pointer">
+                <option value="handheld" class="bg-obsidian">Handheld (No Tripod)</option>
+                <option value="tripod" class="bg-obsidian">Tripod / Solid Surface</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Custom Lens Builder Panel (Shown when Custom Lens is selected) -->
+          <div id="customLensPanel" class="hidden bg-camera/90 border border-amber-500/30 rounded-xl p-3.5 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-semibold">Custom Lens Setup</span>
+                <span id="customLensSummaryBadge" class="text-[10px] font-mono text-slate-300 bg-obsidian border border-borderline px-2 py-0.5 rounded-md">
+                  Zoom • 24–70mm • f/2.8–f/22
+                </span>
+              </div>
+              <!-- Prime vs Zoom Segmented Toggle -->
+              <div class="flex items-center bg-obsidian border border-borderline rounded-lg p-0.5" role="group" aria-label="Lens Type">
+                <button type="button" id="customTypePrimeBtn" onclick="window.setCustomLensType('prime')" class="px-2.5 py-1 rounded-md text-[11px] font-medium text-slate-400 hover:text-white transition">
+                  Prime
+                </button>
+                <button type="button" id="customTypeZoomBtn" onclick="window.setCustomLensType('zoom')" class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-amber-500 text-obsidian transition">
+                  Zoom
+                </button>
+              </div>
+            </div>
+
+            <!-- f-stop & Focal Length Controls -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <!-- Widest f-stop (Lowest f-number) -->
+              <div class="bg-obsidian border border-borderline rounded-xl px-2.5 py-2">
+                <label for="customMinFStop" class="block text-[10px] font-mono text-slate-400 uppercase mb-1">Widest f-stop</label>
+                <select id="customMinFStop" onchange="window.updateCustomLens('minApertureIdx', this.value)" class="w-full bg-transparent text-xs font-mono font-semibold text-white focus:outline-none cursor-pointer">
+                  <option value="0" class="bg-obsidian">f/1.4</option>
+                  <option value="1" class="bg-obsidian">f/1.8</option>
+                  <option value="2" class="bg-obsidian">f/2.0</option>
+                  <option value="3" class="bg-obsidian" selected>f/2.8</option>
+                  <option value="4" class="bg-obsidian">f/3.5</option>
+                  <option value="5" class="bg-obsidian">f/4.0</option>
+                  <option value="6" class="bg-obsidian">f/5.6</option>
+                  <option value="7" class="bg-obsidian">f/8.0</option>
+                  <option value="8" class="bg-obsidian">f/11</option>
+                  <option value="9" class="bg-obsidian">f/16</option>
+                  <option value="10" class="bg-obsidian">f/22</option>
+                </select>
+              </div>
+
+              <!-- Narrowest f-stop (Highest f-number) -->
+              <div class="bg-obsidian border border-borderline rounded-xl px-2.5 py-2">
+                <label for="customMaxFStop" class="block text-[10px] font-mono text-slate-400 uppercase mb-1">Narrowest f-stop</label>
+                <select id="customMaxFStop" onchange="window.updateCustomLens('maxApertureIdx', this.value)" class="w-full bg-transparent text-xs font-mono font-semibold text-white focus:outline-none cursor-pointer">
+                  <option value="0" class="bg-obsidian">f/1.4</option>
+                  <option value="1" class="bg-obsidian">f/1.8</option>
+                  <option value="2" class="bg-obsidian">f/2.0</option>
+                  <option value="3" class="bg-obsidian">f/2.8</option>
+                  <option value="4" class="bg-obsidian">f/3.5</option>
+                  <option value="5" class="bg-obsidian">f/4.0</option>
+                  <option value="6" class="bg-obsidian">f/5.6</option>
+                  <option value="7" class="bg-obsidian">f/8.0</option>
+                  <option value="8" class="bg-obsidian">f/11</option>
+                  <option value="9" class="bg-obsidian">f/16</option>
+                  <option value="10" class="bg-obsidian" selected>f/22</option>
+                </select>
+              </div>
+
+              <!-- Min Focal Length (or Fixed Prime mm) -->
+              <div class="bg-obsidian border border-borderline rounded-xl px-2.5 py-2">
+                <label id="customMinMmLabel" for="customMinMm" class="block text-[10px] font-mono text-slate-400 uppercase mb-1">Min mm</label>
+                <div class="flex items-center gap-1">
+                  <input type="number" id="customMinMm" min="8" max="1200" value="24" onchange="window.updateCustomLens('minMm', this.value)" class="w-full bg-transparent text-xs font-mono font-semibold text-white focus:outline-none" />
+                  <span class="text-[10px] font-mono text-slate-500">mm</span>
+                </div>
+              </div>
+
+              <!-- Max Focal Length (Disabled/Hidden feel when Prime) -->
+              <div id="customMaxMmBox" class="bg-obsidian border border-borderline rounded-xl px-2.5 py-2">
+                <label for="customMaxMm" class="block text-[10px] font-mono text-slate-400 uppercase mb-1">Max mm</label>
+                <div class="flex items-center gap-1">
+                  <input type="number" id="customMaxMm" min="8" max="1200" value="70" onchange="window.updateCustomLens('maxMm', this.value)" class="w-full bg-transparent text-xs font-mono font-semibold text-white focus:outline-none" />
+                  <span class="text-[10px] font-mono text-slate-500">mm</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Active Zoom Position Slider (Shown only for Zoom lenses) -->
+            <div id="customZoomSliderRow" class="pt-0.5">
+              <div class="flex items-center justify-between text-[10px] font-mono text-slate-400 mb-1">
+                <span>Active Zoom Focal Length (affects handheld shake limit)</span>
+                <span id="customCurrentMmLabel" class="text-amber-400 font-semibold">50mm</span>
+              </div>
+              <input type="range" id="customCurrentMmSlider" min="24" max="70" value="50" oninput="window.updateCustomLens('currentMm', this.value)" class="w-full" aria-label="Current Zoom Focal Length" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Warning Banner (Camera Shake / Overexposure / Tripod Needed) -->
+        <div id="exposureWarningBox" class="hidden p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/40 text-xs text-rose-200 flex items-start gap-2.5">
+          <span class="text-base leading-none shrink-0">⚠️</span>
+          <span id="exposureWarningText" class="leading-relaxed"></span>
+        </div>
+
+        <!-- PRIMARY EXPOSURE TRIANGLE DIALS (Large, Tactile, with +/- Step Buttons) -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+
+          <!-- Aperture Dial -->
+          <div class="bg-gradient-to-b from-obsidian to-camera border border-borderline rounded-2xl p-4 flex flex-col justify-between shadow-inner">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-mono font-semibold text-slate-300">APERTURE</span>
+              <span id="labelApertureHint" class="text-[10px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md">Blur / Depth</span>
+            </div>
+            <div id="readoutAperture" class="text-4xl font-mono font-bold text-white my-2.5 tracking-tight">f/8.0</div>
+            <div id="descAperture" class="text-xs text-slate-400 mb-3 min-h-[20px]">Sharp front-to-back</div>
+            <div class="flex items-center gap-2">
+              <button type="button" id="btnApMinus" onclick="window.stepExposure('aperture', -1)" class="w-8 h-8 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-sm font-bold text-slate-200 flex items-center justify-center shrink-0 active:scale-95 transition">−</button>
+              <input type="range" id="sliderAperture" min="0" max="10" value="7" oninput="window.onManualExposureChange('aperture', this.value)" class="w-full" aria-label="Aperture" />
+              <button type="button" id="btnApPlus" onclick="window.stepExposure('aperture', 1)" class="w-8 h-8 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-sm font-bold text-slate-200 flex items-center justify-center shrink-0 active:scale-95 transition">+</button>
+            </div>
+          </div>
+
+          <!-- Shutter Speed Dial -->
+          <div class="bg-gradient-to-b from-obsidian to-camera border border-borderline rounded-2xl p-4 flex flex-col justify-between shadow-inner">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-mono font-semibold text-slate-300">SHUTTER</span>
+              <span id="labelShutterHint" class="text-[10px] font-mono text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-md">Motion</span>
+            </div>
+            <div id="readoutShutter" class="text-4xl font-mono font-bold text-white my-2.5 tracking-tight">1/125s</div>
+            <div id="descShutter" class="text-xs text-slate-400 mb-3 min-h-[20px]">Safe for handheld</div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="window.stepExposure('shutter', -1)" class="w-8 h-8 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-sm font-bold text-slate-200 flex items-center justify-center shrink-0 active:scale-95 transition">−</button>
+              <input type="range" id="sliderShutter" min="0" max="18" value="12" oninput="window.onManualExposureChange('shutter', this.value)" class="w-full" aria-label="Shutter Speed" />
+              <button type="button" onclick="window.stepExposure('shutter', 1)" class="w-8 h-8 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-sm font-bold text-slate-200 flex items-center justify-center shrink-0 active:scale-95 transition">+</button>
+            </div>
+          </div>
+
+          <!-- ISO Dial -->
+          <div class="bg-gradient-to-b from-obsidian to-camera border border-borderline rounded-2xl p-4 flex flex-col justify-between shadow-inner">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-mono font-semibold text-slate-300">ISO</span>
+              <span id="labelIsoHint" class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">Brightness</span>
+            </div>
+            <div id="readoutISO" class="text-4xl font-mono font-bold text-white my-2.5 tracking-tight">ISO 100</div>
+            <div id="descISO" class="text-xs text-slate-400 mb-3 min-h-[20px]">Cleanest quality</div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="window.stepExposure('iso', -1)" class="w-8 h-8 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-sm font-bold text-slate-200 flex items-center justify-center shrink-0 active:scale-95 transition">−</button>
+              <input type="range" id="sliderISO" min="0" max="8" value="0" oninput="window.onManualExposureChange('iso', this.value)" class="w-full" aria-label="ISO" />
+              <button type="button" onclick="window.stepExposure('iso', 1)" class="w-8 h-8 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-sm font-bold text-slate-200 flex items-center justify-center shrink-0 active:scale-95 transition">+</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Secondary Camera Parameters Strip -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <div class="bg-dial/70 border border-borderline rounded-xl p-3">
+            <div class="text-[10px] font-mono text-slate-400 uppercase">White Balance</div>
+            <div id="readoutWB" class="text-xs sm:text-sm font-mono font-semibold text-amber-300 mt-1">5600K (Daylight)</div>
+          </div>
+          <div class="bg-dial/70 border border-borderline rounded-xl p-3">
+            <div class="text-[10px] font-mono text-slate-400 uppercase">Focus Mode</div>
+            <div id="readoutFocus" class="text-xs sm:text-sm font-mono font-semibold text-slate-100 mt-1">AF-S / Single</div>
+          </div>
+          <div class="bg-dial/70 border border-borderline rounded-xl p-3">
+            <div class="text-[10px] font-mono text-slate-400 uppercase">EV Comp / Meter</div>
+            <div id="readoutMetering" class="text-xs sm:text-sm font-mono font-semibold text-emerald-300 mt-1">0.0 EV • Matrix</div>
+          </div>
+        </div>
+
+        <!-- Live Viewfinder Exposure Meter -->
+        <div class="bg-obsidian border border-borderline rounded-xl p-3.5">
+          <div class="flex items-center justify-between text-[11px] font-mono text-slate-400 mb-2">
+            <span>EXPOSURE METER (AUTO-BALANCING)</span>
+            <span id="meterStatusText" class="text-emerald-400 font-semibold">Balanced (0.0 EV)</span>
+          </div>
+          <div class="relative h-3 bg-dial rounded-full overflow-hidden flex items-center">
+            <div class="w-1/2 h-full border-r border-slate-500/60"></div>
+            <div id="meterNeedle" class="absolute top-0 bottom-0 w-3 rounded-full bg-emerald-400 shadow-lg transition-all duration-200" style="left: calc(50% - 6px);"></div>
+          </div>
+          <div class="flex justify-between text-[10px] font-mono text-slate-500 mt-1.5 px-0.5">
+            <span>-3 EV (Too Dark)</span>
+            <span>-1</span>
+            <span class="text-slate-300 font-bold">0 (Ideal)</span>
+            <span>+1</span>
+            <span>+3 EV (Too Bright)</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Coaching & Field Guide Card -->
+      <section class="bg-camera border border-borderline rounded-2xl p-4 sm:p-5 shadow-xl space-y-3">
+        <h2 class="text-xs font-mono uppercase tracking-wider text-slate-300" id="guideSectionTitle">
+          Why These Settings? — Beginner Tips &amp; Field Guide
+        </h2>
+        <div id="coachingCardsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <!-- Populated dynamically by JS -->
+        </div>
+        <!-- Optional Lens Filter Tip -->
+        <div id="optionalFilterTip" class="border border-dashed border-slate-600/80 bg-obsidian/60 rounded-xl p-3.5 flex items-start gap-3">
+          <!-- Populated dynamically by JS -->
+        </div>
+      </section>
+    </div>
+
+    <!-- =======================================================================
+         COMPANION COLUMN (5 cols desktop, SECOND on mobile): LOCATION & RADAR
+         ======================================================================= -->
+    <div class="lg:col-span-5 space-y-5">
+
+      <!-- Location, Weather & Solar Arc Card -->
+      <section class="bg-camera border border-borderline rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
+        <div class="flex items-center justify-between gap-2">
+          <h2 class="text-xs font-mono uppercase tracking-wider text-slate-400 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+            Location & Sun Telemetry
+          </h2>
+          <span id="activeCoords" class="text-[10px] font-mono text-slate-400">28.61° N, 77.21° E</span>
+        </div>
+
+        <!-- City Search Bar -->
+        <div class="relative" id="citySearchContainer">
+          <div class="flex gap-2">
+            <input
+              type="text"
+              id="citySearchInput"
+              placeholder="Change city (e.g., Mumbai, Tokyo, Reykjavik)..."
+              onkeydown="if(event.key==='Enter') window.searchCity()"
+              class="w-full bg-obsidian border border-borderline focus:border-amber-500/60 focus:outline-none rounded-xl px-3.5 py-2 text-xs sm:text-sm text-white placeholder-slate-500"
+            />
+            <button type="button" onclick="window.searchCity()" class="px-3.5 py-2 rounded-xl bg-dial hover:bg-slate-700 border border-borderline text-xs font-semibold text-slate-200 transition">
+              Search
+            </button>
+          </div>
+          <div id="cityResultsDropdown" class="hidden absolute left-0 right-0 mt-1.5 bg-dial border border-borderline rounded-xl shadow-2xl overflow-hidden z-30"></div>
+        </div>
+
+        <!-- Quick Lighting Presets -->
+        <div class="flex flex-wrap gap-1.5">
+          <button type="button" onclick="window.applyPreset('iceland')" class="px-2.5 py-1 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-[11px] text-amber-300 transition">🌅 Iceland Golden</button>
+          <button type="button" onclick="window.applyPreset('tokyo')" class="px-2.5 py-1 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-[11px] text-indigo-300 transition">🌃 Tokyo Night</button>
+          <button type="button" onclick="window.applyPreset('sahara')" class="px-2.5 py-1 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-[11px] text-yellow-300 transition">☀️ Sahara Noon</button>
+          <button type="button" onclick="window.applyPreset('london')" class="px-2.5 py-1 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-[11px] text-slate-300 transition">☁️ London Overcast</button>
+        </div>
+
+        <!-- Active Weather & Sun Telemetry Banner -->
+        <div id="phaseBanner" class="rounded-xl p-3.5 border border-amber-500/30 bg-gradient-to-br from-amber-500/15 via-camera to-obsidian">
+          <div class="flex items-center justify-between gap-2 mb-3">
+            <div>
+              <div id="activeLocationName" class="text-sm font-bold text-white leading-tight">New Delhi, India</div>
+              <div id="localTimeBadge" class="text-[11px] font-mono text-slate-300 mt-0.5">17:30 Local</div>
+            </div>
+            <div class="text-right">
+              <span id="phaseBadge" class="inline-block px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                GOLDEN HOUR
+              </span>
+              <div id="evBadge" class="text-[11px] font-mono font-semibold text-emerald-400 mt-1">EV 11.5</div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-4 gap-1.5 pt-2.5 border-t border-white/10 text-center">
+            <div class="bg-obsidian/60 rounded-lg p-1.5">
+              <div class="text-[9px] text-slate-400">Sun Alt/Az</div>
+              <div id="sunAltitudeVal" class="text-[11px] font-mono font-semibold text-white">+4° / 245°</div>
+            </div>
+            <div class="bg-obsidian/60 rounded-lg p-1.5">
+              <div class="text-[9px] text-slate-400">Clouds</div>
+              <div id="cloudCoverVal" class="text-[11px] font-mono font-semibold text-white">18%</div>
+            </div>
+            <div class="bg-obsidian/60 rounded-lg p-1.5">
+              <div class="text-[9px] text-slate-400">Weather</div>
+              <div id="weatherDescVal" class="text-[11px] font-mono font-semibold text-white truncate">Clear</div>
+            </div>
+            <div class="bg-obsidian/60 rounded-lg p-1.5">
+              <div class="text-[9px] text-slate-400">Temp / UV</div>
+              <div id="tempUvVal" class="text-[11px] font-mono font-semibold text-white">24°C / UV2</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Solar Arc Canvas -->
+        <div class="bg-dial/70 border border-borderline rounded-xl p-3">
+          <div class="flex items-center justify-between text-[11px] font-mono text-slate-400 mb-1">
+            <span>SOLAR ARC</span>
+            <span id="nextGoldenCountdown" class="text-amber-400">Calculating...</span>
+          </div>
+          <div class="w-full h-24 relative">
+            <canvas id="solarArcCanvas" class="w-full h-full block"></canvas>
+          </div>
+          <div class="grid grid-cols-4 gap-1 mt-2 text-[10px] font-mono text-center text-slate-400">
+            <div>Blue AM<br><span id="timeBlueAM" class="text-sky-400 font-semibold">06:15</span></div>
+            <div>Sunrise<br><span id="timeSunrise" class="text-amber-300 font-semibold">06:45</span></div>
+            <div>Sunset<br><span id="timeSunset" class="text-amber-400 font-semibold">17:25</span></div>
+            <div>Blue PM<br><span id="timeBluePM" class="text-sky-400 font-semibold">17:55</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Phone Compass & Tilt Light-Source Radar Card -->
+      <section class="bg-camera border border-borderline rounded-2xl p-4 sm:p-5 shadow-xl space-y-3.5">
+        <div class="flex items-center justify-between gap-2">
+          <h2 class="text-xs font-mono uppercase tracking-wider text-slate-400 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+            Light-Source & Shadow Radar
+          </h2>
+          <button type="button" onclick="window.enablePhoneOrientation()" id="sensorEnableBtn" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 text-xs font-medium transition active:scale-95">
+            <span>🧭</span> Phone Compass
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3.5 items-center bg-dial/60 border border-borderline rounded-xl p-3">
+          <!-- Interactive SVG Compass Radar -->
+          <div class="sm:col-span-5 flex flex-col items-center">
+            <svg id="lightRadarSvg" viewBox="0 0 200 200" class="w-36 h-36 sm:w-40 sm:h-40 select-none touch-none">
+              <defs>
+                <radialGradient id="radarBg" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#191e27"/>
+                  <stop offset="100%" stop-color="#0b0d10"/>
+                </radialGradient>
+                <linearGradient id="fovConeGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+                  <stop offset="0%" stop-color="rgba(56, 189, 248, 0.35)"/>
+                  <stop offset="100%" stop-color="rgba(56, 189, 248, 0.02)"/>
+                </linearGradient>
+              </defs>
+
+              <circle cx="100" cy="100" r="88" fill="url(#radarBg)" stroke="#262d3a" stroke-width="2"/>
+              <circle cx="100" cy="100" r="58" fill="none" stroke="#262d3a" stroke-width="1" stroke-dasharray="3 3"/>
+              <circle cx="100" cy="100" r="28" fill="none" stroke="#262d3a" stroke-width="1"/>
+
+              <text x="100" y="23" text-anchor="middle" fill="#f59e0b" font-size="10" font-family="JetBrains Mono" font-weight="bold">N</text>
+              <text x="178" y="103" text-anchor="middle" fill="#64748b" font-size="9" font-family="JetBrains Mono">E</text>
+              <text x="100" y="184" text-anchor="middle" fill="#64748b" font-size="9" font-family="JetBrains Mono">S</text>
+              <text x="22" y="103" text-anchor="middle" fill="#64748b" font-size="9" font-family="JetBrains Mono">W</text>
+
+              <!-- Shadow Direction Vector -->
+              <g id="radarShadowGroup" transform="rotate(65 100 100)">
+                <line x1="100" y1="100" x2="100" y2="168" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4 3" opacity="0.75"/>
+                <polygon points="100,174 96,165 104,165" fill="#94a3b8" opacity="0.75"/>
+              </g>
+
+              <!-- Camera FOV Cone -->
+              <g id="radarCameraGroup" transform="rotate(0 100 100)">
+                <path d="M 100 100 L 66 22 A 84 84 0 0 1 134 22 Z" fill="url(#fovConeGrad)"/>
+                <line x1="100" y1="100" x2="100" y2="18" stroke="#38bdf8" stroke-width="2"/>
+                <rect x="92" y="88" width="16" height="24" rx="3" fill="#0b0d10" stroke="#38bdf8" stroke-width="2"/>
+                <circle cx="100" cy="92" r="1.5" fill="#38bdf8"/>
+              </g>
+
+              <!-- Sun Azimuth Marker -->
+              <g id="radarSunGroup" transform="rotate(245 100 100)">
+                <line x1="100" y1="100" x2="100" y2="20" stroke="#f59e0b" stroke-width="1.5" opacity="0.5"/>
+                <circle cx="100" cy="18" r="11" fill="rgba(245, 158, 11, 0.25)"/>
+                <circle cx="100" cy="18" r="6" fill="#fbbf24" stroke="#0b0d10" stroke-width="1.5"/>
+              </g>
+            </svg>
+            <div class="flex items-center gap-3 text-[10px] font-mono text-slate-400 mt-1">
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400"></span>Sun</span>
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-sky-400"></span>Camera</span>
+              <span class="flex items-center gap-1"><span class="w-2 h-0.5 bg-slate-400"></span>Shadow</span>
+            </div>
+          </div>
+
+          <!-- Lighting Angle Diagnosis & Sliders -->
+          <div class="sm:col-span-7 space-y-2">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span id="lightDirectionBadge" class="px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                45° SIDE LIGHT
+              </span>
+              <span id="sensorModeTag" class="text-[10px] font-mono text-slate-400">Manual Dial</span>
+            </div>
+
+            <p id="lightDirectionSummary" class="text-xs text-slate-200 leading-relaxed">
+              Point your phone or drag the aim slider to see how sunlight hits your subject.
+            </p>
+
+            <div id="lightDirectionAction" class="text-[11px] font-mono text-sky-300 bg-obsidian/70 border border-borderline rounded-lg px-2.5 py-1.5">
+              EV Comp: 0.0 EV • Balanced 3D depth
+            </div>
+
+            <div class="pt-1 space-y-2">
+              <div>
+                <div class="flex justify-between text-[10px] font-mono text-slate-400">
+                  <span>Camera Aim</span>
+                  <span id="cameraHeadingLabel" class="text-sky-400 font-semibold">0° N</span>
+                </div>
+                <input type="range" id="cameraHeadingSlider" min="0" max="359" value="0" oninput="window.onManualHeadingChange(this.value)" class="w-full" aria-label="Camera Aim Heading" />
+              </div>
+              <div>
+                <div class="flex justify-between text-[10px] font-mono text-slate-400">
+                  <span>Phone Tilt</span>
+                  <span id="cameraPitchLabel" class="text-emerald-400 font-semibold">0° Level</span>
+                </div>
+                <input type="range" id="cameraPitchSlider" min="-60" max="75" value="0" oninput="window.onManualPitchChange(this.value)" class="w-full" aria-label="Phone Tilt Pitch" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="border-t border-borderline py-4 text-center text-[11px] font-mono text-slate-500">
+    Luminary • 100% Client-Side Exposure & Solar Ephemeris Calculator • Open-Meteo Telemetry
+  </footer>
+
+  <!-- =========================================================================
+       APPLICATION LOGIC (100% Frontend-Only, Validated Math & Sensor Engine)
+       ========================================================================= -->
+  <script>
+    // =========================================================================
+    // 1. CONSTANTS, EXPOSURE TABLES & APPLICATION STATE
+    // =========================================================================
+    const APERTURES = [1.4, 1.8, 2.0, 2.8, 3.5, 4.0, 5.6, 8.0, 11, 16, 22];
+    const SHUTTERS = [
+      { label: '30"', sec: 30 },
+      { label: '15"', sec: 15 },
+      { label: '8"', sec: 8 },
+      { label: '4"', sec: 4 },
+      { label: '2"', sec: 2 },
+      { label: '1"', sec: 1 },
+      { label: '1/2s', sec: 0.5 },
+      { label: '1/4s', sec: 0.25 },
+      { label: '1/8s', sec: 0.125 },
+      { label: '1/15s', sec: 1 / 15 },
+      { label: '1/30s', sec: 1 / 30 },
+      { label: '1/60s', sec: 1 / 60 },
+      { label: '1/125s', sec: 1 / 125 },
+      { label: '1/250s', sec: 1 / 250 },
+      { label: '1/500s', sec: 1 / 500 },
+      { label: '1/1000s', sec: 1 / 1000 },
+      { label: '1/2000s', sec: 1 / 2000 },
+      { label: '1/4000s', sec: 1 / 4000 },
+      { label: '1/8000s', sec: 1 / 8000 }
+    ];
+    const ISOS = [100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600];
+
+    const GEAR_LIMITS = {
+      kit:     { minApertureIdx: 4, maxApertureIdx: 10, fixedAperture: false, focalLengthMm: 35, label: 'Kit Lens (18–55mm f/3.5–f/22)' },
+      prime:   { minApertureIdx: 1, maxApertureIdx: 9,  fixedAperture: false, focalLengthMm: 50, label: 'Fast Prime (50mm f/1.8–f/16)' },
+      prozoom: { minApertureIdx: 3, maxApertureIdx: 10, fixedAperture: false, focalLengthMm: 50, label: 'Pro Zoom (24–70mm f/2.8–f/22)' },
+      phone:   { minApertureIdx: 1, maxApertureIdx: 1,  fixedAperture: true,  focalLengthMm: 24, label: 'Phone Pro (24mm Fixed f/1.8)' }
+    };
+
+    const PRESET_LOCATIONS = {
+      tokyo:   { name: 'Shinjuku, Tokyo', lat: 35.6938, lon: 139.7034, timezone: 'Asia/Tokyo', forceSunAlt: -18.0, clouds: 25, temp: 16, uv: 0, weather: 'Clear Night' },
+      iceland: { name: 'Vik, Iceland', lat: 63.4186, lon: -19.0060, timezone: 'Atlantic/Reykjavik', forceSunAlt: 4.5, clouds: 30, temp: 4, uv: 1, weather: 'Partly Cloudy' },
+      sahara:  { name: 'Merzouga, Sahara', lat: 31.0802, lon: -4.0134, timezone: 'Africa/Casablanca', forceSunAlt: 58.0, clouds: 2, temp: 38, uv: 10, weather: 'Harsh Sun' },
+      london:  { name: 'London, UK', lat: 51.5074, lon: -0.1278, timezone: 'Europe/London', forceSunAlt: 26.0, clouds: 88, temp: 12, uv: 2, weather: 'Overcast' }
+    };
+
+    const appState = {
+      mode: 'beginner',
+      location: {
+        name: 'New Delhi, India',
+        lat: 28.6139,
+        lon: 77.2090,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Kolkata'
+      },
+      timeOffsetHours: 0,
+      forcedSunAlt: null,
+      weather: {
+        cloudCover: 18,
+        tempC: 24,
+        uvIndex: 2,
+        description: 'Mostly Clear',
+        isFallback: false
+      },
+      orientation: {
+        sensorActive: false,
+        heading: 0,
+        pitch: 0
+      },
+      style: 'landscape',
+      gear: 'kit',
+      customLens: {
+        type: 'zoom', // 'prime' or 'zoom'
+        minApertureIdx: 3, // f/2.8
+        maxApertureIdx: 10, // f/22
+        minMm: 24,
+        maxMm: 70,
+        currentMm: 50
+      },
+      support: 'handheld',
+      exposure: {
+        apertureIdx: 7,
+        shutterIdx: 12,
+        isoIdx: 0,
+        wbKelvin: 5600,
+        wbLabel: 'Daylight',
+        focusMode: 'AF-S / Single',
+        metering: '0.0 EV • Matrix',
+        filter: 'CPL Polarizer',
+        targetEV: 12.0,
+        manualOverride: false
+      }
+    };
+
+    // =========================================================================
+    // 2. TOAST NOTIFICATION UTILITY
+    // =========================================================================
+    function showToast(message) {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      const el = document.createElement('div');
+      el.className = 'pointer-events-auto bg-dial/95 border border-amber-500/40 text-slate-100 text-xs font-medium px-4 py-2.5 rounded-xl shadow-2xl backdrop-blur-md transition-opacity duration-300';
+      el.textContent = message;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 300);
+      }, 3000);
+    }
+
+    // =========================================================================
+    // 3. ACCURATE TIMEZONE OFFSET, LIVE CLOCK & SOLAR EPHEMERIS MATH
+    // =========================================================================
+    /**
+     * Computes exact UTC offset in decimal hours for any IANA timezone (e.g. +5.5 for Asia/Kolkata).
+     * Fixes inaccuracies from rough longitude/15 approximations.
+     */
+    function getTimezoneOffsetHours(dateObj, timeZone, fallbackLon) {
+      try {
+        const utcDate = new Date(dateObj.toLocaleString('en-US', { timeZone: 'UTC' }));
+        const tzDate = new Date(dateObj.toLocaleString('en-US', { timeZone }));
+        const diffHours = (tzDate.getTime() - utcDate.getTime()) / (1000 * 60 * 60);
+        if (!Number.isNaN(diffHours)) return diffHours;
+      } catch (_) {
+        // Fallback below
+      }
+      return Math.round(fallbackLon / 15);
+    }
+
+    function updateLiveClockDisplay() {
+      const now = new Date();
+      const tz = appState.location.timezone;
+      const clockEl = document.getElementById('liveWallClock');
+      const tzEl = document.getElementById('liveWallTz');
+      if (!clockEl || !tzEl) return;
+
+      try {
+        const timeStr = new Intl.DateTimeFormat('en-US', {
+          timeZone: tz,
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true
+        }).format(now);
+        const tzParts = new Intl.DateTimeFormat('en-US', {
+          timeZone: tz,
+          timeZoneName: 'short'
+        }).formatToParts(now);
+        const tzShort = (tzParts.find(p => p.type === 'timeZoneName') || {}).value || tz;
+
+        clockEl.textContent = timeStr;
+        tzEl.textContent = `${tzShort} • LIVE`;
+      } catch (_) {
+        clockEl.textContent = now.toLocaleTimeString();
+        tzEl.textContent = 'LOCAL • LIVE';
+      }
+    }
+
+    function getEffectiveDate() {
+      return new Date(Date.now() + appState.timeOffsetHours * 3600 * 1000);
+    }
+
+    function calculateSolarData(lat, lon, dateObj) {
+      const start = new Date(Date.UTC(dateObj.getUTCFullYear(), 0, 0));
+      const dayOfYear = Math.floor((dateObj - start) / (1000 * 60 * 60 * 24));
+      const utcHours = dateObj.getUTCHours() + dateObj.getUTCMinutes() / 60 + dateObj.getUTCSeconds() / 3600;
+      const gamma = (2 * Math.PI / 365) * (dayOfYear - 1 + (utcHours - 12) / 24);
+
+      const eqTime = 229.18 * (
+        0.000075 +
+        0.001868 * Math.cos(gamma) -
+        0.032077 * Math.sin(gamma) -
+        0.014615 * Math.cos(2 * gamma) -
+        0.040849 * Math.sin(2 * gamma)
+      );
+
+      const decl =
+        0.006918 -
+        0.399912 * Math.cos(gamma) +
+        0.070257 * Math.sin(gamma) -
+        0.006758 * Math.cos(2 * gamma) +
+        0.000907 * Math.sin(2 * gamma) -
+        0.002697 * Math.cos(3 * gamma) +
+        0.00148 * Math.sin(3 * gamma);
+
+      const latRad = lat * Math.PI / 180;
+      const timeOffset = eqTime + 4 * lon;
+      const tst = utcHours * 60 + timeOffset;
+      const hourAngleDeg = (tst / 4) - 180;
+      const haRad = hourAngleDeg * Math.PI / 180;
+
+      const cosZenith = Math.max(-1, Math.min(1,
+        Math.sin(latRad) * Math.sin(decl) + Math.cos(latRad) * Math.cos(decl) * Math.cos(haRad)
+      ));
+      const zenithRad = Math.acos(cosZenith);
+      let altitudeDeg = 90 - (zenithRad * 180 / Math.PI);
+
+      // Solar Azimuth (0° = N, 90° = E, 180° = S, 270° = W)
+      const sinZenith = Math.sin(zenithRad) || 0.0001;
+      let cosAz = (Math.sin(latRad) * Math.cos(zenithRad) - Math.sin(decl)) / (Math.cos(latRad) * sinZenith);
+      cosAz = Math.max(-1, Math.min(1, cosAz));
+      let azimuthDeg = Math.acos(cosAz) * 180 / Math.PI;
+      azimuthDeg = hourAngleDeg > 0
+        ? (180 + azimuthDeg) % 360
+        : (180 - azimuthDeg + 360) % 360;
+
+      if (appState.forcedSunAlt !== null) {
+        altitudeDeg = appState.forcedSunAlt;
+      }
+
+      const cosH0 = (Math.cos(90.833 * Math.PI / 180) / (Math.cos(latRad) * Math.cos(decl))) - Math.tan(latRad) * Math.tan(decl);
+      let sunriseUTC = 6, sunsetUTC = 18;
+      if (cosH0 >= -1 && cosH0 <= 1) {
+        const H0Deg = Math.acos(cosH0) * 180 / Math.PI;
+        sunriseUTC = (720 - 4 * (lon + H0Deg) - eqTime) / 60;
+        sunsetUTC = (720 - 4 * (lon - H0Deg) - eqTime) / 60;
+      }
+
+      const tzOffsetHours = getTimezoneOffsetHours(dateObj, appState.location.timezone, lon);
+      const localHour = ((utcHours + tzOffsetHours) % 24 + 24) % 24;
+      const sunriseLocal = ((sunriseUTC + tzOffsetHours) % 24 + 24) % 24;
+      const sunsetLocal = ((sunsetUTC + tzOffsetHours) % 24 + 24) % 24;
+
+      return {
+        altitude: altitudeDeg,
+        azimuth: Math.round(azimuthDeg),
+        localHour,
+        sunriseLocal,
+        sunsetLocal,
+        blueAM: (sunriseLocal - 0.45 + 24) % 24,
+        bluePM: (sunsetLocal + 0.45) % 24
+      };
+    }
+
+    function formatDecimalHour(decHour) {
+      const totalMins = Math.round(decHour * 60) % (24 * 60);
+      const h = Math.floor(totalMins / 60);
+      const m = totalMins % 60;
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    }
+
+    function getLightPhase(altitude, cloudCover) {
+      let name, badgeClass, bannerClass, baseEV, wbKelvin, wbLabel;
+      const cloudPenalty = (cloudCover / 100) * 2.2;
+
+      if (altitude < -12) {
+        name = 'NIGHT';
+        badgeClass = 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40';
+        bannerClass = 'border-indigo-500/30 bg-gradient-to-br from-indigo-500/15 via-camera to-obsidian';
+        baseEV = 2.0;
+        wbKelvin = 3600;
+        wbLabel = 'Tungsten';
+      } else if (altitude < -4) {
+        name = 'BLUE HOUR';
+        badgeClass = 'bg-sky-500/20 text-sky-300 border-sky-500/40';
+        bannerClass = 'border-sky-500/30 bg-gradient-to-br from-sky-500/15 via-camera to-obsidian';
+        baseEV = 5.5 - cloudPenalty * 0.4;
+        wbKelvin = 4200;
+        wbLabel = 'Twilight';
+      } else if (altitude <= 8) {
+        name = 'GOLDEN HOUR';
+        badgeClass = 'bg-amber-500/20 text-amber-300 border-amber-500/40';
+        bannerClass = 'border-amber-500/30 bg-gradient-to-br from-amber-500/15 via-camera to-obsidian';
+        baseEV = 11.2 - cloudPenalty * 0.7;
+        wbKelvin = 6200;
+        wbLabel = 'Warm Shade';
+      } else if (altitude <= 38) {
+        name = cloudCover > 70 ? 'OVERCAST' : 'SOFT DAYLIGHT';
+        badgeClass = cloudCover > 70
+          ? 'bg-slate-500/20 text-slate-200 border-slate-500/40'
+          : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
+        bannerClass = 'border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 via-camera to-obsidian';
+        baseEV = 14.0 - cloudPenalty;
+        wbKelvin = cloudCover > 70 ? 6500 : 5500;
+        wbLabel = cloudCover > 70 ? 'Cloudy' : 'Daylight';
+      } else {
+        name = cloudCover > 70 ? 'BRIGHT OVERCAST' : 'HARSH MIDDAY';
+        badgeClass = 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40';
+        bannerClass = 'border-yellow-500/30 bg-gradient-to-br from-yellow-500/15 via-camera to-obsidian';
+        baseEV = 15.2 - cloudPenalty;
+        wbKelvin = cloudCover > 70 ? 6400 : 5200;
+        wbLabel = cloudCover > 70 ? 'Cloudy' : 'Direct Sun';
+      }
+
+      return { name, badgeClass, bannerClass, baseEV: Math.max(0.5, baseEV), wbKelvin, wbLabel };
+    }
+
+    // =========================================================================
+    // 4. PHONE COMPASS & TILT SENSOR ENGINE
+    // =========================================================================
+    window.enablePhoneOrientation = async function enablePhoneOrientation() {
+      const btn = document.getElementById('sensorEnableBtn');
+
+      if (typeof window.DeviceOrientationEvent === 'undefined') {
+        showToast('Compass sensors not found. Use the manual aim slider below.');
+        return;
+      }
+
+      if (typeof window.DeviceOrientationEvent.requestPermission === 'function') {
+        try {
+          const response = await window.DeviceOrientationEvent.requestPermission();
+          if (response === 'granted') {
+            startOrientationListeners();
+            if (btn) btn.innerHTML = '✅ Compass Live';
+            showToast('Phone compass & tilt sensors linked!');
+          } else {
+            showToast('Compass permission denied. Use the manual slider.');
+          }
+        } catch (_) {
+          showToast('Sensor permission blocked. Use the manual slider.');
+        }
+      } else {
+        startOrientationListeners();
+        if (btn) btn.innerHTML = '✅ Compass Live';
+        showToast('Listening to device compass & tilt sensors...');
+      }
+    };
+
+    function startOrientationListeners() {
+      if (appState.orientation.sensorActive) return;
+      appState.orientation.sensorActive = true;
+
+      const tag = document.getElementById('sensorModeTag');
+      if (tag) {
+        tag.textContent = 'Live Sensor';
+        tag.className = 'text-[10px] font-mono text-emerald-400 font-semibold';
+      }
+
+      const handleEvent = (event) => {
+        let heading = null;
+        if (typeof event.webkitCompassHeading === 'number') {
+          heading = event.webkitCompassHeading;
+        } else if (typeof event.alpha === 'number') {
+          heading = (360 - event.alpha) % 360;
+        }
+        if (heading !== null && !Number.isNaN(heading)) {
+          appState.orientation.heading = Math.round(heading);
+        }
+        if (typeof event.beta === 'number' && !Number.isNaN(event.beta)) {
+          appState.orientation.pitch = Math.max(-60, Math.min(75, Math.round(event.beta - 90)));
+        }
+        updateLightRadarUI();
+      };
+
+      window.addEventListener('deviceorientationabsolute', handleEvent, true);
+      window.addEventListener('deviceorientation', handleEvent, true);
+    }
+
+    window.onManualHeadingChange = function onManualHeadingChange(val) {
+      appState.orientation.heading = parseInt(val, 10) || 0;
+      updateLightRadarUI();
+    };
+
+    window.onManualPitchChange = function onManualPitchChange(val) {
+      appState.orientation.pitch = parseInt(val, 10) || 0;
+      updateLightRadarUI();
+    };
+
+    function getCardinal(deg) {
+      const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+      return dirs[Math.round(deg / 45) % 8];
+    }
+
+    function classifyLightDirection(camHeading, sunAzimuth, sunAlt, camPitch) {
+      let diff = Math.abs(camHeading - sunAzimuth) % 360;
+      if (diff > 180) diff = 360 - diff;
+
+      const signedAngle = ((sunAzimuth - camHeading + 540) % 360) - 180;
+      const sunSide = signedAngle > 15 ? 'camera-right' : signedAngle < -15 ? 'camera-left' : 'dead-center';
+      const shadowSide = signedAngle > 15 ? 'to camera-left' : signedAngle < -15 ? 'to camera-right' : 'straight back';
+
+      if (sunAlt < -6) {
+        return {
+          badge: 'NIGHT / AMBIENT LIGHT',
+          badgeClass: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40',
+          summary: `Sun is below horizon (${sunAlt.toFixed(0)}°). Position subjects facing storefronts or streetlamps at 45°.`,
+          action: 'EV Comp: 0.0 EV • Watch for streetlamp flare',
+          evComp: 0
+        };
+      }
+      if (sunAlt > 60) {
+        return {
+          badge: 'HARSH OVERHEAD SUN',
+          badgeClass: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40',
+          summary: `Sun is nearly overhead (${sunAlt.toFixed(0)}°), casting deep shadows under eyes and noses.`,
+          action: 'Move subject to shade • EV Comp: -0.3 EV',
+          evComp: -0.3
+        };
+      }
+      if (diff <= 42) {
+        const pitchWarn = camPitch > 15 ? ' Tilted up—watch for lens flare!' : '';
+        return {
+          badge: 'BACKLIT / RIM LIGHT',
+          badgeClass: 'bg-rose-500/20 text-rose-300 border-rose-500/40',
+          summary: `Aiming toward sun (${diff.toFixed(0)}° off-axis). Creates glowing edges, but darkens faces.${pitchWarn}`,
+          action: 'Portraits: +1.3 EV • Silhouettes: -1.3 EV',
+          evComp: 1.3
+        };
+      }
+      if (diff >= 135) {
+        return {
+          badge: 'FRONT LIGHT (EVEN)',
+          badgeClass: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+          summary: `Sun is behind you (${diff.toFixed(0)}° away). Bright, evenly lit subjects with vivid colors.`,
+          action: 'EV Comp: 0.0 EV • Easiest angle for beginners',
+          evComp: 0
+        };
+      }
+      return {
+        badge: '45° SIDE / REMBRANDT',
+        badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+        summary: `Sun is ${diff.toFixed(0)}° off-axis on ${sunSide}. Sculpted highlights with shadows falling ${shadowSide}.`,
+        action: 'EV Comp: 0.0 EV • Ideal 3D depth & texture',
+        evComp: 0
+      };
+    }
+
+    function updateLightRadarUI(cachedSolar) {
+      const solar = cachedSolar || calculateSolarData(appState.location.lat, appState.location.lon, getEffectiveDate());
+      const camHeading = appState.orientation.heading;
+      const camPitch = appState.orientation.pitch;
+      const sunAz = solar.azimuth;
+      const shadowAz = (sunAz + 180) % 360;
+
+      const camGroup = document.getElementById('radarCameraGroup');
+      const sunGroup = document.getElementById('radarSunGroup');
+      const shadowGroup = document.getElementById('radarShadowGroup');
+      if (camGroup) camGroup.setAttribute('transform', `rotate(${camHeading} 100 100)`);
+      if (sunGroup) sunGroup.setAttribute('transform', `rotate(${sunAz} 100 100)`);
+      if (shadowGroup) shadowGroup.setAttribute('transform', `rotate(${shadowAz} 100 100)`);
+
+      document.getElementById('cameraHeadingSlider').value = camHeading;
+      document.getElementById('cameraPitchSlider').value = camPitch;
+      document.getElementById('cameraHeadingLabel').textContent = `${camHeading}° ${getCardinal(camHeading)} (Sun ${sunAz}°)`;
+
+      const pitchDesc = camPitch > 12 ? 'Up (Sky)' : camPitch < -12 ? 'Down' : 'Level';
+      document.getElementById('cameraPitchLabel').textContent = `${camPitch >= 0 ? '+' : ''}${camPitch}° ${pitchDesc}`;
+
+      const diagnosis = classifyLightDirection(camHeading, sunAz, solar.altitude, camPitch);
+      const badgeEl = document.getElementById('lightDirectionBadge');
+      badgeEl.textContent = diagnosis.badge;
+      badgeEl.className = `px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold border ${diagnosis.badgeClass}`;
+      document.getElementById('lightDirectionSummary').textContent = diagnosis.summary;
+      document.getElementById('lightDirectionAction').textContent = diagnosis.action;
+
+      const evCompStr = diagnosis.evComp === 0 ? '0.0 EV' : `${diagnosis.evComp > 0 ? '+' : ''}${diagnosis.evComp.toFixed(1)} EV`;
+      const meterMode = (appState.style === 'portrait' && diagnosis.evComp > 0) ? 'Spot' : 'Matrix';
+      appState.exposure.metering = `${evCompStr} • ${meterMode}`;
+      document.getElementById('readoutMetering').textContent = appState.exposure.metering;
+    }
+
+    // =========================================================================
+    // 5. WEATHER & GEOCODING (Open-Meteo Public API)
+    // =========================================================================
+    function decodeWMOWeather(code) {
+      if (code === 0) return 'Clear';
+      if (code <= 3) return 'Partly Cloudy';
+      if (code <= 48) return 'Fog / Haze';
+      if (code <= 67) return 'Rain';
+      if (code <= 77) return 'Snow';
+      if (code <= 82) return 'Showers';
+      return 'Stormy';
+    }
+
+    async function fetchWeatherForCoords(lat, lon) {
+      try {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}&current=temperature_2m,cloud_cover,weather_code&daily=uv_index_max&timezone=auto`;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4500);
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (!res.ok) throw new Error('Weather API error');
+        const data = await res.json();
+
+        if (data.timezone) {
+          appState.location.timezone = data.timezone;
+        }
+
+        appState.weather = {
+          cloudCover: data.current?.cloud_cover ?? 20,
+          tempC: Math.round(data.current?.temperature_2m ?? 22),
+          uvIndex: Math.round(data.daily?.uv_index_max?.[0] ?? 3),
+          description: decodeWMOWeather(data.current?.weather_code ?? 1),
+          isFallback: false
+        };
+      } catch (_) {
+        appState.weather = {
+          cloudCover: 22,
+          tempC: 21,
+          uvIndex: 3,
+          description: 'Simulated',
+          isFallback: true
+        };
+      }
+      updateLiveClockDisplay();
+      recalculateAll();
+    }
+
+    /**
+     * Resolves GPS coordinates into a human-readable "City, Country" label
+     * using keyless, CORS-enabled reverse geocoding (BigDataCloud + Nominatim fallback).
+     */
+    async function reverseGeocodeCoords(lat, lon) {
+      // Primary: BigDataCloud client-side reverse geocoder (fast, no API key required)
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
+        const url = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}&localityLanguage=en`;
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+          const data = await res.json();
+          const city = data.city || data.locality || data.principalSubdivision || '';
+          const country = data.countryName || '';
+          if (city && country && city !== country) return `${city}, ${country}`;
+          if (city || country) return city || country;
+        }
+      } catch (_) {
+        // Proceed to fallback
+      }
+
+      // Secondary Fallback: OpenStreetMap Nominatim
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
+        const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}&zoom=10`;
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+          const data = await res.json();
+          const addr = data.address || {};
+          const city = addr.city || addr.town || addr.village || addr.county || addr.state || '';
+          const country = addr.country || '';
+          if (city && country && city !== country) return `${city}, ${country}`;
+          if (city || country) return city || country;
+        }
+      } catch (_) {
+        // Offline fallback below
+      }
+
+      return 'My Current Location';
+    }
+
+    window.useMyLocation = function useMyLocation() {
+      if (!navigator.geolocation) {
+        showToast('Geolocation is not supported by your browser.');
+        return;
+      }
+      const btn = document.getElementById('gpsBtn');
+      if (btn) btn.innerHTML = '⏳ Locating...';
+
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const { latitude, longitude } = pos.coords;
+          appState.forcedSunAlt = null;
+          appState.timeOffsetHours = 0;
+          appState.location = {
+            name: 'Detecting city...',
+            lat: latitude,
+            lon: longitude,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
+          };
+          appState.exposure.manualOverride = false;
+          updateTimeOffsetLabels();
+
+          // Fetch weather and reverse-geocoded city name concurrently
+          const [cityName] = await Promise.all([
+            reverseGeocodeCoords(latitude, longitude),
+            fetchWeatherForCoords(latitude, longitude)
+          ]);
+
+          appState.location.name = cityName;
+          document.getElementById('stripLocationName').textContent = cityName;
+          document.getElementById('activeLocationName').textContent = cityName;
+
+          if (btn) btn.innerHTML = '📍 Use GPS';
+          showToast(`GPS locked: ${cityName}`);
+        },
+        () => {
+          if (btn) btn.innerHTML = '📍 Use GPS';
+          showToast('Location access denied. Search a city or pick a preset.');
+        },
+        { enableHighAccuracy: false, timeout: 6000 }
+      );
+    };
+
+    window.searchCity = async function searchCity() {
+      const input = document.getElementById('citySearchInput');
+      const dropdown = document.getElementById('cityResultsDropdown');
+      const query = (input.value || '').trim();
+      if (!query) return;
+
+      dropdown.classList.remove('hidden');
+      dropdown.innerHTML = '<div class="p-3 text-xs font-mono text-slate-400">Searching...</div>';
+
+      try {
+        const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=en&format=json`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (!data.results || data.results.length === 0) {
+          dropdown.innerHTML = '<div class="p-3 text-xs text-slate-400">No matching cities found.</div>';
+          return;
+        }
+
+        dropdown.innerHTML = '';
+        data.results.forEach((city) => {
+          const item = document.createElement('button');
+          item.type = 'button';
+          item.className = 'w-full text-left px-3.5 py-2.5 text-xs hover:bg-slate-700/70 border-b border-borderline last:border-b-0 flex justify-between items-center transition';
+          const label = [city.name, city.admin1, city.country].filter(Boolean).join(', ');
+          item.innerHTML = `<span class="text-white font-medium">${label}</span><span class="font-mono text-[10px] text-slate-400">${city.latitude.toFixed(1)}°, ${city.longitude.toFixed(1)}°</span>`;
+          item.onclick = () => {
+            dropdown.classList.add('hidden');
+            input.value = city.name;
+            appState.forcedSunAlt = null;
+            appState.timeOffsetHours = 0;
+            appState.location = {
+              name: `${city.name}, ${city.country || ''}`.replace(/, $/, ''),
+              lat: city.latitude,
+              lon: city.longitude,
+              timezone: city.timezone || 'UTC'
+            };
+            appState.exposure.manualOverride = false;
+            updateTimeOffsetLabels();
+            showToast(`Location set to ${appState.location.name}`);
+            fetchWeatherForCoords(city.latitude, city.longitude);
+          };
+          dropdown.appendChild(item);
+        });
+      } catch (_) {
+        dropdown.innerHTML = '<div class="p-3 text-xs text-rose-300">Search offline. Try a quick preset.</div>';
+      }
+    };
+
+    window.applyPreset = function applyPreset(key) {
+      const p = PRESET_LOCATIONS[key];
+      if (!p) return;
+      document.getElementById('cityResultsDropdown').classList.add('hidden');
+      appState.timeOffsetHours = 0;
+      appState.location = { name: p.name, lat: p.lat, lon: p.lon, timezone: p.timezone };
+      appState.weather = {
+        cloudCover: p.clouds,
+        tempC: p.temp,
+        uvIndex: p.uv,
+        description: p.weather,
+        isFallback: false
+      };
+      appState.forcedSunAlt = p.forceSunAlt;
+      appState.exposure.manualOverride = false;
+      updateTimeOffsetLabels();
+      updateLiveClockDisplay();
+      recalculateAll();
+      showToast(`Loaded "${p.name}" preset (${p.weather})`);
+    };
+
+    // =========================================================================
+    // 6. EXPOSURE TRIANGLE ENGINE (EV100 Math + Stepper & Auto-Balancing)
+    // =========================================================================
+    /**
+     * Resolves active lens capabilities (preset or user-configured Custom Lens),
+     * including aperture bounds and active focal length in mm.
+     */
+    function getActiveGearConfig() {
+      if (appState.gear !== 'custom') {
+        return GEAR_LIMITS[appState.gear] || GEAR_LIMITS.kit;
+      }
+      const c = appState.customLens;
+      const minF = APERTURES[c.minApertureIdx];
+      const maxF = APERTURES[c.maxApertureIdx];
+      const focalMm = c.type === 'prime' ? c.minMm : c.currentMm;
+      const rangeStr = c.type === 'prime' ? `${c.minMm}mm` : `${c.minMm}–${c.maxMm}mm (at ${c.currentMm}mm)`;
+      const apStr = minF === maxF ? `Fixed f/${minF}` : `f/${minF}–f/${maxF}`;
+      return {
+        minApertureIdx: c.minApertureIdx,
+        maxApertureIdx: c.maxApertureIdx,
+        fixedAperture: c.minApertureIdx === c.maxApertureIdx,
+        focalLengthMm: focalMm,
+        label: `Custom ${c.type === 'prime' ? 'Prime' : 'Zoom'} ${rangeStr} ${apStr}`
+      };
+    }
+
+    /**
+     * Returns the safest minimum shutter index for handheld shooting using the
+     * 1 / focalLength reciprocal rule (floor of 1/60s for wide lenses).
+     */
+    function getHandheldMinShutterIdx(focalLengthMm, floorHz = 60) {
+      const targetSec = 1 / Math.max(floorHz, focalLengthMm || 50);
+      for (let i = 0; i < SHUTTERS.length; i++) {
+        if (SHUTTERS[i].sec <= targetSec + 1e-6) return i;
+      }
+      return SHUTTERS.length - 1;
+    }
+
+    /**
+     * Returns the longest shutter index that avoids visible star trails using the
+     * 500 Rule (maxSec = min(30, 500 / focalLengthMm)).
+     */
+    function getAstro500RuleShutterIdx(focalLengthMm) {
+      const maxStarSec = Math.min(30, 500 / Math.max(10, focalLengthMm || 24));
+      for (let i = 0; i < SHUTTERS.length; i++) {
+        if (SHUTTERS[i].sec <= maxStarSec + 0.1) return i;
+      }
+      return SHUTTERS.length - 1;
+    }
+
+    function computeSettingsEV100(apertureIdx, shutterIdx, isoIdx) {
+      const N = APERTURES[apertureIdx];
+      const t = SHUTTERS[shutterIdx].sec;
+      const iso = ISOS[isoIdx];
+      return Math.log2((N * N) / t) - Math.log2(iso / 100);
+    }
+
+    function recommendExposure(targetEV) {
+      const gear = getActiveGearConfig();
+      const style = appState.style;
+      const isTripod = appState.support === 'tripod';
+
+      let desiredApertureIdx = 7; // f/8.0
+      if (style === 'portrait') desiredApertureIdx = 1; // f/1.8
+      else if (style === 'landscape') desiredApertureIdx = 7; // f/8.0
+      else if (style === 'street') desiredApertureIdx = 6; // f/5.6
+      else if (style === 'action') desiredApertureIdx = 3; // f/2.8
+      else if (style === 'night') desiredApertureIdx = 1; // f/1.8
+      else if (style === 'astro') desiredApertureIdx = 0; // Widest possible (f/1.4+)
+      else if (style === 'longexp') desiredApertureIdx = 8; // f/11
+
+      const apertureIdx = Math.max(gear.minApertureIdx, Math.min(gear.maxApertureIdx, desiredApertureIdx));
+
+      const handheldSafeIdx = getHandheldMinShutterIdx(gear.focalLengthMm, 60);
+      let minShutterIdx = isTripod ? 0 : handheldSafeIdx;
+      if (style === 'action') minShutterIdx = Math.max(15, isTripod ? 15 : handheldSafeIdx); // >= 1/1000s
+      else if (style === 'street') minShutterIdx = Math.max(13, isTripod ? 13 : handheldSafeIdx); // >= 1/250s
+      else if (style === 'portrait') minShutterIdx = Math.max(12, isTripod ? 12 : handheldSafeIdx); // >= 1/125s
+      else if (style === 'longexp') minShutterIdx = isTripod ? 3 : 8; // 4" tripod, 1/8s handheld
+      else if (style === 'night') minShutterIdx = isTripod ? 1 : getHandheldMinShutterIdx(gear.focalLengthMm, 30);
+      else if (style === 'astro') minShutterIdx = getAstro500RuleShutterIdx(gear.focalLengthMm);
+
+      let isoIdx = 0;
+      let bestShutterIdx = minShutterIdx;
+
+      if (style === 'astro') {
+        bestShutterIdx = minShutterIdx;
+        const neededIsoEV = Math.log2((APERTURES[apertureIdx] ** 2) / SHUTTERS[bestShutterIdx].sec) - targetEV;
+        isoIdx = Math.max(0, Math.min(ISOS.length - 1, Math.round(neededIsoEV)));
+      } else if (style === 'longexp' || (style === 'night' && isTripod)) {
+        bestShutterIdx = minShutterIdx;
+        const neededIsoEV = Math.log2((APERTURES[apertureIdx] ** 2) / SHUTTERS[bestShutterIdx].sec) - targetEV;
+        isoIdx = Math.max(0, Math.min(ISOS.length - 1, Math.round(neededIsoEV)));
+      } else {
+        const N = APERTURES[apertureIdx];
+        const neededSec = (N * N) / Math.pow(2, targetEV);
+        let closestShutter = 0;
+        let minDiff = Infinity;
+        SHUTTERS.forEach((s, idx) => {
+          const d = Math.abs(Math.log2(s.sec) - Math.log2(neededSec));
+          if (d < minDiff) { minDiff = d; closestShutter = idx; }
+        });
+
+        if (closestShutter < minShutterIdx) {
+          bestShutterIdx = minShutterIdx;
+          const deficitStops = Math.log2((N * N) / SHUTTERS[bestShutterIdx].sec) - targetEV;
+          isoIdx = Math.max(0, Math.min(ISOS.length - 1, Math.round(deficitStops)));
+        } else {
+          bestShutterIdx = closestShutter;
+          isoIdx = 0;
+        }
+      }
+
+      let focusMode = 'AF-S / Single';
+      if (style === 'action' || style === 'street') focusMode = 'AF-C / Continuous';
+      else if (style === 'portrait') focusMode = 'Eye-AF / AF-C';
+      else if (style === 'night') focusMode = 'Manual (Infinity)';
+      else if (style === 'astro') focusMode = 'Manual (Star Live View)';
+
+      let filter = 'None';
+      let filterTip = {
+        recommended: false,
+        beginner: 'No filter needed right now — you can shoot great photos with just your bare lens.',
+        pro: 'No optical filter required for this EV/subject combination; keep bare glass for maximum light transmission.'
+      };
+
+      if (style === 'astro') {
+        filter = 'Light Pollution (CLS)';
+        filterTip = {
+          recommended: false,
+          beginner: 'Optional! Under dark rural skies use no filter. Near city lights, a Light Pollution filter cuts orange skyglow.',
+          pro: 'Bare glass gives maximum starlight transmission in Bortle 1–3 skies; a didymium/CLS filter helps suppress sodium/LED glow in Bortle 4+.'
+        };
+      } else if (style === 'longexp' && targetEV > 10) {
+        filterTip = {
+          recommended: true,
+          beginner: 'Completely optional! A Circular Polarizer (CPL) cuts glare off water or leaves and makes blue skies pop more.',
+          pro: 'CPL reduces specular reflections and boosts sky saturation most effectively when aiming 90° from the sun azimuth (~1.5 stop light loss).'
+        };
+      } else if (style === 'portrait' && targetEV > 13.5 && gear.minApertureIdx <= 2) {
+        filter = 'ND4 / ND8';
+        filterTip = {
+          recommended: true,
+          beginner: 'Optional! In bright sunlight, a light ND filter lets you keep your wide blurry-background aperture without overexposing.',
+          pro: '2–3 stop ND lets you shoot wide open (f/1.4–f/2.0) in harsh sun without exceeding 1/4000s–1/8000s max shutter.'
+        };
+      }
+
+      return { apertureIdx, shutterIdx: bestShutterIdx, isoIdx, focusMode, filter, filterTip };
+    }
+
+    window.stepExposure = function stepExposure(param, delta) {
+      const gear = getActiveGearConfig();
+      if (param === 'aperture') {
+        if (gear.fixedAperture) return;
+        const next = Math.max(gear.minApertureIdx, Math.min(gear.maxApertureIdx, appState.exposure.apertureIdx + delta));
+        window.onManualExposureChange('aperture', next);
+      } else if (param === 'shutter') {
+        const next = Math.max(0, Math.min(SHUTTERS.length - 1, appState.exposure.shutterIdx + delta));
+        window.onManualExposureChange('shutter', next);
+      } else if (param === 'iso') {
+        const next = Math.max(0, Math.min(ISOS.length - 1, appState.exposure.isoIdx + delta));
+        window.onManualExposureChange('iso', next);
+      }
+    };
+
+    window.onManualExposureChange = function onManualExposureChange(changedParam, rawVal) {
+      const val = parseInt(rawVal, 10);
+      const gear = getActiveGearConfig();
+      appState.exposure.manualOverride = true;
+      document.getElementById('resetSimBtn').classList.remove('hidden');
+
+      if (changedParam === 'aperture') {
+        appState.exposure.apertureIdx = Math.max(gear.minApertureIdx, Math.min(gear.maxApertureIdx, val));
+        const N = APERTURES[appState.exposure.apertureIdx];
+        const iso = ISOS[appState.exposure.isoIdx];
+        const neededSec = (N * N) / (Math.pow(2, appState.exposure.targetEV) * (iso / 100));
+        let bestS = 0, minDiff = Infinity;
+        SHUTTERS.forEach((s, idx) => {
+          const d = Math.abs(Math.log2(s.sec) - Math.log2(neededSec));
+          if (d < minDiff) { minDiff = d; bestS = idx; }
+        });
+        appState.exposure.shutterIdx = bestS;
+      } else if (changedParam === 'shutter') {
+        appState.exposure.shutterIdx = val;
+        const N = APERTURES[appState.exposure.apertureIdx];
+        const t = SHUTTERS[appState.exposure.shutterIdx].sec;
+        const neededIsoStops = Math.log2((N * N) / t) - appState.exposure.targetEV;
+        appState.exposure.isoIdx = Math.max(0, Math.min(ISOS.length - 1, Math.round(neededIsoStops)));
+      } else if (changedParam === 'iso') {
+        appState.exposure.isoIdx = val;
+        const N = APERTURES[appState.exposure.apertureIdx];
+        const iso = ISOS[appState.exposure.isoIdx];
+        const neededSec = (N * N) / (Math.pow(2, appState.exposure.targetEV) * (iso / 100));
+        let bestS = 0, minDiff = Infinity;
+        SHUTTERS.forEach((s, idx) => {
+          const d = Math.abs(Math.log2(s.sec) - Math.log2(neededSec));
+          if (d < minDiff) { minDiff = d; bestS = idx; }
+        });
+        appState.exposure.shutterIdx = bestS;
+      }
+
+      const solar = calculateSolarData(appState.location.lat, appState.location.lon, getEffectiveDate());
+      const phase = getLightPhase(solar.altitude, appState.weather.cloudCover);
+      renderExposureUI(phase, solar);
+    };
+
+    window.resetExposureOverrides = function resetExposureOverrides() {
+      appState.exposure.manualOverride = false;
+      document.getElementById('resetSimBtn').classList.add('hidden');
+      recalculateAll();
+    };
+
+    // =========================================================================
+    // 7. CANVAS SOLAR ARC VISUALIZATION (Responsive Hi-DPI)
+    // =========================================================================
+    function drawSolarArc(solar) {
+      const canvas = document.getElementById('solarArcCanvas');
+      if (!canvas) return;
+      const parent = canvas.parentElement;
+      const dpr = window.devicePixelRatio || 1;
+      const w = parent.clientWidth || 300;
+      const h = parent.clientHeight || 96;
+
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, w, h);
+
+      const horizonY = h * 0.68;
+
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
+      ctx.fillRect(0, horizonY, w, h - horizonY);
+
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(0, horizonY);
+      ctx.lineTo(w, horizonY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.beginPath();
+      const dayLen = Math.max(1, solar.sunsetLocal - solar.sunriseLocal);
+      for (let x = 0; x <= w; x += 2) {
+        const hour = (x / w) * 24;
+        const norm = Math.sin(((hour - solar.sunriseLocal) / dayLen) * Math.PI);
+        const y = horizonY - norm * (h * 0.52);
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = 'rgba(245, 158, 11, 0.55)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      const sunX = (solar.localHour / 24) * w;
+      const clampedAlt = Math.max(-35, Math.min(75, solar.altitude));
+      const sunY = horizonY - (clampedAlt / 75) * (h * 0.55);
+
+      const grad = ctx.createRadialGradient(sunX, sunY, 2, sunX, sunY, 14);
+      if (solar.altitude >= 0) {
+        grad.addColorStop(0, 'rgba(251, 191, 36, 0.95)');
+        grad.addColorStop(1, 'rgba(251, 191, 36, 0)');
+      } else {
+        grad.addColorStop(0, 'rgba(99, 102, 241, 0.85)');
+        grad.addColorStop(1, 'rgba(99, 102, 241, 0)');
+      }
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(sunX, sunY, 14, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = solar.altitude >= 0 ? '#fbbf24' : '#818cf8';
+      ctx.beginPath();
+      ctx.arc(sunX, sunY, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // =========================================================================
+    // 8. MASTER RECALCULATE & UI RENDERING
+    // =========================================================================
+    function recalculateAll() {
+      const solar = calculateSolarData(appState.location.lat, appState.location.lon, getEffectiveDate());
+      const phase = getLightPhase(solar.altitude, appState.weather.cloudCover);
+
+      // Dark-sky astrophotography sits far darker (~EV -5) than urban night (~EV 2)
+      const effectiveEV = (appState.style === 'astro' && solar.altitude < -12) ? -5.0 : phase.baseEV;
+      appState.exposure.targetEV = effectiveEV;
+      appState.exposure.wbKelvin = (appState.style === 'astro' && solar.altitude < -12) ? 4000 : phase.wbKelvin;
+      appState.exposure.wbLabel = (appState.style === 'astro' && solar.altitude < -12) ? 'Astro Neutral' : phase.wbLabel;
+
+      if (!appState.exposure.manualOverride) {
+        const rec = recommendExposure(effectiveEV);
+        appState.exposure.apertureIdx = rec.apertureIdx;
+        appState.exposure.shutterIdx = rec.shutterIdx;
+        appState.exposure.isoIdx = rec.isoIdx;
+        appState.exposure.focusMode = rec.focusMode;
+        appState.exposure.filter = rec.filter;
+        appState.exposure.filterTip = rec.filterTip;
+      }
+
+      // Sync Top Strip & Companion Location Card
+      document.getElementById('stripLocationName').textContent = appState.location.name;
+      document.getElementById('activeLocationName').textContent = appState.location.name;
+
+      const stripBadge = document.getElementById('stripPhaseBadge');
+      stripBadge.textContent = phase.name;
+      stripBadge.className = `px-2 py-0.5 rounded-md text-[10px] font-mono font-bold border ${phase.badgeClass}`;
+      document.getElementById('stripEvBadge').textContent = `EV ${phase.baseEV.toFixed(1)}`;
+
+      const latDir = appState.location.lat >= 0 ? 'N' : 'S';
+      const lonDir = appState.location.lon >= 0 ? 'E' : 'W';
+      document.getElementById('activeCoords').textContent = `${Math.abs(appState.location.lat).toFixed(2)}° ${latDir}, ${Math.abs(appState.location.lon).toFixed(2)}° ${lonDir}`;
+
+      const banner = document.getElementById('phaseBanner');
+      banner.className = `rounded-xl p-3.5 border ${phase.bannerClass}`;
+
+      const badge = document.getElementById('phaseBadge');
+      badge.textContent = phase.name;
+      badge.className = `inline-block px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold border ${phase.badgeClass}`;
+
+      document.getElementById('localTimeBadge').textContent = `${formatDecimalHour(solar.localHour)} ${appState.timeOffsetHours !== 0 ? '(Shifted)' : 'Local'}`;
+      document.getElementById('evBadge').textContent = `EV ${phase.baseEV.toFixed(1)}`;
+      document.getElementById('sunAltitudeVal').textContent = `${solar.altitude >= 0 ? '+' : ''}${solar.altitude.toFixed(0)}° / ${solar.azimuth}°`;
+      document.getElementById('cloudCoverVal').textContent = `${appState.weather.cloudCover}%`;
+      document.getElementById('weatherDescVal').textContent = appState.weather.description;
+      document.getElementById('tempUvVal').textContent = `${appState.weather.tempC}°C / UV${appState.weather.uvIndex}`;
+
+      document.getElementById('timeBlueAM').textContent = formatDecimalHour(solar.blueAM);
+      document.getElementById('timeSunrise').textContent = formatDecimalHour(solar.sunriseLocal);
+      document.getElementById('timeSunset').textContent = formatDecimalHour(solar.sunsetLocal);
+      document.getElementById('timeBluePM').textContent = formatDecimalHour(solar.bluePM);
+
+      const hrsToSunset = solar.sunsetLocal - solar.localHour;
+      const countdownEl = document.getElementById('nextGoldenCountdown');
+      if (hrsToSunset > 0 && hrsToSunset < 12) {
+        const h = Math.floor(hrsToSunset);
+        const m = Math.round((hrsToSunset - h) * 60);
+        countdownEl.textContent = `Sunset in ${h > 0 ? h + 'h ' : ''}${m}m`;
+      } else {
+        countdownEl.textContent = `Sunrise at ${formatDecimalHour(solar.sunriseLocal)}`;
+      }
+
+      // Highlight active style pill
+      document.querySelectorAll('.style-btn').forEach((btn) => {
+        const active = btn.dataset.style === appState.style;
+        btn.className = active
+          ? 'style-btn px-2 py-2 rounded-xl border text-xs font-semibold transition bg-amber-500/20 border-amber-500 text-amber-300 shadow-inner'
+          : 'style-btn px-2 py-2 rounded-xl border text-xs font-medium transition bg-camera border-borderline text-slate-300 hover:bg-dial';
+      });
+
+      drawSolarArc(solar);
+      updateLightRadarUI(solar);
+      renderExposureUI(phase, solar);
+    }
+
+    function renderExposureUI(phase, solar) {
+      const exp = appState.exposure;
+      const N = APERTURES[exp.apertureIdx];
+      const shutterObj = SHUTTERS[exp.shutterIdx];
+      const iso = ISOS[exp.isoIdx];
+      const gear = getActiveGearConfig();
+
+      // Update Primary Readouts
+      document.getElementById('readoutAperture').textContent = `f/${N}`;
+      document.getElementById('readoutShutter').textContent = shutterObj.label;
+      document.getElementById('readoutISO').textContent = `ISO ${iso}`;
+
+      // Plain-English Beginner vs Pro Micro-Hints
+      document.getElementById('labelApertureHint').textContent = gear.fixedAperture ? 'Fixed Lens' : (appState.mode === 'pro' ? 'DOF / f-stop' : 'Blur / Depth');
+      document.getElementById('labelShutterHint').textContent = appState.mode === 'pro' ? 'Exposure Time' : 'Motion';
+      document.getElementById('labelIsoHint').textContent = appState.mode === 'pro' ? 'Sensor Gain' : 'Brightness';
+
+      document.getElementById('descAperture').textContent =
+        N <= 2.8 ? 'Soft blurred background' : N <= 5.6 ? 'Balanced sharpness' : 'Sharp front-to-back';
+      document.getElementById('descShutter').textContent =
+        shutterObj.sec >= 0.5 ? 'Tripod required (blur)' : shutterObj.sec > (1 / 60) ? 'Hold very steady' : shutterObj.sec <= (1 / 500) ? 'Freezes fast action' : 'Safe for handheld';
+      document.getElementById('descISO').textContent =
+        iso <= 400 ? 'Cleanest quality' : iso <= 1600 ? 'Slight grain, usable' : 'High grain (low light)';
+
+      // Sync Sliders & Stepper Buttons
+      const apSlider = document.getElementById('sliderAperture');
+      apSlider.min = gear.minApertureIdx;
+      apSlider.max = gear.maxApertureIdx;
+      apSlider.disabled = gear.fixedAperture;
+      apSlider.value = exp.apertureIdx;
+
+      document.getElementById('btnApMinus').disabled = gear.fixedAperture;
+      document.getElementById('btnApPlus').disabled = gear.fixedAperture;
+      document.getElementById('btnApMinus').classList.toggle('opacity-40', gear.fixedAperture);
+      document.getElementById('btnApPlus').classList.toggle('opacity-40', gear.fixedAperture);
+
+      document.getElementById('sliderShutter').value = exp.shutterIdx;
+      document.getElementById('sliderISO').value = exp.isoIdx;
+
+      // Secondary Readouts
+      document.getElementById('readoutWB').textContent = `${exp.wbKelvin}K (${exp.wbLabel})`;
+      document.getElementById('readoutFocus').textContent = exp.focusMode;
+
+      // Light Meter Needle
+      const actualEV = computeSettingsEV100(exp.apertureIdx, exp.shutterIdx, exp.isoIdx);
+      const evDiff = exp.targetEV - actualEV;
+      const clampedDiff = Math.max(-3, Math.min(3, evDiff));
+      const pct = 50 + (clampedDiff / 3) * 46;
+
+      const needle = document.getElementById('meterNeedle');
+      const statusText = document.getElementById('meterStatusText');
+      needle.style.left = `calc(${pct}% - 6px)`;
+
+      if (Math.abs(evDiff) <= 0.45) {
+        needle.className = 'absolute top-0 bottom-0 w-3 rounded-full bg-emerald-400 shadow-lg transition-all duration-200';
+        statusText.className = 'text-emerald-400 font-semibold';
+        statusText.textContent = `Balanced (${evDiff >= 0 ? '+' : ''}${evDiff.toFixed(1)} EV)`;
+      } else if (evDiff > 0.45) {
+        needle.className = 'absolute top-0 bottom-0 w-3 rounded-full bg-amber-400 shadow-lg transition-all duration-200';
+        statusText.className = 'text-amber-400 font-semibold';
+        statusText.textContent = `Overexposed (+${evDiff.toFixed(1)} EV)`;
+      } else {
+        needle.className = 'absolute top-0 bottom-0 w-3 rounded-full bg-rose-400 shadow-lg transition-all duration-200';
+        statusText.className = 'text-rose-400 font-semibold';
+        statusText.textContent = `Underexposed (${evDiff.toFixed(1)} EV)`;
+      }
+
+      // Contextual Warnings
+      const warnBox = document.getElementById('exposureWarningBox');
+      const warnText = document.getElementById('exposureWarningText');
+      const warnings = [];
+
+      const safeHandheldSec = 1 / Math.max(55, gear.focalLengthMm || 50);
+      if (appState.style === 'astro') {
+        if (solar.altitude >= -12) {
+          warnings.push(`Sun is at ${solar.altitude.toFixed(0)}° (${phase.name}). Stars require Astronomical Night (sun below -12°) — tap +1h Time Shift or Tokyo Night to preview astro settings.`);
+        }
+        if (appState.support === 'handheld') {
+          warnings.push('Astrophotography requires a sturdy Tripod (plus a 2s self-timer) to keep stars sharp.');
+        }
+        if (appState.weather.cloudCover > 40) {
+          warnings.push(`Cloud cover is ${appState.weather.cloudCover}% — clear skies (<20%) are best for stars.`);
+        }
+      } else if (appState.support === 'handheld' && shutterObj.sec > safeHandheldSec) {
+        warnings.push(`Shutter (${shutterObj.label}) is slow for handheld at ${gear.focalLengthMm}mm—brace your elbows, switch Hold to Tripod, or raise ISO.`);
+      }
+      if (evDiff > 1.2) {
+        warnings.push(`Too bright (+${evDiff.toFixed(1)} EV). Attach an ND filter, use a faster shutter, or increase f-number.`);
+      }
+      if (evDiff < -1.2) {
+        warnings.push(`Too dark (${evDiff.toFixed(1)} EV). Lower f-number, use a slower shutter on a tripod, or raise ISO.`);
+      }
+
+      if (warnings.length > 0) {
+        warnBox.classList.remove('hidden');
+        warnText.textContent = warnings.join(' ');
+      } else {
+        warnBox.classList.add('hidden');
+      }
+
+      renderCoachingGuide(phase, solar, N, shutterObj, iso);
+    }
+
+    function renderCoachingGuide(phase, solar, N, shutterObj, iso) {
+      const isPro = appState.mode === 'pro';
+      const gear = getActiveGearConfig();
+      const maxStarSec = Math.min(30, Math.round(500 / Math.max(10, gear.focalLengthMm || 24)));
+      document.getElementById('guideSectionTitle').textContent = isPro
+        ? 'Pro Technical Notes & Tips'
+        : 'Why These Settings? — Beginner Tips & Field Guide';
+
+      let cards;
+      if (appState.style === 'astro') {
+        cards = isPro
+          ? [
+              {
+                icon: '🌌',
+                title: `500 Rule @ ${gear.focalLengthMm}mm`,
+                body: `500 ÷ ${gear.focalLengthMm}mm ≈ ${maxStarSec}s max before Earth's rotation trails stars (use 300 Rule for APS-C or NPF for high-MP sensors).`
+              },
+              {
+                icon: '🔭',
+                title: `Wide Open at f/${N}`,
+                body: `Maximizes photon capture. If corners show heavy coma on fast primes, stop down 1/3–1 stop (e.g., f/2.0–f/2.8).`
+              },
+              {
+                icon: '🎯',
+                title: 'Manual Star Focusing',
+                body: `Disable AF and lens stabilization (IS/VR) on tripod. Zoom Live View 10× onto a bright star and focus until it is the tiniest pinpoint.`
+              },
+              {
+                icon: '🌡️',
+                title: `RAW + ${appState.exposure.wbKelvin}K`,
+                body: `Shoot 14-bit RAW at ISO ${iso} (near your sensor's dual-gain sweet spot) with a 2s timer or intervalometer to eliminate shutter slap.`
+              }
+            ]
+          : [
+              {
+                icon: '🌌',
+                title: `Why ${shutterObj.label}? (Star Rule)`,
+                body: `Stars slowly move across the sky! At ${gear.focalLengthMm}mm, staying at or under ${maxStarSec}s keeps stars as sharp dots instead of blurry streaks.`
+              },
+              {
+                icon: '✨',
+                title: `Why f/${N} & ISO ${iso}?`,
+                body: `Your lens is opened as wide as possible (f/${N}) with high ISO (${iso}) so your camera can see faint stars and the Milky Way.`
+              },
+              {
+                icon: '🎯',
+                title: 'How to Focus in the Dark',
+                body: `Autofocus struggles at night. Switch to Manual Focus, turn on Live View, zoom in on the brightest star, and twist the ring until it's a tiny crisp dot.`
+              },
+              {
+                icon: '⏱️',
+                title: 'Use a 2-Second Timer',
+                body: `Pressing the shutter button shakes the camera on a tripod. Turn on your camera's 2-second self-timer for razor-sharp night skies.`
+              }
+            ];
+      } else {
+        cards = isPro
+          ? [
+              {
+                icon: '🔭',
+                title: 'Optical & DOF Strategy',
+                body: `At f/${N} in ${appState.style} mode, focus ~1/3 into the frame for hyperfocal depth (or lock Eye-AF for portraits).`
+              },
+              {
+                icon: '📊',
+                title: `Scene EV100: ${phase.baseEV.toFixed(1)}`,
+                body: `Sun altitude is ${solar.altitude.toFixed(1)}° with ${appState.weather.cloudCover}% cloud cover. Shoot RAW and protect bright highlights.`
+              },
+              {
+                icon: '🌡️',
+                title: `Color Temp: ${appState.exposure.wbKelvin}K`,
+                body: `Manual Kelvin prevents color shifts between shots. ${solar.altitude <= 8 ? 'Warm Kelvin preserves golden hour tones.' : 'Matches ambient daylight spectrum.'}`
+              },
+              {
+                icon: '🧭',
+                title: `Sun Azimuth: ${solar.azimuth}°`,
+                body: `Aiming 90° from the sun maximizes CPL sky contrast and gives sculpted side-lighting.`
+              }
+            ]
+          : [
+              {
+                icon: '🎯',
+                title: `Why f/${N}?`,
+                body: N <= 2.8
+                  ? `A wide lens opening lets in lots of light and softly blurs the background so your subject stands out.`
+                  : `A narrower opening keeps both nearby objects and distant scenery crisp and in focus.`
+              },
+              {
+                icon: '⏱️',
+                title: `Why ${shutterObj.label}?`,
+                body: shutterObj.sec >= 0.5
+                  ? `Stays open longer to capture dim light or silky motion—rest your camera on a tripod or ledge!`
+                  : `Fast enough to stop blurry photos from hand shake while keeping movement crisp.`
+              },
+              {
+                icon: '✨',
+                title: `Why ISO ${iso}?`,
+                body: iso <= 400
+                  ? `Low ISO keeps your photo super clean, smooth, and free of digital grain.`
+                  : `Boosted so your camera can brighten a dimmer scene without slowing down your shutter.`
+              },
+              {
+                icon: '☀️',
+                title: `Light Tip (${phase.name})`,
+                body: solar.altitude <= 8 && solar.altitude >= -4
+                  ? `Soft warm light! Use the Light-Source Radar to keep the sun at 45° for glowing highlights.`
+                  : `Use the Light-Source Radar to place the sun behind you or at 45° to avoid harsh shadows.`
+              }
+            ];
+      }
+
+      document.getElementById('coachingCardsContainer').innerHTML = cards.map((c) => `
+        <div class="bg-obsidian/80 border border-borderline rounded-xl p-3.5">
+          <div class="flex items-center gap-2 text-xs font-semibold text-white mb-1">
+            <span>${c.icon}</span>
+            <span>${c.title}</span>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">${c.body}</p>
+        </div>
+      `).join('');
+
+      // Render Optional Lens Filter Tip
+      const filterEl = document.getElementById('optionalFilterTip');
+      if (filterEl) {
+        const filterName = appState.exposure.filter || 'None';
+        const tip = appState.exposure.filterTip || {
+          recommended: false,
+          beginner: 'No filter needed right now — shoot with your bare lens.',
+          pro: 'No optical filter needed for current conditions.'
+        };
+        const badgeStyle = tip.recommended
+          ? 'bg-sky-500/15 text-sky-300 border-sky-500/30'
+          : 'bg-slate-700/60 text-slate-300 border-slate-600';
+
+        filterEl.innerHTML = `
+          <span class="text-base leading-none mt-0.5 shrink-0">🕶️</span>
+          <div class="space-y-1 flex-1">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-semibold text-slate-200">
+                Lens Filter: <span class="${tip.recommended ? 'text-sky-300' : 'text-slate-400'}">${filterName}</span>
+              </span>
+              <span class="px-2 py-0.5 rounded-md border text-[10px] font-mono uppercase tracking-wider ${badgeStyle}">
+                Optional Accessory
+              </span>
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              ${isPro ? tip.pro : tip.beginner}
+            </p>
+          </div>
+        `;
+      }
+    }
+
+    // =========================================================================
+    // 9. USER INTERACTION HANDLERS
+    // =========================================================================
+    window.setAppMode = function setAppMode(mode) {
+      appState.mode = mode;
+      const bBtn = document.getElementById('modeBeginnerBtn');
+      const pBtn = document.getElementById('modeProBtn');
+      if (mode === 'beginner') {
+        bBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-obsidian transition';
+        pBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition';
+      } else {
+        pBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-obsidian transition';
+        bBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition';
+      }
+      recalculateAll();
+    };
+
+    window.setStyle = function setStyle(style) {
+      appState.style = style;
+      appState.exposure.manualOverride = false;
+      document.getElementById('resetSimBtn').classList.add('hidden');
+      recalculateAll();
+    };
+
+    window.setGear = function setGear(gear) {
+      appState.gear = gear;
+      appState.exposure.manualOverride = false;
+      document.getElementById('resetSimBtn').classList.add('hidden');
+      syncCustomLensUI();
+      recalculateAll();
+    };
+
+    window.setCustomLensType = function setCustomLensType(type) {
+      appState.customLens.type = type === 'prime' ? 'prime' : 'zoom';
+      if (appState.customLens.type === 'prime') {
+        appState.customLens.maxMm = appState.customLens.minMm;
+        appState.customLens.currentMm = appState.customLens.minMm;
+      } else {
+        if (appState.customLens.maxMm <= appState.customLens.minMm) {
+          appState.customLens.maxMm = Math.min(1200, appState.customLens.minMm + 46);
+        }
+        appState.customLens.currentMm = Math.max(
+          appState.customLens.minMm,
+          Math.min(appState.customLens.maxMm, appState.customLens.currentMm)
+        );
+      }
+      appState.exposure.manualOverride = false;
+      document.getElementById('resetSimBtn').classList.add('hidden');
+      syncCustomLensUI();
+      recalculateAll();
+    };
+
+    window.updateCustomLens = function updateCustomLens(field, rawVal) {
+      const c = appState.customLens;
+      const num = parseInt(rawVal, 10);
+      if (Number.isNaN(num)) return;
+
+      if (field === 'minApertureIdx') {
+        c.minApertureIdx = Math.max(0, Math.min(APERTURES.length - 1, num));
+        if (c.minApertureIdx > c.maxApertureIdx) c.maxApertureIdx = c.minApertureIdx;
+      } else if (field === 'maxApertureIdx') {
+        c.maxApertureIdx = Math.max(0, Math.min(APERTURES.length - 1, num));
+        if (c.maxApertureIdx < c.minApertureIdx) c.minApertureIdx = c.maxApertureIdx;
+      } else if (field === 'minMm') {
+        c.minMm = Math.max(8, Math.min(1200, num));
+        if (c.type === 'prime') {
+          c.maxMm = c.minMm;
+          c.currentMm = c.minMm;
+        } else {
+          if (c.minMm > c.maxMm) c.maxMm = c.minMm;
+          c.currentMm = Math.max(c.minMm, Math.min(c.maxMm, c.currentMm));
+        }
+      } else if (field === 'maxMm') {
+        c.maxMm = Math.max(8, Math.min(1200, num));
+        if (c.maxMm < c.minMm) c.minMm = c.maxMm;
+        c.currentMm = Math.max(c.minMm, Math.min(c.maxMm, c.currentMm));
+      } else if (field === 'currentMm') {
+        c.currentMm = Math.max(c.minMm, Math.min(c.maxMm, num));
+      }
+
+      appState.exposure.manualOverride = false;
+      document.getElementById('resetSimBtn').classList.add('hidden');
+      syncCustomLensUI();
+      recalculateAll();
+    };
+
+    function syncCustomLensUI() {
+      const panel = document.getElementById('customLensPanel');
+      if (!panel) return;
+      const isCustom = appState.gear === 'custom';
+      panel.classList.toggle('hidden', !isCustom);
+      if (!isCustom) return;
+
+      const c = appState.customLens;
+      const isPrime = c.type === 'prime';
+
+      const primeBtn = document.getElementById('customTypePrimeBtn');
+      const zoomBtn = document.getElementById('customTypeZoomBtn');
+      primeBtn.className = isPrime
+        ? 'px-2.5 py-1 rounded-md text-[11px] font-semibold bg-amber-500 text-obsidian transition'
+        : 'px-2.5 py-1 rounded-md text-[11px] font-medium text-slate-400 hover:text-white transition';
+      zoomBtn.className = !isPrime
+        ? 'px-2.5 py-1 rounded-md text-[11px] font-semibold bg-amber-500 text-obsidian transition'
+        : 'px-2.5 py-1 rounded-md text-[11px] font-medium text-slate-400 hover:text-white transition';
+
+      document.getElementById('customMinFStop').value = c.minApertureIdx;
+      document.getElementById('customMaxFStop').value = c.maxApertureIdx;
+      document.getElementById('customMinMm').value = c.minMm;
+      document.getElementById('customMaxMm').value = c.maxMm;
+
+      document.getElementById('customMinMmLabel').textContent = isPrime ? 'Focal (mm)' : 'Min mm';
+      const maxMmBox = document.getElementById('customMaxMmBox');
+      const maxMmInput = document.getElementById('customMaxMm');
+      maxMmInput.disabled = isPrime;
+      maxMmBox.classList.toggle('opacity-40', isPrime);
+
+      const zoomRow = document.getElementById('customZoomSliderRow');
+      zoomRow.classList.toggle('hidden', isPrime || c.minMm === c.maxMm);
+      const zoomSlider = document.getElementById('customCurrentMmSlider');
+      zoomSlider.min = c.minMm;
+      zoomSlider.max = c.maxMm;
+      zoomSlider.value = c.currentMm;
+      document.getElementById('customCurrentMmLabel').textContent = `${c.currentMm}mm`;
+
+      const minF = APERTURES[c.minApertureIdx];
+      const maxF = APERTURES[c.maxApertureIdx];
+      const apStr = minF === maxF ? `f/${minF}` : `f/${minF}–f/${maxF}`;
+      const mmStr = isPrime ? `${c.minMm}mm` : `${c.minMm}–${c.maxMm}mm`;
+      document.getElementById('customLensSummaryBadge').textContent = `${isPrime ? 'Prime' : 'Zoom'} • ${mmStr} • ${apStr}`;
+    }
+
+    window.setSupport = function setSupport(support) {
+      appState.support = support;
+      appState.exposure.manualOverride = false;
+      document.getElementById('resetSimBtn').classList.add('hidden');
+      recalculateAll();
+    };
+
+    window.shiftTime = function shiftTime(hours) {
+      appState.forcedSunAlt = null;
+      appState.timeOffsetHours = Math.max(-12, Math.min(12, appState.timeOffsetHours + hours));
+      appState.exposure.manualOverride = false;
+      updateTimeOffsetLabels();
+      recalculateAll();
+    };
+
+    window.resetTime = function resetTime() {
+      appState.timeOffsetHours = 0;
+      appState.exposure.manualOverride = false;
+      updateTimeOffsetLabels();
+      recalculateAll();
+    };
+
+    function updateTimeOffsetLabels() {
+      const label = appState.timeOffsetHours === 0
+        ? 'LIVE'
+        : `${appState.timeOffsetHours > 0 ? '+' : ''}${appState.timeOffsetHours}h`;
+      document.getElementById('headerTimeDisplay').textContent = label;
+      document.getElementById('resetTimeBtn').classList.toggle('hidden', appState.timeOffsetHours === 0);
+    }
+
+    window.copyRecipeToClipboard = function copyRecipeToClipboard() {
+      const exp = appState.exposure;
+      const gear = getActiveGearConfig();
+      const filterLine = exp.filter && exp.filter !== 'None' ? ` | Optional Filter: ${exp.filter}` : '';
+      const text = [
+        `Luminary Shot Recipe — ${appState.location.name}`,
+        `Style: ${appState.style.toUpperCase()} | Lens: ${gear.label} (${appState.support})`,
+        `Settings: f/${APERTURES[exp.apertureIdx]} | ${SHUTTERS[exp.shutterIdx].label} | ISO ${ISOS[exp.isoIdx]}`,
+        `WB: ${exp.wbKelvin}K (${exp.wbLabel}) | Focus: ${exp.focusMode} | Meter: ${exp.metering}${filterLine}`
+      ].join('\n');
+
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('Camera settings copied to clipboard!');
+      } catch (_) {
+        showToast('Could not copy automatically.');
+      }
+    };
+
+    // Dismiss city search dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      const container = document.getElementById('citySearchContainer');
+      const dropdown = document.getElementById('cityResultsDropdown');
+      if (container && dropdown && !container.contains(e.target)) {
+        dropdown.classList.add('hidden');
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      const solar = calculateSolarData(appState.location.lat, appState.location.lon, getEffectiveDate());
+      drawSolarArc(solar);
+    });
+
+    // =========================================================================
+    // 10. INITIALIZATION
+    // =========================================================================
+    window.onload = function () {
+      updateLiveClockDisplay();
+      setInterval(updateLiveClockDisplay, 1000);
+      fetchWeatherForCoords(appState.location.lat, appState.location.lon);
+    };
+  </script>
+</body>
+</html>
