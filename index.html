@@ -2,8 +2,22 @@
 <html lang="en" class="dark">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Luminary — Location-Aware Photography Assistant</title>
+
+  <!-- Android PWA & Mobile Web App Metadata -->
+  <meta name="description" content="Location-aware camera settings, solar ephemeris, and phone compass light-source assistant for photographers." />
+  <meta name="theme-color" content="#0b0d10" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Luminary" />
+
+  <!-- Android Web App Manifest & Icons -->
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" sizes="512x512" href="luminary-icon-512x512.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="luminary-icon-192x192.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="luminary-icon-192x192.png" />
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -94,8 +108,19 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
       <!-- Brand Identity -->
       <div class="flex items-center gap-2.5">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20 text-obsidian font-bold text-lg">
-          ◎
+        <div class="w-9 h-9 rounded-xl overflow-hidden shadow-lg shadow-amber-500/20 border border-slate-700/70 shrink-0" aria-label="Luminary Logo">
+          <!-- Inline Flat Luminary Logo SVG (matches exported 512x512 PNG icon) -->
+          <svg viewBox="0 0 512 512" class="w-full h-full block" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Luminary">
+            <rect width="512" height="512" fill="#0b1a2e" />
+            <circle cx="256" cy="256" r="196" fill="none" stroke="rgba(148,163,184,0.18)" stroke-width="6" />
+            <circle cx="222" cy="260" r="126" fill="#f5a623" />
+            <circle cx="284" cy="264" r="116" fill="#2596e8" />
+            <circle cx="262" cy="262" r="62" fill="#0b1a2e" />
+            <g transform="translate(262 262) rotate(45)">
+              <polygon points="0,-190 28,0 0,174 -28,0" fill="#ffffff" />
+              <circle cx="0" cy="0" r="17" fill="#0b1a2e" />
+            </g>
+          </svg>
         </div>
         <div>
           <h1 class="text-base sm:text-lg font-bold tracking-tight text-white leading-none">LUMINARY</h1>
@@ -2093,10 +2118,19 @@
     // =========================================================================
     // 10. INITIALIZATION
     // =========================================================================
+    // 10. INITIALIZATION & ANDROID PWA SERVICE WORKER REGISTRATION
+    // =========================================================================
     window.onload = function () {
       updateLiveClockDisplay();
       setInterval(updateLiveClockDisplay, 1000);
       fetchWeatherForCoords(appState.location.lat, appState.location.lon);
+
+      // Register Service Worker for Android PWA / PWABuilder APK support
+      if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+        navigator.serviceWorker.register('./sw.js').catch(() => {
+          // Silently ignore in sandboxed preview environments
+        });
+      }
     };
   </script>
 </body>

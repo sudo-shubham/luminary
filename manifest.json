@@ -1,24 +1,39 @@
 {
-  "background_color": "#ffffff",
-  "dir": "ltr",
-  "display": "standalone",
-  "name": "Luminary",
-  "orientation": "any",
-  "scope": "/",
+  "name": "Luminary — Photography Assistant",
   "short_name": "Luminary",
-  "start_url": "/index.html",
-  "theme_color": "#ffffff",
-  "id": "luminary",
-  "categories": [
-    "graphics",
-    "multimedia",
-    "photo",
-    "photo &amp; video",
-    "productivity",
-    "social",
-    "travel",
-    "utilities",
-    "weather"
-  ],
-  "lang": "en"
+  "description": "Location-aware camera settings, solar ephemeris, and phone compass light-source radar for photographers.",
+  "id": "./index.html",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0b0d10",
+  "theme_color": "#0b0d10",
+  "categories": ["photography", "utilities"],
+  "icons": [
+    {
+      "src": "./luminary-icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./luminary-icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "./luminary-icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./luminary-icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
 }
