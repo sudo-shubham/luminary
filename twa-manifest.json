@@ -3,6 +3,7 @@
   "host": "sudo-shubham.github.io",
   "name": "Luminary",
   "launcherName": "Luminary",
+  "minSdkVersion": 24,
   "themeColor": "#0b0d10",
   "themeColorDark": "#0b0d10",
   "navigationColor": "#0b0d10",
