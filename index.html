@@ -19,6 +19,9 @@
   <link rel="icon" type="image/png" sizes="192x192" href="luminary-icon-192x192.png" />
   <link rel="apple-touch-icon" sizes="192x192" href="luminary-icon-192x192.png" />
 
+  <!-- PWABuilder pwa-install Web Component -->
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@pwabuilder/pwainstall"></script>
+
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
@@ -148,6 +151,28 @@
             Pro
           </button>
         </div>
+
+        <!-- PWABuilder Native App Installation Component & Button -->
+        <pwa-install
+          id="pwaInstaller"
+          manifestpath="manifest.json"
+          usecustom="true"
+          installbuttontext="Install Luminary"
+          explainer="Install Luminary for instant camera dials, offline ephemeris & sun radar.">
+        </pwa-install>
+
+        <button
+          type="button"
+          id="pwaInstallHeaderBtn"
+          onclick="window.promptPwaInstall()"
+          class="hidden items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-300 hover:bg-amber-500/25 text-xs font-semibold transition active:scale-95"
+          title="Install Luminary as native app">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+          </svg>
+          <span class="hidden sm:inline">Install App</span>
+          <span class="sm:hidden">Install</span>
+        </button>
       </div>
     </div>
   </header>
@@ -2116,11 +2141,77 @@
     });
 
     // =========================================================================
-    // 10. INITIALIZATION
+    // 10. INITIALIZATION & PWABUILDER SERVICE WORKER / INSTALL LOGIC
     // =========================================================================
-    // 10. INITIALIZATION & ANDROID PWA SERVICE WORKER REGISTRATION
-    // =========================================================================
+    let deferredPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const btn = document.getElementById('pwaInstallHeaderBtn');
+      if (btn) {
+        btn.classList.remove('hidden');
+        btn.classList.add('inline-flex');
+      }
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredPrompt = null;
+      const btn = document.getElementById('pwaInstallHeaderBtn');
+      if (btn) btn.classList.add('hidden');
+      showToast('🌟 Luminary installed to your device!');
+    });
+
+    window.promptPwaInstall = async function promptPwaInstall() {
+      const pwaInstaller = document.getElementById('pwaInstaller');
+      if (pwaInstaller && typeof pwaInstaller.openPrompt === 'function') {
+        try {
+          await pwaInstaller.openPrompt();
+          return;
+        } catch (err) {
+          // Fallback to native prompt below
+        }
+      }
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          const btn = document.getElementById('pwaInstallHeaderBtn');
+          if (btn) btn.classList.add('hidden');
+        }
+        deferredPrompt = null;
+      } else {
+        showToast('Tap your browser menu (⋮ or Share) and select "Add to Home Screen".');
+      }
+    };
+
     window.onload = function () {
+      // 1. Support Android App Shortcuts & URL Parameters (?style=astro, ?style=portrait, etc.)
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const styleParam = urlParams.get('style');
+        if (styleParam && typeof window.setStyle === 'function') {
+          window.setStyle(styleParam);
+        }
+      } catch (err) {
+        // Fallback for older browsers
+      }
+
+      // 2. Setup PWABuilder Web Component Listeners
+      const pwaInstaller = document.getElementById('pwaInstaller');
+      const installBtn = document.getElementById('pwaInstallHeaderBtn');
+      if (pwaInstaller) {
+        pwaInstaller.addEventListener('can-install', (e) => {
+          if (e.detail && e.detail.canInstall && installBtn) {
+            installBtn.classList.remove('hidden');
+            installBtn.classList.add('inline-flex');
+          }
+        });
+        pwaInstaller.addEventListener('pwa-installed', () => {
+          if (installBtn) installBtn.classList.add('hidden');
+        });
+      }
+
       updateLiveClockDisplay();
       setInterval(updateLiveClockDisplay, 1000);
       fetchWeatherForCoords(appState.location.lat, appState.location.lon);

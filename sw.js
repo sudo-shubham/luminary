@@ -1,11 +1,14 @@
 // Luminary Service Worker — Enables Android PWA installation & offline app-shell caching
-const CACHE_NAME = 'luminary-v1';
+const CACHE_NAME = 'luminary-v2';
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.json',
+  './luminary-icon-48x48.png',
   './luminary-icon-192x192.png',
-  './luminary-icon-512x512.png'
+  './luminary-icon-maskable-192x192.png',
+  './luminary-icon-512x512.png',
+  './luminary-icon-maskable-512x512.png'
 ];
 
 // Install: pre-cache core app shell assets
@@ -26,23 +29,48 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch: network-first for live weather/HTML, falling back to cache when offline
+// Fetch: network-first for local assets & CDN dependencies, falling back to cache when offline
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   const url = new URL(event.request.url);
-  // Let live weather & geocoding APIs go directly to network
-  if (url.origin !== self.location.origin) return;
+
+  // Bypass live weather and reverse-geocoding APIs from caching
+  if (
+    url.hostname.includes('open-meteo.com') ||
+    url.hostname.includes('bigdatacloud.net') ||
+    url.hostname.includes('openstreetmap.org')
+  ) {
+    return;
+  }
+
+  // Handle local origin requests and core static CDN resources (Tailwind, Fonts, PWABuilder)
+  const isStaticCdn =
+    url.hostname.includes('tailwindcss.com') ||
+    url.hostname.includes('jsdelivr.net') ||
+    url.hostname.includes('fonts.googleapis.com') ||
+    url.hostname.includes('fonts.gstatic.com');
+
+  if (url.origin !== self.location.origin && !isStaticCdn) {
+    return;
+  }
 
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        if (response && response.status === 200) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-        }
-        return response;
-      })
-      .catch(() => caches.match(event.request).then((cached) => cached || caches.match('./index.html')))
+    caches.match(event.request).then((cached) => {
+      // Return cached CDN assets immediately if available
+      if (isStaticCdn && cached) {
+        return cached;
+      }
+
+      return fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => cached || (url.origin === self.location.origin ? caches.match('./index.html') : null));
+    })
   );
 });

@@ -1,0 +1,30 @@
+{
+  "name": "luminary",
+  "version": "1.0.0",
+  "description": "Location-aware camera settings, solar ephemeris, and phone compass light-source radar for photographers.",
+  "scripts": {
+    "start": "npx serve -l 3000 .",
+    "validate": "node scripts/validate-pwa.js",
+    "build:android": "npx @pwabuilder/bubblewrap build --skipPwaValidation"
+  },
+  "dependencies": {
+    "@pwabuilder/pwainstall": "^1.7.0"
+  },
+  "devDependencies": {
+    "@pwabuilder/bubblewrap": "^1.21.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sudo-shubham/luminary.github.io.git"
+  },
+  "keywords": [
+    "pwa",
+    "pwabuilder",
+    "trusted-web-activity",
+    "photography",
+    "solar-ephemeris",
+    "camera-settings"
+  ],
+  "author": "Shubham Patel",
+  "license": "MIT"
+}
