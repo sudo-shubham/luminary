@@ -4,12 +4,21 @@
   "name": "Luminary",
   "launcherName": "Luminary",
   "themeColor": "#0b0d10",
+  "themeColorDark": "#0b0d10",
   "navigationColor": "#0b0d10",
+  "navigationColorDark": "#0b0d10",
+  "navigationDividerColor": "#00000000",
+  "navigationDividerColorDark": "#00000000",
   "backgroundColor": "#0b0d10",
   "enableNotifications": false,
   "startUrl": "/luminary.github.io/index.html",
   "iconUrl": "https://sudo-shubham.github.io/luminary.github.io/luminary-icon-512x512.png",
   "maskableIconUrl": "https://sudo-shubham.github.io/luminary.github.io/luminary-icon-maskable-512x512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "android"
+  },
   "appVersionName": "1.0.0",
   "appVersionCode": 1,
   "shortcuts": [
@@ -32,10 +41,6 @@
       "chosenIconUrl": "https://sudo-shubham.github.io/luminary.github.io/luminary-icon-192x192.png"
     }
   ],
-  "signingKey": {
-    "path": "./android.keystore",
-    "alias": "android"
-  },
   "generatorApp": "pwabuilder",
   "webManifestUrl": "https://sudo-shubham.github.io/luminary.github.io/manifest.json",
   "fallbackType": "customtabs",
