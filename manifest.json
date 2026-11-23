@@ -5,11 +5,31 @@
   "id": "./index.html",
   "start_url": "./index.html",
   "scope": "./",
+  "lang": "en",
+  "dir": "ltr",
   "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
   "orientation": "portrait-primary",
   "background_color": "#0b0d10",
   "theme_color": "#0b0d10",
-  "categories": ["photography", "utilities"],
+  "categories": [
+    "photography",
+    "utilities"
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "launch_handler": {
+    "client_mode": [
+      "navigate-existing",
+      "auto"
+    ]
+  },
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
   "icons": [
     {
       "src": "./luminary-icon-192x192.png",
@@ -34,6 +54,84 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "./screenshot-1.png",
+      "sizes": "616x1386",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Recommended Camera Settings & Exposure Dials"
+    },
+    {
+      "src": "./screenshot-2.png",
+      "sizes": "622x1392",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Beginner Tips, Field Guide & Optional Filter Advice"
+    },
+    {
+      "src": "./screenshot-3.png",
+      "sizes": "624x1394",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Location Telemetry, Blue Hour EV & Solar Arc"
+    },
+    {
+      "src": "./screenshot-4.png",
+      "sizes": "2682x1530",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Phone Compass Light-Source & Shadow Radar"
+    },
+    {
+      "src": "./screenshot-5.png",
+      "sizes": "618x1386",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Live City Search & Global Lighting Presets"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Astro Photography",
+      "short_name": "Astro",
+      "description": "Open Luminary in Astrophotography 500-Rule mode",
+      "url": "./index.html?style=astro",
+      "icons": [
+        {
+          "src": "./luminary-icon-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Portrait Settings",
+      "short_name": "Portrait",
+      "description": "Open Luminary in Portrait mode",
+      "url": "./index.html?style=portrait",
+      "icons": [
+        {
+          "src": "./luminary-icon-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Landscape Settings",
+      "short_name": "Scenic",
+      "description": "Open Luminary in Landscape mode",
+      "url": "./index.html?style=landscape",
+      "icons": [
+        {
+          "src": "./luminary-icon-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     }
   ]
 }
