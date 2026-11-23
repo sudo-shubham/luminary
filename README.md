@@ -18,9 +18,12 @@ Whether capturing deep-sky Milky Way exposures using the 500-Rule, chasing 3D Re
 | :--- | :--- |
 | **Exposure Triangle Engine** | Dynamic auto-balancing dials for Aperture, Shutter Speed, and ISO with an interactive viewfinder EV meter (-3 to +3 EV). |
 | **7 Specialized Photography Modes** | Dedicated algorithmic profiles for Scenic/Landscape, Portrait, Street, Action/Sports, Urban Night, Astrophotography, and Silk/Long Exposure. |
+| **Camera Body & Sensor Physics** | Full Frame (1.0×), APS-C (1.5×/1.6×), Micro 4/3 (2.0×), Medium Format (0.79×), and Smartphone profiles with crop-factor reciprocal shutter calculations. |
+| **Custom Gear Bag (Local Storage)** | Save custom camera bodies and custom prime/zoom lenses directly to browser storage for instant reuse in the field. |
+| **Shot Journal & EXIF Recipe Logger** | 1-tap logging of exposure recipes, camera gear, environmental telemetry, and custom field notes with 1-click dial restoring and JSON export. |
 | **Solar Ephemeris Engine** | High-precision astronomical equations calculating sun altitude, azimuth, solar noon, golden hours, blue hours, and astronomical twilight. |
 | **Compass Sun & Shadow Radar** | Gyroscope and magnetometer-driven radar tracking the sun's position relative to where your camera is pointing, diagnosing lighting angles and shadow cast vectors. |
-| **Custom Lens Builder** | Supports prime and zoom lenses (8mm to 1200mm, f/1.4 to f/22) with automatic 1.5× reciprocal camera-shake protection and aperture limiting. |
+| **Custom Lens Builder** | Supports prime and zoom lenses (8mm to 1200mm, f/1.4 to f/22) with automatic reciprocal camera-shake protection and aperture limiting. |
 | **Live Atmospheric Telemetry** | Real-time cloud cover, temperature, weather conditions, and UV index dynamically adjusting EV ratings and shadow softness. |
 | **Dual Experience Modes** | Toggle between **Beginner Mode** (explaining the "why" behind every setting) and **Pro Mode** (dense, high-efficiency dials and raw telemetry). |
 | **Interactive Solar Arc** | Canvas-based visualization of the sun's trajectory across the horizon with countdown timers to the next golden or blue hour. |
@@ -160,27 +163,43 @@ Luminary factors live atmospheric conditions into its exposure calculations:
 
 ---
 
-## 📷 Optical Lens & Gear Management
+## 📷 Camera Bodies, Optical Lenses & Gear Management
 
-Camera settings must match the physical limits of the glass attached to your camera body. Luminary provides flexible gear profiling:
+Camera settings must match the physical limits of the camera body sensor and the glass attached to it. Luminary provides flexible gear profiling with local persistence:
 
-### Preset Gear Profiles
-- **Kit Lens (18–55mm f/3.5–f/22)**: Standard variable-aperture starter glass with realistic f/3.5 wide limits.
-- **Fast Prime (50mm f/1.8–f/16)**: Classic prime lens enabling shallow depth of field and superior low-light gathering.
-- **Pro Zoom (24–70mm f/2.8–f/22)**: Professional constant-aperture standard zoom lens.
-- **Phone Pro (24mm Fixed f/1.8)**: Simulates modern computational smartphone optics.
+### 1. Camera Bodies & Sensor Crop Factors
+Sensor dimensions dictate depth of field, field of view, and optical camera-shake tolerances:
+- **Full Frame (1.0×)**: Sony A7 IV, Canon EOS R5/R6, Nikon Z6 III/Z8, Panasonic S5 II.
+- **APS-C (1.5× & 1.6×)**: Fujifilm X-T5, Sony A6700, Nikon Z50 (1.5×) & Canon EOS R7 (1.6×). Automatically multiplies focal length by crop factor for true 35mm equivalent field-of-view and stricter handheld reciprocal safety shutter rules.
+- **Micro Four Thirds (2.0×)**: OM System OM-1, Panasonic Lumix GH6.
+- **Medium Format (0.79×)**: Fujifilm GFX 100 II, Hasselblad X2D.
+- **Smartphone Pro (3.6×)**: Simulates modern computational smartphone primary sensors.
+- **Custom Camera Bodies**: Define and save any camera body name and custom crop factor (0.5× to 10×) to browser local storage.
 
-### Custom Lens Builder
-Photographers can build their exact lens profile with custom parameters:
-- **Prime or Zoom Selection**: Toggle between fixed single focal lengths and versatile zoom ranges.
-- **Widest f-stop**: Configurable from ultra-fast **f/1.4** to **f/5.6**.
-- **Narrowest f-stop**: Configurable up to **f/22**.
-- **Focal Length Range**: Define minimum and maximum focal lengths from ultra-wide **8mm** to super-telephoto **1200mm**.
-- **Active Zoom Slider**: Adjust the active focal length in real-time, automatically recalculating reciprocal handheld shutter limits.
+### 2. Comprehensive Lens Profiles
+- **Prime Lenses**: 24mm f/1.4, 35mm f/1.4, 50mm f/1.8, 85mm f/1.4, 135mm f/1.8, 100mm f/2.8 Macro, and 14mm f/1.8 Astro.
+- **Zoom Lenses**: 18–55mm f/3.5–5.6 Kit, 16–35mm f/2.8, 24–70mm f/2.8, 70–200mm f/2.8, and 100–400mm f/4.5–5.6.
+- **Custom Lens Builder & Gear Bag**: Build any custom Prime or Zoom lens (f/1.4 to f/22, 8mm to 1200mm) and save it directly to **"My Saved Lenses"** in browser storage.
 
-### Camera Support & Handheld Limits
-- **Handheld Mode**: Enforces the $1 / (1.5 \times \text{Focal Length})$ optical safety rule to protect shots against camera shake.
-- **Tripod Mode**: Unlocks slow shutter speeds (up to 30 seconds) without triggering camera-shake warnings.
+### 3. Reciprocal Shutter & Astrophotography Calculations
+- **Handheld Safety Limit**:
+  $$\text{Min Handheld Shutter} = \frac{1}{\max(60, \text{Focal Length} \times \text{Crop Factor})}$$
+  *(e.g., A 50mm lens on an APS-C 1.5× body requires $\ge 1/125\text{s}$ handheld instead of $1/60\text{s}$).*
+- **Astrophotography 500-Rule**:
+  $$\text{Max Star Shutter} = \frac{500}{\text{Focal Length} \times \text{Crop Factor}}$$
+  *(e.g., A 14mm lens on Full Frame yields 30s pinpoint star exposures).*
+
+---
+
+## 📖 Shot Journal & EXIF Recipe Logger
+
+Luminary includes a built-in offline field journal allowing photographers to log and catalog their shooting recipes:
+
+- **1-Tap Shot Logging**: Tap **"📸 Log Shot"** to capture current exposure dials (Aperture, Shutter, ISO), camera body, lens, active focal length (including 35mm equivalent), EV target, metering mode, white balance Kelvin, shooting style, solar angle, weather telemetry, and GPS location.
+- **1-Click Dial Restoring**: Tap **"⚡ Load into Dials"** on any past journal entry to restore all settings directly into the live camera dials.
+- **Tactile Search & Filters**: Search past shoots by city name, lens model, camera body, or custom field notes, or filter by style pills (Scenic, Portrait, Street, Action, Night, Astro, Silk).
+- **Export & Markdown Sharing**: Export the entire journal to a portable JSON backup file or copy structured markdown recipe summaries to share on social media or photography forums.
+- **100% Offline Persistence**: All recipes, custom camera bodies, and custom lenses are stored in browser local storage (`localStorage`). No external databases or logins required.
 
 ---
 

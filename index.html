@@ -152,6 +152,18 @@
           </button>
         </div>
 
+        <!-- Shot Journal Button (Feature #6) -->
+        <button
+          type="button"
+          id="journalHeaderBtn"
+          onclick="window.openShotJournal()"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-camera hover:bg-dial border border-borderline text-xs font-semibold text-slate-200 transition shadow-inner active:scale-95"
+          title="Open Saved Shot Journal & EXIF Recipes">
+          <span>📖</span>
+          <span class="hidden sm:inline">Journal</span>
+          <span id="journalCountBadge" class="bg-amber-500 text-obsidian text-[10px] font-bold px-1.5 py-0.2 rounded-full font-mono">0</span>
+        </button>
+
         <!-- PWABuilder Native App Installation Component & Button -->
         <pwa-install
           id="pwaInstaller"
@@ -229,6 +241,9 @@
             <button type="button" onclick="window.resetExposureOverrides()" id="resetSimBtn" class="hidden px-2.5 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-xs font-mono text-amber-300 hover:bg-amber-500/25 transition">
               ↺ Auto-Reset
             </button>
+            <button type="button" onclick="window.logCurrentShot()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-xs font-semibold text-amber-300 transition active:scale-95 shadow-sm" title="Log current exposure & environmental telemetry to Shot Journal">
+              <span>📸</span> Log Shot
+            </button>
             <button type="button" onclick="window.copyRecipeToClipboard()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-dial hover:bg-slate-700 border border-borderline text-xs font-medium text-slate-200 transition active:scale-95">
               <span>📋</span> Copy
             </button>
@@ -253,23 +268,80 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+          <!-- Camera Body, Lens & Support Selectors (3-Column Grid) -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+            <!-- Camera Body Selector -->
+            <div class="flex items-center gap-2 bg-camera border border-borderline rounded-xl px-3 py-1.5">
+              <span class="text-[10px] font-mono text-slate-400 uppercase shrink-0">Body:</span>
+              <select id="cameraSelect" onchange="window.setCamera(this.value)" class="w-full bg-transparent text-xs font-semibold text-white focus:outline-none cursor-pointer">
+                <!-- Dynamically populated -->
+              </select>
+            </div>
+
+            <!-- Lens Selector -->
             <div class="flex items-center gap-2 bg-camera border border-borderline rounded-xl px-3 py-1.5">
               <span class="text-[10px] font-mono text-slate-400 uppercase shrink-0">Lens:</span>
               <select id="gearSelect" onchange="window.setGear(this.value)" class="w-full bg-transparent text-xs font-semibold text-white focus:outline-none cursor-pointer">
-                <option value="custom" class="bg-obsidian">⚙️ Custom Lens (Prime / Zoom)</option>
-                <option value="kit" class="bg-obsidian" selected>Kit Lens (18–55mm f/3.5–f/22)</option>
-                <option value="prime" class="bg-obsidian">Fast Prime (50mm f/1.8–f/16)</option>
-                <option value="prozoom" class="bg-obsidian">Pro Zoom (24–70mm f/2.8–f/22)</option>
-                <option value="phone" class="bg-obsidian">Phone Pro (24mm Fixed f/1.8)</option>
+                <!-- Dynamically populated -->
               </select>
             </div>
+
+            <!-- Support Selector -->
             <div class="flex items-center gap-2 bg-camera border border-borderline rounded-xl px-3 py-1.5">
               <span class="text-[10px] font-mono text-slate-400 uppercase shrink-0">Hold:</span>
               <select id="supportSelect" onchange="window.setSupport(this.value)" class="w-full bg-transparent text-xs font-semibold text-white focus:outline-none cursor-pointer">
                 <option value="handheld" class="bg-obsidian">Handheld (No Tripod)</option>
                 <option value="tripod" class="bg-obsidian">Tripod / Solid Surface</option>
               </select>
+            </div>
+          </div>
+
+          <!-- Live Optical & Sensor Telemetry Bar -->
+          <div id="gearTelemetryBar" class="flex flex-wrap items-center justify-between gap-2 text-[10px] sm:text-[11px] font-mono text-slate-400 bg-camera/60 border border-borderline rounded-xl px-3 py-2">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span id="telemetrySensorBadge" class="text-amber-400 font-semibold">Full Frame • 1.0×</span>
+              <span class="text-slate-600">•</span>
+              <span id="telemetryFocalBadge" class="text-slate-200">50mm (50mm eq)</span>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap text-slate-400">
+              <span id="telemetryHandheldBadge">Safe Handheld: ≥ 1/60s</span>
+              <span class="text-slate-600">•</span>
+              <span id="telemetryAstroBadge" class="text-sky-300">500-Rule: ≤ 10s</span>
+            </div>
+          </div>
+
+          <!-- Custom Camera Builder Panel (Shown when '+ Add Custom Camera Body' is chosen) -->
+          <div id="customCameraPanel" class="hidden bg-camera/90 border border-amber-500/30 rounded-xl p-3.5 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-semibold">Custom Camera Body Setup</span>
+              <button type="button" onclick="window.cancelCustomCamera()" class="text-xs text-slate-400 hover:text-white">✕ Cancel</button>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <div class="bg-obsidian border border-borderline rounded-xl px-2.5 py-2">
+                <label for="customCameraNameInput" class="block text-[10px] font-mono text-slate-400 uppercase mb-1">Camera Name</label>
+                <input type="text" id="customCameraNameInput" placeholder="e.g. Blackmagic 4K" class="w-full bg-transparent text-xs font-semibold text-white focus:outline-none" />
+              </div>
+              <div class="bg-obsidian border border-borderline rounded-xl px-2.5 py-2">
+                <label for="customCameraSensorSelect" class="block text-[10px] font-mono text-slate-400 uppercase mb-1">Sensor Format</label>
+                <select id="customCameraSensorSelect" onchange="window.onCustomCameraSensorChange(this.value)" class="w-full bg-transparent text-xs font-semibold text-white focus:outline-none cursor-pointer">
+                  <option value="1.0" class="bg-obsidian">Full Frame (1.0×)</option>
+                  <option value="1.5" class="bg-obsidian">APS-C Sony/Fuji/Nikon (1.5×)</option>
+                  <option value="1.6" class="bg-obsidian">APS-C Canon (1.6×)</option>
+                  <option value="2.0" class="bg-obsidian">Micro Four Thirds (2.0×)</option>
+                  <option value="0.79" class="bg-obsidian">Medium Format (0.79×)</option>
+                  <option value="3.6" class="bg-obsidian">Smartphone (3.6×)</option>
+                  <option value="custom" class="bg-obsidian">Custom Crop Factor</option>
+                </select>
+              </div>
+              <div id="customCropInputBox" class="bg-obsidian border border-borderline rounded-xl px-2.5 py-2">
+                <label for="customCropFactorInput" class="block text-[10px] font-mono text-slate-400 uppercase mb-1">Crop Factor</label>
+                <input type="number" step="0.01" min="0.5" max="10" id="customCropFactorInput" value="1.0" class="w-full bg-transparent text-xs font-mono font-semibold text-white focus:outline-none" />
+              </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-1">
+              <button type="button" onclick="window.saveCustomCamera()" class="px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-obsidian text-xs font-bold transition">
+                💾 Save Camera Body to Bag
+              </button>
             </div>
           </div>
 
@@ -357,6 +429,21 @@
                 <span id="customCurrentMmLabel" class="text-amber-400 font-semibold">50mm</span>
               </div>
               <input type="range" id="customCurrentMmSlider" min="24" max="70" value="50" oninput="window.updateCustomLens('currentMm', this.value)" class="w-full" aria-label="Current Zoom Focal Length" />
+            </div>
+
+            <!-- Save Custom Lens to Gear Bag Section -->
+            <div class="pt-2 border-t border-borderline/60 flex flex-wrap items-center justify-between gap-2.5">
+              <div class="flex items-center gap-2 flex-1 min-w-[200px]">
+                <input type="text" id="saveCustomLensNameInput" placeholder="Lens Name (e.g. Sigma 18–35mm f/1.8)" class="w-full bg-obsidian border border-borderline rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50" />
+              </div>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="window.saveCustomLensToBag()" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-obsidian text-xs font-bold transition flex items-center gap-1">
+                  <span>💾</span> Save Lens to Bag
+                </button>
+                <button type="button" id="deleteSavedLensBtn" onclick="window.deleteCurrentSavedLens()" class="hidden px-2.5 py-1.5 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 text-xs font-semibold transition" title="Delete this saved lens from bag">
+                  🗑️ Delete
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -663,6 +750,72 @@
     </div>
   </main>
 
+  <!-- =========================================================================
+       SHOT JOURNAL & EXIF RECIPES MODAL (Feature #6)
+       ========================================================================= -->
+  <div id="shotJournalModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-obsidian/85 backdrop-blur-md hidden transition-all duration-300" role="dialog" aria-modal="true" aria-labelledby="journalModalTitle">
+    <div class="bg-camera border border-borderline rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+
+      <!-- Modal Header -->
+      <div class="p-4 sm:p-5 border-b border-borderline flex items-center justify-between bg-obsidian/70 shrink-0">
+        <div class="flex items-center gap-2.5">
+          <span class="text-2xl">📖</span>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 id="journalModalTitle" class="text-sm sm:text-base font-bold text-white tracking-tight">Shot Journal &amp; EXIF Recipes</h2>
+              <span id="journalModalCountBadge" class="bg-amber-500 text-obsidian text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">0 saved</span>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-0.5">Persisted in browser storage • 1-click load back into camera dials</p>
+          </div>
+        </div>
+        <button type="button" onclick="window.closeShotJournal()" class="w-8 h-8 rounded-xl bg-dial hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center text-sm transition">
+          ✕
+        </button>
+      </div>
+
+      <!-- Action & Filter Bar -->
+      <div class="p-3 sm:px-5 bg-obsidian/40 border-b border-borderline/60 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
+        <!-- Search Input -->
+        <div class="relative flex-1 min-w-[180px]">
+          <input
+            type="text"
+            id="journalSearchInput"
+            oninput="window.filterShotJournal()"
+            placeholder="Search by location, style, lens, notes..."
+            class="w-full bg-obsidian border border-borderline rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50"
+          />
+        </div>
+
+        <!-- Style Filter Pills -->
+        <div class="flex items-center gap-1 overflow-x-auto py-0.5 max-w-full">
+          <button type="button" onclick="window.setJournalStyleFilter('all')" data-jstyle="all" class="journal-filter-btn px-2.5 py-1 rounded-lg text-[10px] font-mono font-semibold bg-amber-500 text-obsidian transition">All</button>
+          <button type="button" onclick="window.setJournalStyleFilter('landscape')" data-jstyle="landscape" class="journal-filter-btn px-2.5 py-1 rounded-lg text-[10px] font-mono text-slate-400 hover:text-white bg-dial transition">Scenic</button>
+          <button type="button" onclick="window.setJournalStyleFilter('portrait')" data-jstyle="portrait" class="journal-filter-btn px-2.5 py-1 rounded-lg text-[10px] font-mono text-slate-400 hover:text-white bg-dial transition">Portrait</button>
+          <button type="button" onclick="window.setJournalStyleFilter('street')" data-jstyle="street" class="journal-filter-btn px-2.5 py-1 rounded-lg text-[10px] font-mono text-slate-400 hover:text-white bg-dial transition">Street</button>
+          <button type="button" onclick="window.setJournalStyleFilter('action')" data-jstyle="action" class="journal-filter-btn px-2.5 py-1 rounded-lg text-[10px] font-mono text-slate-400 hover:text-white bg-dial transition">Action</button>
+          <button type="button" onclick="window.setJournalStyleFilter('night')" data-jstyle="night" class="journal-filter-btn px-2.5 py-1 rounded-lg text-[10px] font-mono text-slate-400 hover:text-white bg-dial transition">Night</button>
+          <button type="button" onclick="window.setJournalStyleFilter('astro')" data-jstyle="astro" class="journal-filter-btn px-2.5 py-1 rounded-lg text-[10px] font-mono text-slate-400 hover:text-white bg-dial transition">Astro</button>
+          <button type="button" onclick="window.setJournalStyleFilter('longexp')" data-jstyle="longexp" class="journal-filter-btn px-2.5 py-1 rounded-lg text-[10px] font-mono text-slate-400 hover:text-white bg-dial transition">Silk</button>
+        </div>
+
+        <!-- Export & Clear Buttons -->
+        <div class="flex items-center gap-1.5">
+          <button type="button" onclick="window.exportJournalJSON()" class="px-2.5 py-1.5 rounded-xl bg-dial hover:bg-slate-700 border border-borderline text-[11px] font-mono text-slate-300 transition flex items-center gap-1" title="Export recipes to JSON">
+            <span>📥</span> Export
+          </button>
+          <button type="button" onclick="window.clearShotJournal()" class="px-2.5 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-[11px] font-mono text-rose-300 transition" title="Clear all journal entries">
+            Clear
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body (Cards List) -->
+      <div id="journalCardsList" class="p-4 sm:p-5 overflow-y-auto space-y-3 flex-1 min-h-[220px]">
+        <!-- Dynamically rendered cards -->
+      </div>
+    </div>
+  </div>
+
   <footer class="border-t border-borderline py-4 text-center text-[11px] font-mono text-slate-500">
     Luminary • 100% Client-Side Exposure & Solar Ephemeris Calculator • Open-Meteo Telemetry
   </footer>
@@ -698,12 +851,83 @@
     ];
     const ISOS = [100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600];
 
-    const GEAR_LIMITS = {
-      kit:     { minApertureIdx: 4, maxApertureIdx: 10, fixedAperture: false, focalLengthMm: 35, label: 'Kit Lens (18–55mm f/3.5–f/22)' },
-      prime:   { minApertureIdx: 1, maxApertureIdx: 9,  fixedAperture: false, focalLengthMm: 50, label: 'Fast Prime (50mm f/1.8–f/16)' },
-      prozoom: { minApertureIdx: 3, maxApertureIdx: 10, fixedAperture: false, focalLengthMm: 50, label: 'Pro Zoom (24–70mm f/2.8–f/22)' },
-      phone:   { minApertureIdx: 1, maxApertureIdx: 1,  fixedAperture: true,  focalLengthMm: 24, label: 'Phone Pro (24mm Fixed f/1.8)' }
+    const DEFAULT_CAMERAS = {
+      sony_a7iv:   { id: 'sony_a7iv', name: 'Sony A7 IV / A7R V', brand: 'Sony', sensorType: 'Full Frame', cropFactor: 1.0 },
+      canon_r5:    { id: 'canon_r5', name: 'Canon EOS R5 / R6', brand: 'Canon', sensorType: 'Full Frame', cropFactor: 1.0 },
+      nikon_z6:    { id: 'nikon_z6', name: 'Nikon Z6 III / Z8', brand: 'Nikon', sensorType: 'Full Frame', cropFactor: 1.0 },
+      panasonic_s5:{ id: 'panasonic_s5', name: 'Panasonic Lumix S5 II', brand: 'Lumix', sensorType: 'Full Frame', cropFactor: 1.0 },
+      fuji_xt5:    { id: 'fuji_xt5', name: 'Fujifilm X-T5 / X100VI', brand: 'Fujifilm', sensorType: 'APS-C (1.5×)', cropFactor: 1.5 },
+      sony_a6700:  { id: 'sony_a6700', name: 'Sony A6700 / FX30', brand: 'Sony', sensorType: 'APS-C (1.5×)', cropFactor: 1.5 },
+      nikon_z50:   { id: 'nikon_z50', name: 'Nikon Z50 / Z fc', brand: 'Nikon', sensorType: 'APS-C (1.5×)', cropFactor: 1.5 },
+      canon_r7:    { id: 'canon_r7', name: 'Canon EOS R7 / R50', brand: 'Canon', sensorType: 'APS-C (1.6×)', cropFactor: 1.6 },
+      lumix_gh6:   { id: 'lumix_gh6', name: 'Panasonic Lumix GH6 / G9', brand: 'Lumix', sensorType: 'Micro 4/3 (2.0×)', cropFactor: 2.0 },
+      fuji_gfx:    { id: 'fuji_gfx', name: 'Fujifilm GFX 100 II', brand: 'Fujifilm', sensorType: 'Medium Format (0.79×)', cropFactor: 0.79 },
+      phone_pro:   { id: 'phone_pro', name: 'Smartphone Pro (1/1.3")', brand: 'Phone', sensorType: 'Mobile (3.6×)', cropFactor: 3.6 }
     };
+
+    const DEFAULT_LENSES = {
+      kit:         { minApertureIdx: 4, maxApertureIdx: 10, fixedAperture: false, focalLengthMm: 35, minMm: 18, maxMm: 55, label: 'Kit Lens (18–55mm f/3.5–f/22)' },
+      prime_24:    { minApertureIdx: 0, maxApertureIdx: 9,  fixedAperture: false, focalLengthMm: 24, minMm: 24, maxMm: 24, label: 'Wide Prime (24mm f/1.4–f/16)' },
+      prime_35:    { minApertureIdx: 0, maxApertureIdx: 9,  fixedAperture: false, focalLengthMm: 35, minMm: 35, maxMm: 35, label: 'Street Prime (35mm f/1.4–f/16)' },
+      prime_50:    { minApertureIdx: 1, maxApertureIdx: 9,  fixedAperture: false, focalLengthMm: 50, minMm: 50, maxMm: 50, label: 'Fast Prime (50mm f/1.8–f/16)' },
+      prime_85:    { minApertureIdx: 0, maxApertureIdx: 9,  fixedAperture: false, focalLengthMm: 85, minMm: 85, maxMm: 85, label: 'Portrait Prime (85mm f/1.4–f/16)' },
+      prime_135:   { minApertureIdx: 1, maxApertureIdx: 9,  fixedAperture: false, focalLengthMm: 135, minMm: 135, maxMm: 135, label: 'Tele Prime (135mm f/1.8–f/16)' },
+      zoom_16_35:  { minApertureIdx: 3, maxApertureIdx: 10, fixedAperture: false, focalLengthMm: 24, minMm: 16, maxMm: 35, label: 'Ultra-Wide Zoom (16–35mm f/2.8–f/22)' },
+      zoom_24_70:  { minApertureIdx: 3, maxApertureIdx: 10, fixedAperture: false, focalLengthMm: 50, minMm: 24, maxMm: 70, label: 'Pro Zoom (24–70mm f/2.8–f/22)' },
+      zoom_70_200: { minApertureIdx: 3, maxApertureIdx: 10, fixedAperture: false, focalLengthMm: 135, minMm: 70, maxMm: 200, label: 'Telephoto Zoom (70–200mm f/2.8–f/22)' },
+      zoom_100_400:{ minApertureIdx: 5, maxApertureIdx: 10, fixedAperture: false, focalLengthMm: 200, minMm: 100, maxMm: 400, label: 'Super-Tele (100–400mm f/4.5–5.6)' },
+      macro_100:   { minApertureIdx: 3, maxApertureIdx: 10, fixedAperture: false, focalLengthMm: 100, minMm: 100, maxMm: 100, label: 'Macro Lens (100mm f/2.8–f/32)' },
+      astro_14:    { minApertureIdx: 1, maxApertureIdx: 9,  fixedAperture: false, focalLengthMm: 14, minMm: 14, maxMm: 14, label: 'Astro Ultra-Wide (14mm f/1.8–f/16)' },
+      phone:       { minApertureIdx: 1, maxApertureIdx: 1,  fixedAperture: true,  focalLengthMm: 24, minMm: 24, maxMm: 24, label: 'Phone Pro (24mm Fixed f/1.8)' }
+    };
+    const GEAR_LIMITS = DEFAULT_LENSES;
+    GEAR_LIMITS.prime = DEFAULT_LENSES.prime_50;
+    GEAR_LIMITS.prozoom = DEFAULT_LENSES.zoom_24_70;
+
+    function getSavedCustomCameras() {
+      try {
+        const raw = localStorage.getItem('luminary_custom_cameras');
+        return raw ? JSON.parse(raw) : {};
+      } catch (_) {
+        return {};
+      }
+    }
+
+    function saveCustomCameras(cameras) {
+      try {
+        localStorage.setItem('luminary_custom_cameras', JSON.stringify(cameras));
+      } catch (_) {}
+    }
+
+    function getSavedCustomLenses() {
+      try {
+        const raw = localStorage.getItem('luminary_custom_lenses');
+        return raw ? JSON.parse(raw) : {};
+      } catch (_) {
+        return {};
+      }
+    }
+
+    function saveCustomLenses(lenses) {
+      try {
+        localStorage.setItem('luminary_custom_lenses', JSON.stringify(lenses));
+      } catch (_) {}
+    }
+
+    function getSavedShotJournal() {
+      try {
+        const raw = localStorage.getItem('luminary_shot_journal');
+        return raw ? JSON.parse(raw) : [];
+      } catch (_) {
+        return [];
+      }
+    }
+
+    function saveShotJournal(journal) {
+      try {
+        localStorage.setItem('luminary_shot_journal', JSON.stringify(journal));
+      } catch (_) {}
+    }
 
     const PRESET_LOCATIONS = {
       tokyo:   { name: 'Shinjuku, Tokyo', lat: 35.6938, lon: 139.7034, timezone: 'Asia/Tokyo', forceSunAlt: -18.0, clouds: 25, temp: 16, uv: 0, weather: 'Clear Night' },
@@ -735,7 +959,21 @@
         pitch: 0
       },
       style: 'landscape',
-      gear: 'kit',
+      camera: (function() {
+        try {
+          return localStorage.getItem('luminary_active_camera') || 'sony_a7iv';
+        } catch (_) {
+          return 'sony_a7iv';
+        }
+      })(),
+      gear: (function() {
+        try {
+          return localStorage.getItem('luminary_active_lens') || 'kit';
+        } catch (_) {
+          return 'kit';
+        }
+      })(),
+      journalStyleFilter: 'all',
       customLens: {
         type: 'zoom', // 'prime' or 'zoom'
         minApertureIdx: 3, // f/2.8
@@ -1327,35 +1565,56 @@
     // =========================================================================
     // 6. EXPOSURE TRIANGLE ENGINE (EV100 Math + Stepper & Auto-Balancing)
     // =========================================================================
+    function getActiveCamera() {
+      const customs = getSavedCustomCameras();
+      if (customs[appState.camera]) return customs[appState.camera];
+      return DEFAULT_CAMERAS[appState.camera] || DEFAULT_CAMERAS.sony_a7iv;
+    }
+
     /**
      * Resolves active lens capabilities (preset or user-configured Custom Lens),
-     * including aperture bounds and active focal length in mm.
+     * including crop factor, aperture bounds, physical mm, and 35mm equivalent mm.
      */
     function getActiveGearConfig() {
-      if (appState.gear !== 'custom') {
-        return GEAR_LIMITS[appState.gear] || GEAR_LIMITS.kit;
+      const cam = getActiveCamera();
+      const crop = cam.cropFactor || 1.0;
+      let cfg;
+
+      if (appState.gear === 'custom') {
+        const c = appState.customLens;
+        const minF = APERTURES[c.minApertureIdx];
+        const maxF = APERTURES[c.maxApertureIdx];
+        const focalMm = c.type === 'prime' ? c.minMm : c.currentMm;
+        const rangeStr = c.type === 'prime' ? `${c.minMm}mm` : `${c.minMm}–${c.maxMm}mm (at ${c.currentMm}mm)`;
+        const apStr = minF === maxF ? `Fixed f/${minF}` : `f/${minF}–f/${maxF}`;
+        cfg = {
+          minApertureIdx: c.minApertureIdx,
+          maxApertureIdx: c.maxApertureIdx,
+          fixedAperture: c.minApertureIdx === c.maxApertureIdx,
+          focalLengthMm: focalMm,
+          label: `Custom ${c.type === 'prime' ? 'Prime' : 'Zoom'} ${rangeStr} ${apStr}`
+        };
+      } else {
+        const savedLenses = getSavedCustomLenses();
+        if (savedLenses[appState.gear]) {
+          cfg = Object.assign({}, savedLenses[appState.gear]);
+        } else {
+          cfg = Object.assign({}, DEFAULT_LENSES[appState.gear] || DEFAULT_LENSES.kit);
+        }
       }
-      const c = appState.customLens;
-      const minF = APERTURES[c.minApertureIdx];
-      const maxF = APERTURES[c.maxApertureIdx];
-      const focalMm = c.type === 'prime' ? c.minMm : c.currentMm;
-      const rangeStr = c.type === 'prime' ? `${c.minMm}mm` : `${c.minMm}–${c.maxMm}mm (at ${c.currentMm}mm)`;
-      const apStr = minF === maxF ? `Fixed f/${minF}` : `f/${minF}–f/${maxF}`;
-      return {
-        minApertureIdx: c.minApertureIdx,
-        maxApertureIdx: c.maxApertureIdx,
-        fixedAperture: c.minApertureIdx === c.maxApertureIdx,
-        focalLengthMm: focalMm,
-        label: `Custom ${c.type === 'prime' ? 'Prime' : 'Zoom'} ${rangeStr} ${apStr}`
-      };
+
+      cfg.cropFactor = crop;
+      cfg.cameraName = cam.name;
+      cfg.effectiveFocalLengthMm = Math.round(cfg.focalLengthMm * crop);
+      return cfg;
     }
 
     /**
      * Returns the safest minimum shutter index for handheld shooting using the
      * 1 / focalLength reciprocal rule (floor of 1/60s for wide lenses).
      */
-    function getHandheldMinShutterIdx(focalLengthMm, floorHz = 60) {
-      const targetSec = 1 / Math.max(floorHz, focalLengthMm || 50);
+    function getHandheldMinShutterIdx(effectiveFocalLengthMm, floorHz = 60) {
+      const targetSec = 1 / Math.max(floorHz, effectiveFocalLengthMm || 50);
       for (let i = 0; i < SHUTTERS.length; i++) {
         if (SHUTTERS[i].sec <= targetSec + 1e-6) return i;
       }
@@ -1364,10 +1623,10 @@
 
     /**
      * Returns the longest shutter index that avoids visible star trails using the
-     * 500 Rule (maxSec = min(30, 500 / focalLengthMm)).
+     * 500 Rule (maxSec = min(30, 500 / effectiveFocalLengthMm)).
      */
-    function getAstro500RuleShutterIdx(focalLengthMm) {
-      const maxStarSec = Math.min(30, 500 / Math.max(10, focalLengthMm || 24));
+    function getAstro500RuleShutterIdx(effectiveFocalLengthMm) {
+      const maxStarSec = Math.min(30, 500 / Math.max(10, effectiveFocalLengthMm || 24));
       for (let i = 0; i < SHUTTERS.length; i++) {
         if (SHUTTERS[i].sec <= maxStarSec + 0.1) return i;
       }
@@ -1383,6 +1642,7 @@
 
     function recommendExposure(targetEV) {
       const gear = getActiveGearConfig();
+      const effectiveMm = gear.effectiveFocalLengthMm;
       const style = appState.style;
       const isTripod = appState.support === 'tripod';
 
@@ -1397,14 +1657,14 @@
 
       const apertureIdx = Math.max(gear.minApertureIdx, Math.min(gear.maxApertureIdx, desiredApertureIdx));
 
-      const handheldSafeIdx = getHandheldMinShutterIdx(gear.focalLengthMm, 60);
+      const handheldSafeIdx = getHandheldMinShutterIdx(effectiveMm, 60);
       let minShutterIdx = isTripod ? 0 : handheldSafeIdx;
       if (style === 'action') minShutterIdx = Math.max(15, isTripod ? 15 : handheldSafeIdx); // >= 1/1000s
       else if (style === 'street') minShutterIdx = Math.max(13, isTripod ? 13 : handheldSafeIdx); // >= 1/250s
       else if (style === 'portrait') minShutterIdx = Math.max(12, isTripod ? 12 : handheldSafeIdx); // >= 1/125s
       else if (style === 'longexp') minShutterIdx = isTripod ? 3 : 8; // 4" tripod, 1/8s handheld
-      else if (style === 'night') minShutterIdx = isTripod ? 1 : getHandheldMinShutterIdx(gear.focalLengthMm, 30);
-      else if (style === 'astro') minShutterIdx = getAstro500RuleShutterIdx(gear.focalLengthMm);
+      else if (style === 'night') minShutterIdx = isTripod ? 1 : getHandheldMinShutterIdx(effectiveMm, 30);
+      else if (style === 'astro') minShutterIdx = getAstro500RuleShutterIdx(effectiveMm);
 
       let isoIdx = 0;
       let bestShutterIdx = minShutterIdx;
@@ -1754,7 +2014,7 @@
       const warnText = document.getElementById('exposureWarningText');
       const warnings = [];
 
-      const safeHandheldSec = 1 / Math.max(55, gear.focalLengthMm || 50);
+      const safeHandheldSec = 1 / Math.max(55, gear.effectiveFocalLengthMm || 50);
       if (appState.style === 'astro') {
         if (solar.altitude >= -12) {
           warnings.push(`Sun is at ${solar.altitude.toFixed(0)}° (${phase.name}). Stars require Astronomical Night (sun below -12°) — tap +1h Time Shift or Tokyo Night to preview astro settings.`);
@@ -1766,7 +2026,8 @@
           warnings.push(`Cloud cover is ${appState.weather.cloudCover}% — clear skies (<20%) are best for stars.`);
         }
       } else if (appState.support === 'handheld' && shutterObj.sec > safeHandheldSec) {
-        warnings.push(`Shutter (${shutterObj.label}) is slow for handheld at ${gear.focalLengthMm}mm—brace your elbows, switch Hold to Tripod, or raise ISO.`);
+        const cropNote = gear.cropFactor !== 1.0 ? ` (${gear.effectiveFocalLengthMm}mm eq on ${gear.cameraName})` : '';
+        warnings.push(`Shutter (${shutterObj.label}) is slow for handheld at ${gear.focalLengthMm}mm${cropNote}—brace your elbows, switch Hold to Tripod, or raise ISO.`);
       }
       if (evDiff > 1.2) {
         warnings.push(`Too bright (+${evDiff.toFixed(1)} EV). Attach an ND filter, use a faster shutter, or increase f-number.`);
@@ -1782,6 +2043,7 @@
         warnBox.classList.add('hidden');
       }
 
+      updateGearTelemetryBar();
       renderCoachingGuide(phase, solar, N, shutterObj, iso);
     }
 
@@ -1963,12 +2225,292 @@
     };
 
     window.setGear = function setGear(gear) {
-      appState.gear = gear;
+      if (gear === 'custom') {
+        appState.gear = 'custom';
+      } else {
+        appState.gear = gear;
+        try { localStorage.setItem('luminary_active_lens', gear); } catch (_) {}
+      }
       appState.exposure.manualOverride = false;
       document.getElementById('resetSimBtn').classList.add('hidden');
       syncCustomLensUI();
+      updateGearTelemetryBar();
       recalculateAll();
     };
+
+    window.setCamera = function setCamera(val) {
+      if (val === '__add_custom_camera__') {
+        const panel = document.getElementById('customCameraPanel');
+        if (panel) panel.classList.remove('hidden');
+        return;
+      }
+      appState.camera = val;
+      try { localStorage.setItem('luminary_active_camera', val); } catch (_) {}
+      updateGearTelemetryBar();
+      recalculateAll();
+      const cam = getActiveCamera();
+      showToast(`Selected Camera: ${cam.name} (${cam.sensorType || cam.cropFactor + '×'})`);
+    };
+
+    window.cancelCustomCamera = function cancelCustomCamera() {
+      const panel = document.getElementById('customCameraPanel');
+      if (panel) panel.classList.add('hidden');
+      const sel = document.getElementById('cameraSelect');
+      if (sel) sel.value = appState.camera;
+    };
+
+    window.onCustomCameraSensorChange = function onCustomCameraSensorChange(val) {
+      const cropInput = document.getElementById('customCropFactorInput');
+      if (val !== 'custom') {
+        cropInput.value = val;
+      }
+    };
+
+    window.saveCustomCamera = function saveCustomCamera() {
+      const nameInput = document.getElementById('customCameraNameInput');
+      const cropInput = document.getElementById('customCropFactorInput');
+      const name = (nameInput.value || '').trim();
+      const crop = parseFloat(cropInput.value);
+
+      if (!name) {
+        showToast('Please enter a camera body name.');
+        return;
+      }
+      if (Number.isNaN(crop) || crop <= 0) {
+        showToast('Please enter a valid positive crop factor.');
+        return;
+      }
+
+      const id = 'custom_cam_' + Date.now();
+      const cameras = getSavedCustomCameras();
+      cameras[id] = {
+        id,
+        name,
+        brand: 'Custom',
+        sensorType: `Custom (${crop.toFixed(2)}×)`,
+        cropFactor: crop,
+        isCustom: true
+      };
+      saveCustomCameras(cameras);
+      appState.camera = id;
+      try { localStorage.setItem('luminary_active_camera', id); } catch (_) {}
+
+      populateCameraSelect();
+      document.getElementById('customCameraPanel').classList.add('hidden');
+      nameInput.value = '';
+      updateGearTelemetryBar();
+      recalculateAll();
+      showToast(`Camera "${name}" saved to your gear bag!`);
+    };
+
+    window.saveCustomLensToBag = function saveCustomLensToBag() {
+      const nameInput = document.getElementById('saveCustomLensNameInput');
+      const rawName = (nameInput.value || '').trim();
+      const c = appState.customLens;
+      const minF = APERTURES[c.minApertureIdx];
+      const maxF = APERTURES[c.maxApertureIdx];
+      const apStr = minF === maxF ? `f/${minF}` : `f/${minF}–f/${maxF}`;
+      const rangeStr = c.type === 'prime' ? `${c.minMm}mm` : `${c.minMm}–${c.maxMm}mm`;
+      const name = rawName || `Custom ${c.type === 'prime' ? 'Prime' : 'Zoom'} (${rangeStr} ${apStr})`;
+
+      const id = 'custom_lens_' + Date.now();
+      const lenses = getSavedCustomLenses();
+      lenses[id] = {
+        id,
+        minApertureIdx: c.minApertureIdx,
+        maxApertureIdx: c.maxApertureIdx,
+        fixedAperture: c.minApertureIdx === c.maxApertureIdx,
+        focalLengthMm: c.type === 'prime' ? c.minMm : c.currentMm,
+        minMm: c.minMm,
+        maxMm: c.maxMm,
+        label: name,
+        isCustom: true
+      };
+      saveCustomLenses(lenses);
+      appState.gear = id;
+      try { localStorage.setItem('luminary_active_lens', id); } catch (_) {}
+
+      populateLensSelect();
+      syncCustomLensUI();
+      nameInput.value = '';
+      updateGearTelemetryBar();
+      recalculateAll();
+      showToast(`Lens "${name}" saved to your gear bag!`);
+    };
+
+    window.deleteCurrentSavedLens = function deleteCurrentSavedLens() {
+      const activeId = appState.gear;
+      const lenses = getSavedCustomLenses();
+      if (!lenses[activeId]) return;
+
+      const lensName = lenses[activeId].label;
+      delete lenses[activeId];
+      saveCustomLenses(lenses);
+      appState.gear = 'kit';
+      try { localStorage.setItem('luminary_active_lens', 'kit'); } catch (_) {}
+
+      populateLensSelect();
+      syncCustomLensUI();
+      updateGearTelemetryBar();
+      recalculateAll();
+      showToast(`Deleted "${lensName}" from gear bag.`);
+    };
+
+    function updateGearTelemetryBar() {
+      const cam = getActiveCamera();
+      const gear = getActiveGearConfig();
+      const effectiveMm = gear.effectiveFocalLengthMm;
+      const handheldSafeIdx = getHandheldMinShutterIdx(effectiveMm, 60);
+      const safeHandheldLabel = SHUTTERS[handheldSafeIdx].label;
+      const astroSec = Math.min(30, Math.round(500 / Math.max(10, effectiveMm)));
+
+      const sensorBadge = document.getElementById('telemetrySensorBadge');
+      const focalBadge = document.getElementById('telemetryFocalBadge');
+      const handheldBadge = document.getElementById('telemetryHandheldBadge');
+      const astroBadge = document.getElementById('telemetryAstroBadge');
+
+      if (sensorBadge) {
+        sensorBadge.textContent = `${cam.name} • ${cam.sensorType || cam.cropFactor + '×'}`;
+      }
+      if (focalBadge) {
+        if (cam.cropFactor === 1.0) {
+          focalBadge.textContent = `${gear.focalLengthMm}mm`;
+        } else {
+          focalBadge.textContent = `${gear.focalLengthMm}mm (${effectiveMm}mm eq)`;
+        }
+      }
+      if (handheldBadge) {
+        handheldBadge.textContent = `Safe Handheld: ≥ ${safeHandheldLabel}`;
+      }
+      if (astroBadge) {
+        astroBadge.textContent = `500-Rule: ≤ ${astroSec}s`;
+      }
+    }
+
+    function populateCameraSelect() {
+      const sel = document.getElementById('cameraSelect');
+      if (!sel) return;
+      sel.innerHTML = '';
+
+      const optCustoms = getSavedCustomCameras();
+      const optGroups = {
+        'Full Frame (1.0×)': ['sony_a7iv', 'canon_r5', 'nikon_z6', 'panasonic_s5'],
+        'APS-C (1.5× / 1.6×)': ['fuji_xt5', 'sony_a6700', 'nikon_z50', 'canon_r7'],
+        'Micro Four Thirds (2.0×)': ['lumix_gh6'],
+        'Medium Format (0.79×)': ['fuji_gfx'],
+        'Smartphone (3.6×)': ['phone_pro']
+      };
+
+      for (const [groupName, ids] of Object.entries(optGroups)) {
+        const grp = document.createElement('optgroup');
+        grp.label = groupName;
+        grp.className = 'bg-obsidian text-slate-400';
+        ids.forEach(id => {
+          const cam = DEFAULT_CAMERAS[id];
+          if (cam) {
+            const opt = document.createElement('option');
+            opt.value = id;
+            opt.className = 'bg-obsidian text-white';
+            opt.textContent = `${cam.name} (${cam.cropFactor}×)`;
+            grp.appendChild(opt);
+          }
+        });
+        sel.appendChild(grp);
+      }
+
+      const customKeys = Object.keys(optCustoms);
+      if (customKeys.length > 0) {
+        const customGrp = document.createElement('optgroup');
+        customGrp.label = '🎒 My Saved Camera Bodies';
+        customGrp.className = 'bg-obsidian text-amber-400 font-semibold';
+        customKeys.forEach(id => {
+          const cam = optCustoms[id];
+          const opt = document.createElement('option');
+          opt.value = id;
+          opt.className = 'bg-obsidian text-white';
+          opt.textContent = `★ ${cam.name} (${cam.cropFactor}×)`;
+          customGrp.appendChild(opt);
+        });
+        sel.appendChild(customGrp);
+      }
+
+      const addOpt = document.createElement('option');
+      addOpt.value = '__add_custom_camera__';
+      addOpt.className = 'bg-obsidian text-amber-300 font-semibold';
+      addOpt.textContent = '⚙️ + Add Custom Camera Body...';
+      sel.appendChild(addOpt);
+
+      sel.value = appState.camera;
+      if (!sel.value) {
+        appState.camera = 'sony_a7iv';
+        sel.value = 'sony_a7iv';
+      }
+    }
+
+    function populateLensSelect() {
+      const sel = document.getElementById('gearSelect');
+      if (!sel) return;
+      sel.innerHTML = '';
+
+      const primeGrp = document.createElement('optgroup');
+      primeGrp.label = 'Preset Prime Lenses';
+      primeGrp.className = 'bg-obsidian text-slate-400';
+      ['prime_24', 'prime_35', 'prime_50', 'prime_85', 'prime_135', 'macro_100', 'astro_14', 'phone'].forEach(id => {
+        const l = DEFAULT_LENSES[id];
+        if (l) {
+          const opt = document.createElement('option');
+          opt.value = id;
+          opt.className = 'bg-obsidian text-white';
+          opt.textContent = l.label;
+          primeGrp.appendChild(opt);
+        }
+      });
+      sel.appendChild(primeGrp);
+
+      const zoomGrp = document.createElement('optgroup');
+      zoomGrp.label = 'Preset Zoom Lenses';
+      zoomGrp.className = 'bg-obsidian text-slate-400';
+      ['kit', 'zoom_16_35', 'zoom_24_70', 'zoom_70_200', 'zoom_100_400'].forEach(id => {
+        const l = DEFAULT_LENSES[id];
+        if (l) {
+          const opt = document.createElement('option');
+          opt.value = id;
+          opt.className = 'bg-obsidian text-white';
+          opt.textContent = l.label;
+          zoomGrp.appendChild(opt);
+        }
+      });
+      sel.appendChild(zoomGrp);
+
+      const customLenses = getSavedCustomLenses();
+      const customLensKeys = Object.keys(customLenses);
+      if (customLensKeys.length > 0) {
+        const myGrp = document.createElement('optgroup');
+        myGrp.label = '🎒 My Saved Lenses';
+        myGrp.className = 'bg-obsidian text-amber-400 font-semibold';
+        customLensKeys.forEach(id => {
+          const l = customLenses[id];
+          const opt = document.createElement('option');
+          opt.value = id;
+          opt.className = 'bg-obsidian text-white';
+          opt.textContent = `★ ${l.label}`;
+          myGrp.appendChild(opt);
+        });
+        sel.appendChild(myGrp);
+      }
+
+      const customOpt = document.createElement('option');
+      customOpt.value = 'custom';
+      customOpt.className = 'bg-obsidian text-amber-300 font-semibold';
+      customOpt.textContent = '⚙️ Build / Save Custom Lens...';
+      sel.appendChild(customOpt);
+
+      sel.value = appState.gear;
+      if (!sel.value) {
+        appState.gear = 'kit';
+        sel.value = 'kit';
+      }
+    }
 
     window.setCustomLensType = function setCustomLensType(type) {
       appState.customLens.type = type === 'prime' ? 'prime' : 'zoom';
@@ -1987,6 +2529,7 @@
       appState.exposure.manualOverride = false;
       document.getElementById('resetSimBtn').classList.add('hidden');
       syncCustomLensUI();
+      updateGearTelemetryBar();
       recalculateAll();
     };
 
@@ -2021,14 +2564,21 @@
       appState.exposure.manualOverride = false;
       document.getElementById('resetSimBtn').classList.add('hidden');
       syncCustomLensUI();
+      updateGearTelemetryBar();
       recalculateAll();
     };
 
     function syncCustomLensUI() {
       const panel = document.getElementById('customLensPanel');
       if (!panel) return;
-      const isCustom = appState.gear === 'custom';
+      const isCustom = appState.gear === 'custom' || String(appState.gear).startsWith('custom_lens_');
       panel.classList.toggle('hidden', !isCustom);
+
+      const delBtn = document.getElementById('deleteSavedLensBtn');
+      if (delBtn) {
+        delBtn.classList.toggle('hidden', !String(appState.gear).startsWith('custom_lens_'));
+      }
+
       if (!isCustom) return;
 
       const c = appState.customLens;
@@ -2102,10 +2652,11 @@
     window.copyRecipeToClipboard = function copyRecipeToClipboard() {
       const exp = appState.exposure;
       const gear = getActiveGearConfig();
+      const cam = getActiveCamera();
       const filterLine = exp.filter && exp.filter !== 'None' ? ` | Optional Filter: ${exp.filter}` : '';
       const text = [
         `Luminary Shot Recipe — ${appState.location.name}`,
-        `Style: ${appState.style.toUpperCase()} | Lens: ${gear.label} (${appState.support})`,
+        `Camera: ${cam.name} (${cam.sensorType || cam.cropFactor + '×'}) | Lens: ${gear.label} (${appState.support})`,
         `Settings: f/${APERTURES[exp.apertureIdx]} | ${SHUTTERS[exp.shutterIdx].label} | ISO ${ISOS[exp.isoIdx]}`,
         `WB: ${exp.wbKelvin}K (${exp.wbLabel}) | Focus: ${exp.focusMode} | Meter: ${exp.metering}${filterLine}`
       ].join('\n');
@@ -2125,6 +2676,330 @@
         showToast('Could not copy automatically.');
       }
     };
+
+    // =========================================================================
+    // FEATURE #6: SHOT JOURNAL & EXIF RECIPE LOGGER
+    // =========================================================================
+    function updateJournalBadge() {
+      const journal = getSavedShotJournal();
+      const count = journal.length;
+      const badge1 = document.getElementById('journalCountBadge');
+      const badge2 = document.getElementById('journalModalCountBadge');
+      if (badge1) badge1.textContent = count;
+      if (badge2) badge2.textContent = `${count} saved`;
+    }
+
+    window.logCurrentShot = function logCurrentShot() {
+      const exp = appState.exposure;
+      const gear = getActiveGearConfig();
+      const cam = getActiveCamera();
+      const solar = calculateSolarData(appState.location.lat, appState.location.lon, getEffectiveDate());
+      const diagnosis = classifyLightDirection(appState.orientation.heading, solar.azimuth, solar.altitude, appState.orientation.pitch);
+
+      const entry = {
+        id: 'shot_' + Date.now(),
+        timestamp: new Date().toISOString(),
+        formattedDate: new Date().toLocaleString(undefined, {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit'
+        }),
+        title: `${appState.style.charAt(0).toUpperCase() + appState.style.slice(1)} @ ${appState.location.name.split(',')[0]}`,
+        style: appState.style,
+        camera: {
+          id: appState.camera,
+          name: cam.name,
+          cropFactor: cam.cropFactor,
+          sensorType: cam.sensorType || (cam.cropFactor + '×')
+        },
+        lens: {
+          id: appState.gear,
+          label: gear.label,
+          focalLengthMm: gear.focalLengthMm,
+          effectiveFocalLengthMm: gear.effectiveFocalLengthMm
+        },
+        support: appState.support,
+        exposure: {
+          aperture: `f/${APERTURES[exp.apertureIdx]}`,
+          shutter: SHUTTERS[exp.shutterIdx].label,
+          iso: `ISO ${ISOS[exp.isoIdx]}`,
+          ev: `${exp.targetEV.toFixed(1)} EV`,
+          wb: `${exp.wbKelvin}K (${exp.wbLabel})`,
+          focusMode: exp.focusMode,
+          metering: exp.metering,
+          filter: exp.filter || 'None'
+        },
+        environment: {
+          locationName: appState.location.name,
+          lat: appState.location.lat,
+          lon: appState.location.lon,
+          weather: appState.weather.description,
+          tempC: appState.weather.tempC,
+          cloudCover: appState.weather.cloudCover,
+          sunAltitude: Math.round(solar.altitude),
+          sunAzimuth: Math.round(solar.azimuth),
+          lightingBadge: diagnosis.badge,
+          lightingSummary: diagnosis.summary
+        },
+        notes: ''
+      };
+
+      const journal = getSavedShotJournal();
+      journal.unshift(entry);
+      saveShotJournal(journal);
+      updateJournalBadge();
+      showToast(`📸 Shot logged to Journal! (${journal.length} saved)`);
+    };
+
+    window.openShotJournal = function openShotJournal() {
+      const modal = document.getElementById('shotJournalModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        window.renderJournalCards();
+      }
+    };
+
+    window.closeShotJournal = function closeShotJournal() {
+      const modal = document.getElementById('shotJournalModal');
+      if (modal) modal.classList.add('hidden');
+    };
+
+    window.setJournalStyleFilter = function setJournalStyleFilter(style) {
+      appState.journalStyleFilter = style;
+      const btns = document.querySelectorAll('.journal-filter-btn');
+      btns.forEach(b => {
+        const isMatch = b.getAttribute('data-jstyle') === style;
+        b.className = isMatch
+          ? 'journal-filter-btn px-2.5 py-1 rounded-lg text-[10px] font-mono font-semibold bg-amber-500 text-obsidian transition'
+          : 'journal-filter-btn px-2.5 py-1 rounded-lg text-[10px] font-mono text-slate-400 hover:text-white bg-dial transition';
+      });
+      window.renderJournalCards();
+    };
+
+    window.filterShotJournal = function filterShotJournal() {
+      window.renderJournalCards();
+    };
+
+    window.renderJournalCards = function renderJournalCards() {
+      const container = document.getElementById('journalCardsList');
+      if (!container) return;
+      const allEntries = getSavedShotJournal();
+      updateJournalBadge();
+
+      const searchInput = document.getElementById('journalSearchInput');
+      const query = (searchInput ? searchInput.value : '').toLowerCase().trim();
+      const styleFilter = appState.journalStyleFilter || 'all';
+
+      const filtered = allEntries.filter(item => {
+        if (styleFilter !== 'all' && item.style !== styleFilter) return false;
+        if (!query) return true;
+        const searchBlob = `${item.title} ${item.environment.locationName} ${item.camera.name} ${item.lens.label} ${item.notes || ''} ${item.exposure.aperture} ${item.exposure.shutter} ${item.exposure.iso}`.toLowerCase();
+        return searchBlob.includes(query);
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="py-12 text-center text-slate-500 space-y-2">
+            <span class="text-4xl block">📷</span>
+            <div class="text-xs font-mono font-semibold text-slate-400">No shot recipes found</div>
+            <p class="text-[11px] text-slate-500 max-w-sm mx-auto">
+              ${allEntries.length === 0 ? "You haven't logged any shot recipes yet. Tap '📸 Log Shot' on the camera controls to capture your settings!" : "No recipes match your search/filter criteria."}
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(item => {
+        const notesHtml = item.notes
+          ? `<p class="text-[11px] text-amber-200/90 bg-obsidian/70 border border-borderline rounded-lg px-2.5 py-1.5 mt-2 font-mono">📝 ${escapeHtml(item.notes)}</p>`
+          : `<div class="mt-2 flex items-center gap-1.5 text-[10px] font-mono text-slate-500 hover:text-slate-300 cursor-pointer" onclick="window.promptEditJournalNote('${item.id}')">➕ Add note...</div>`;
+
+        return `
+          <div class="bg-gradient-to-b from-obsidian to-camera border border-borderline hover:border-slate-600 rounded-xl p-3.5 space-y-2.5 transition">
+            <!-- Card Header -->
+            <div class="flex flex-wrap items-center justify-between gap-1.5">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-white tracking-tight">${escapeHtml(item.title)}</span>
+                <span class="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-300">${item.style}</span>
+              </div>
+              <span class="text-[10px] font-mono text-slate-500">${item.formattedDate}</span>
+            </div>
+
+            <!-- Big Exposure Dials Badges -->
+            <div class="flex flex-wrap items-center gap-2 text-xs font-mono font-bold">
+              <span class="bg-dial border border-borderline px-2.5 py-1 rounded-lg text-white">${item.exposure.aperture}</span>
+              <span class="bg-dial border border-borderline px-2.5 py-1 rounded-lg text-sky-400">${item.exposure.shutter}</span>
+              <span class="bg-dial border border-borderline px-2.5 py-1 rounded-lg text-emerald-400">${item.exposure.iso}</span>
+              <span class="bg-dial border border-borderline px-2.5 py-1 rounded-lg text-amber-300">${item.lens.focalLengthMm}mm ${item.lens.effectiveFocalLengthMm !== item.lens.focalLengthMm ? '(' + item.lens.effectiveFocalLengthMm + 'mm eq)' : ''}</span>
+              <span class="text-[10px] text-slate-400 font-normal self-center ml-auto">${item.exposure.ev} • ${item.support}</span>
+            </div>
+
+            <!-- Gear & Environmental Telemetry -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[10px] font-mono text-slate-400 pt-0.5">
+              <div>
+                <span class="text-slate-500">Gear:</span> ${escapeHtml(item.camera.name)} • ${escapeHtml(item.lens.label)}
+              </div>
+              <div>
+                <span class="text-slate-500">Light:</span> ${escapeHtml(item.environment.lightingBadge)} (Sun ${item.environment.sunAltitude}°) • ${item.environment.weather}
+              </div>
+            </div>
+
+            ${notesHtml}
+
+            <!-- Card Actions -->
+            <div class="flex items-center justify-between pt-1 border-t border-borderline/50">
+              <span class="text-[9px] font-mono text-slate-500">📍 ${escapeHtml(item.environment.locationName.split(',')[0])}</span>
+              <div class="flex items-center gap-1.5">
+                <button type="button" onclick="window.loadJournalRecipe('${item.id}')" class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-obsidian text-[10px] font-mono font-bold transition flex items-center gap-1" title="Load these settings directly into camera dials">
+                  ⚡ Load into Dials
+                </button>
+                <button type="button" onclick="window.copyJournalRecipe('${item.id}')" class="px-2 py-1 rounded-lg bg-dial hover:bg-slate-700 text-slate-300 text-[10px] font-mono transition" title="Copy markdown recipe">
+                  📋 Copy
+                </button>
+                <button type="button" onclick="window.deleteJournalRecipe('${item.id}')" class="px-2 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 text-[10px] font-mono transition" title="Delete recipe">
+                  🗑️
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    };
+
+    window.promptEditJournalNote = function promptEditJournalNote(id) {
+      const journal = getSavedShotJournal();
+      const item = journal.find(x => x.id === id);
+      if (!item) return;
+      const note = prompt('Add field note for this shot:', item.notes || '');
+      if (note !== null) {
+        item.notes = note.trim();
+        saveShotJournal(journal);
+        window.renderJournalCards();
+        showToast('Note updated!');
+      }
+    };
+
+    window.loadJournalRecipe = function loadJournalRecipe(id) {
+      const journal = getSavedShotJournal();
+      const item = journal.find(x => x.id === id);
+      if (!item) return;
+
+      if (item.camera && item.camera.id) {
+        appState.camera = item.camera.id;
+        try { localStorage.setItem('luminary_active_camera', item.camera.id); } catch (_) {}
+      }
+
+      if (item.lens && item.lens.id) {
+        appState.gear = item.lens.id;
+        try { localStorage.setItem('luminary_active_lens', item.lens.id); } catch (_) {}
+      }
+
+      if (item.style) {
+        appState.style = item.style;
+      }
+
+      if (item.support) {
+        appState.support = item.support;
+        const supSel = document.getElementById('supportSelect');
+        if (supSel) supSel.value = item.support;
+      }
+
+      const apVal = parseFloat(item.exposure.aperture.replace('f/', ''));
+      const apIdx = APERTURES.indexOf(apVal);
+      if (apIdx >= 0) appState.exposure.apertureIdx = apIdx;
+
+      const shIdx = SHUTTERS.findIndex(s => s.label === item.exposure.shutter);
+      if (shIdx >= 0) appState.exposure.shutterIdx = shIdx;
+
+      const isoVal = parseInt(item.exposure.iso.replace('ISO ', ''), 10);
+      const isoIdx = ISOS.indexOf(isoVal);
+      if (isoIdx >= 0) appState.exposure.isoIdx = isoIdx;
+
+      appState.exposure.manualOverride = true;
+      document.getElementById('resetSimBtn').classList.remove('hidden');
+
+      populateCameraSelect();
+      populateLensSelect();
+      syncCustomLensUI();
+      updateGearTelemetryBar();
+      recalculateAll();
+      window.closeShotJournal();
+      showToast(`⚡ Loaded "${item.title}" into camera dials!`);
+    };
+
+    window.copyJournalRecipe = function copyJournalRecipe(id) {
+      const journal = getSavedShotJournal();
+      const item = journal.find(x => x.id === id);
+      if (!item) return;
+
+      const text = [
+        `📸 ${item.title} (${item.formattedDate})`,
+        `Style: ${item.style.toUpperCase()} | Support: ${item.support}`,
+        `Gear: ${item.camera.name} + ${item.lens.label}`,
+        `Settings: ${item.exposure.aperture} | ${item.exposure.shutter} | ${item.exposure.iso} | ${item.exposure.ev}`,
+        `Light: ${item.environment.lightingBadge} | WB: ${item.exposure.wb} | Weather: ${item.environment.weather}`,
+        item.notes ? `Notes: ${item.notes}` : ''
+      ].filter(Boolean).join('\n');
+
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('Shot recipe copied to clipboard!');
+      } catch (_) {
+        showToast('Could not copy automatically.');
+      }
+    };
+
+    window.deleteJournalRecipe = function deleteJournalRecipe(id) {
+      let journal = getSavedShotJournal();
+      journal = journal.filter(x => x.id !== id);
+      saveShotJournal(journal);
+      window.renderJournalCards();
+      showToast('Recipe deleted from Journal.');
+    };
+
+    window.clearShotJournal = function clearShotJournal() {
+      if (!confirm('Are you sure you want to clear all saved shot recipes?')) return;
+      saveShotJournal([]);
+      window.renderJournalCards();
+      showToast('Shot Journal cleared.');
+    };
+
+    window.exportJournalJSON = function exportJournalJSON() {
+      const journal = getSavedShotJournal();
+      if (journal.length === 0) {
+        showToast('No recipes to export.');
+        return;
+      }
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(journal, null, 2));
+      const a = document.createElement('a');
+      a.setAttribute('href', dataStr);
+      a.setAttribute('download', `luminary-journal-${new Date().toISOString().split('T')[0]}.json`);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      showToast('Exported Shot Journal to JSON file!');
+    };
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
 
     // Dismiss city search dropdown when clicking outside
     document.addEventListener('click', (e) => {
@@ -2211,6 +3086,13 @@
           if (installBtn) installBtn.classList.add('hidden');
         });
       }
+
+      // 3. Initialize Camera & Lens Gear Bag from Local Storage
+      populateCameraSelect();
+      populateLensSelect();
+      syncCustomLensUI();
+      updateGearTelemetryBar();
+      updateJournalBadge();
 
       updateLiveClockDisplay();
       setInterval(updateLiveClockDisplay, 1000);
