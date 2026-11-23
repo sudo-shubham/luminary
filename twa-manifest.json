@@ -32,6 +32,10 @@
       "chosenIconUrl": "https://sudo-shubham.github.io/luminary.github.io/luminary-icon-192x192.png"
     }
   ],
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "android"
+  },
   "generatorApp": "pwabuilder",
   "webManifestUrl": "https://sudo-shubham.github.io/luminary.github.io/manifest.json",
   "fallbackType": "customtabs",
