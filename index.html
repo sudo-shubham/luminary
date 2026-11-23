@@ -108,56 +108,48 @@
 
   <!-- Top Navigation Header -->
   <header class="sticky top-0 z-40 bg-obsidian/95 backdrop-blur-md border-b border-borderline">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
-      <!-- Brand Identity -->
-      <div class="flex items-center gap-2.5">
-        <div class="w-9 h-9 rounded-xl overflow-hidden shadow-lg shadow-amber-500/20 border border-slate-700/70 shrink-0" aria-label="Luminary Logo">
-          <!-- Inline Flat Luminary Logo SVG (matches exported 512x512 PNG icon) -->
-          <svg viewBox="0 0 512 512" class="w-full h-full block" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Luminary">
-            <rect width="512" height="512" fill="#0b1a2e" />
-            <circle cx="256" cy="256" r="196" fill="none" stroke="rgba(148,163,184,0.18)" stroke-width="6" />
-            <circle cx="222" cy="260" r="126" fill="#f5a623" />
-            <circle cx="284" cy="264" r="116" fill="#2596e8" />
-            <circle cx="262" cy="262" r="62" fill="#0b1a2e" />
-            <g transform="translate(262 262) rotate(45)">
-              <polygon points="0,-190 28,0 0,174 -28,0" fill="#ffffff" />
-              <circle cx="0" cy="0" r="17" fill="#0b1a2e" />
-            </g>
-          </svg>
-        </div>
-        <div>
-          <h1 class="text-base sm:text-lg font-bold tracking-tight text-white leading-none">LUMINARY</h1>
-          <p class="text-[10px] sm:text-[11px] font-mono text-slate-400 uppercase tracking-wider mt-0.5">Camera Settings Assistant</p>
-        </div>
-      </div>
-
-      <!-- Right Controls: Live Clock, Time Shift & Beginner/Pro Toggle -->
-      <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
-        <!-- Live Local Clock Pill -->
-        <div class="flex items-center gap-2 bg-camera border border-borderline rounded-xl px-3 py-1.5 shadow-inner">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="Live Clock"></span>
-          <div class="leading-tight">
-            <div id="liveWallClock" class="text-xs sm:text-sm font-mono font-bold text-white tracking-tight">--:--:-- --</div>
-            <div id="liveWallTz" class="text-[9px] font-mono text-slate-400 uppercase">LOCAL TIME</div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between gap-2.5">
+      <!-- Left: Brand Identity with Time on the Right of Logo -->
+      <div class="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
+        <div class="flex items-center gap-2 shrink-0">
+          <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl overflow-hidden shadow-lg shadow-amber-500/20 border border-slate-700/70 shrink-0" aria-label="Luminary Logo">
+            <!-- Inline Flat Luminary Logo SVG (matches exported 512x512 PNG icon) -->
+            <svg viewBox="0 0 512 512" class="w-full h-full block" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Luminary">
+              <rect width="512" height="512" fill="#0b1a2e" />
+              <circle cx="256" cy="256" r="196" fill="none" stroke="rgba(148,163,184,0.18)" stroke-width="6" />
+              <circle cx="222" cy="260" r="126" fill="#f5a623" />
+              <circle cx="284" cy="264" r="116" fill="#2596e8" />
+              <circle cx="262" cy="262" r="62" fill="#0b1a2e" />
+              <g transform="translate(262 262) rotate(45)">
+                <polygon points="0,-190 28,0 0,174 -28,0" fill="#ffffff" />
+                <circle cx="0" cy="0" r="17" fill="#0b1a2e" />
+              </g>
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-sm sm:text-base font-bold tracking-tight text-white leading-none">LUMINARY</h1>
+            <p class="hidden md:block text-[10px] font-mono text-slate-400 uppercase tracking-wider mt-0.5">Camera Settings Assistant</p>
           </div>
         </div>
 
-        <!-- Beginner vs Pro Mode Toggle -->
-        <div class="flex items-center bg-dial border border-borderline rounded-xl p-1" role="group" aria-label="Experience Mode">
-          <button type="button" id="modeBeginnerBtn" onclick="window.setAppMode('beginner')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-obsidian transition">
-            Beginner
-          </button>
-          <button type="button" id="modeProBtn" onclick="window.setAppMode('pro')" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition">
-            Pro
-          </button>
+        <!-- Live Local Clock (Moved to the Right of Logo - Compact, No Wrap) -->
+        <div class="flex items-center gap-1.5 bg-camera border border-borderline rounded-lg sm:rounded-xl px-2 py-0.5 sm:px-2.5 sm:py-1 shadow-inner shrink-0">
+          <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 animate-pulse" title="Live Clock"></span>
+          <div class="leading-none">
+            <div id="liveWallClock" class="text-[11px] sm:text-xs font-mono font-bold text-white tracking-tight">--:--:--</div>
+            <div id="liveWallTz" class="text-[8px] font-mono text-slate-400 uppercase hidden md:block">LOCAL TIME</div>
+          </div>
         </div>
+      </div>
 
+      <!-- Right Controls: Shot Journal & App Installation -->
+      <div class="flex items-center gap-2 shrink-0">
         <!-- Shot Journal Button (Feature #6) -->
         <button
           type="button"
           id="journalHeaderBtn"
           onclick="window.openShotJournal()"
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-camera hover:bg-dial border border-borderline text-xs font-semibold text-slate-200 transition shadow-inner active:scale-95"
+          class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-camera hover:bg-dial border border-borderline text-xs font-semibold text-slate-200 transition shadow-inner active:scale-95"
           title="Open Saved Shot Journal & EXIF Recipes">
           <span>📖</span>
           <span class="hidden sm:inline">Journal</span>
@@ -189,30 +181,57 @@
     </div>
   </header>
 
-  <!-- Compact Top Location & Lighting Strip (Always accessible without pushing settings down) -->
+  <!-- Single Bar: Search Bar with Connected GPS Icon, Current Location/Phase & Time Shift -->
   <div class="bg-camera/80 border-b border-borderline">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-2.5">
-      <!-- Active Location & Phase Summary -->
-      <div class="flex items-center gap-2.5 flex-wrap">
-        <button type="button" onclick="window.useMyLocation()" id="gpsBtn" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-semibold transition active:scale-95">
-          <span>📍</span> Use GPS
-        </button>
-        <div class="flex items-center gap-2">
-          <span id="stripLocationName" class="text-sm font-bold text-white">New Delhi, India</span>
-          <span id="stripPhaseBadge" class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
-            GOLDEN HOUR
-          </span>
-          <span id="stripEvBadge" class="hidden sm:inline-block text-[11px] font-mono font-semibold text-emerald-400">EV 11.5</span>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-2 flex flex-col md:flex-row md:items-center justify-between gap-2 sm:gap-2.5">
+      <!-- Search Bar with Embedded GPS Icon & Find Button in Connected Flex Group -->
+      <div class="relative w-full md:w-80 md:max-w-sm shrink-0" id="headerCitySearchContainer">
+        <div class="flex items-center bg-obsidian border border-borderline focus-within:border-amber-500/60 rounded-xl overflow-hidden shadow-inner">
+          <button
+            type="button"
+            onclick="window.useMyLocation()"
+            id="gpsBtn"
+            class="shrink-0 px-2.5 py-1.5 bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border-r border-borderline text-xs font-semibold flex items-center gap-1 transition active:scale-95"
+            title="Use GPS: Auto-detect my location">
+            <span id="gpsBtnIcon">📍</span>
+            <span id="gpsBtnText" class="text-[10px] font-mono hidden xs:inline">GPS</span>
+          </button>
+          <input
+            type="text"
+            id="citySearchInput"
+            placeholder="Search city (e.g. Paris, Tokyo)..."
+            onkeydown="if(event.key==='Enter') window.searchCity()"
+            class="flex-1 min-w-0 bg-transparent px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none"
+          />
+          <button
+            type="button"
+            onclick="window.searchCity()"
+            class="shrink-0 px-3 py-1.5 bg-dial hover:bg-slate-700 text-[11px] font-semibold text-slate-200 border-l border-borderline transition active:scale-95">
+            Find
+          </button>
         </div>
+        <div id="cityResultsDropdown" class="hidden absolute left-0 right-0 top-full mt-1.5 bg-dial border border-borderline rounded-xl shadow-2xl overflow-hidden z-50 max-h-60 overflow-y-auto"></div>
       </div>
 
-      <!-- Quick Time Shift Scrubber -->
-      <div class="flex items-center gap-1.5 bg-obsidian border border-borderline rounded-xl px-2.5 py-1">
-        <span class="text-[10px] font-mono text-slate-400 hidden sm:inline">TIME:</span>
-        <button type="button" onclick="window.shiftTime(-1)" class="px-2.5 py-1 rounded-lg bg-dial hover:bg-slate-700 text-xs font-mono text-slate-200 transition active:scale-95">-1h</button>
-        <span id="headerTimeDisplay" class="text-xs font-mono font-semibold text-amber-400 min-w-[46px] text-center">LIVE</span>
-        <button type="button" onclick="window.shiftTime(1)" class="px-2.5 py-1 rounded-lg bg-dial hover:bg-slate-700 text-xs font-mono text-slate-200 transition active:scale-95">+1h</button>
-        <button type="button" onclick="window.resetTime()" id="resetTimeBtn" class="hidden text-[11px] font-mono text-sky-400 hover:underline px-1.5">Reset</button>
+      <!-- Current Location, Solar Phase & Live EV Rating + Quick Time Shift Scrubber -->
+      <div class="flex items-center justify-between md:justify-end gap-2 sm:gap-3 w-full md:w-auto min-w-0">
+        <!-- Current Location, Solar Phase & Live EV Rating -->
+        <div class="flex items-center gap-1.5 sm:gap-2 min-w-0">
+          <span class="text-[11px] font-mono text-slate-400 hidden sm:inline shrink-0">Current:</span>
+          <span id="stripLocationName" class="text-xs sm:text-sm font-bold text-white truncate max-w-[130px] xs:max-w-[170px] sm:max-w-none">New Delhi, India</span>
+          <span id="stripPhaseBadge" class="px-1.5 sm:px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 shrink-0">
+            GOLDEN HOUR
+          </span>
+          <span id="stripEvBadge" class="text-[10px] sm:text-[11px] font-mono font-semibold text-emerald-400 shrink-0">EV 11.5</span>
+        </div>
+
+        <!-- Quick Time Shift Scrubber -->
+        <div class="flex items-center gap-1 bg-obsidian border border-borderline rounded-xl px-1.5 sm:px-2 py-1 shrink-0">
+          <button type="button" onclick="window.shiftTime(-1)" class="px-1.5 sm:px-2 py-0.5 rounded-lg bg-dial hover:bg-slate-700 text-xs font-mono text-slate-200 transition active:scale-95">-1h</button>
+          <span id="headerTimeDisplay" class="text-xs font-mono font-semibold text-amber-400 min-w-[34px] sm:min-w-[38px] text-center">LIVE</span>
+          <button type="button" onclick="window.shiftTime(1)" class="px-1.5 sm:px-2 py-0.5 rounded-lg bg-dial hover:bg-slate-700 text-xs font-mono text-slate-200 transition active:scale-95">+1h</button>
+          <button type="button" onclick="window.resetTime()" id="resetTimeBtn" class="hidden text-[10px] font-mono text-sky-400 hover:underline px-1">Reset</button>
+        </div>
       </div>
     </div>
   </div>
@@ -225,226 +244,265 @@
          ======================================================================= -->
     <div class="lg:col-span-7 space-y-5">
 
-      <!-- HERO CARD: Recommended Camera Settings & Quick Shot Selector -->
-      <section class="bg-camera border-2 border-amber-500/25 rounded-2xl p-4 sm:p-6 shadow-2xl space-y-5">
-
-        <!-- Hero Header -->
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <div class="flex items-center gap-2.5">
-            <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-300 font-mono text-xs font-bold">M / Av</span>
-            <div>
-              <h2 class="text-base sm:text-lg font-bold text-white leading-tight">Recommended Camera Settings</h2>
-              <p class="text-[11px] text-slate-400" id="heroSubtitle">Auto-calculated for your current light & subject</p>
+      <!-- =======================================================================
+           1. FIRST OPTION: CAMERA SETUP (Dedicated Separate Section)
+           ======================================================================= -->
+      <section class="bg-camera border border-borderline hover:border-amber-500/40 rounded-2xl p-3.5 sm:p-4 shadow-xl transition space-y-3">
+        <!-- Summary Header Line (Always Visible on Top) -->
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2 min-w-0 flex-1 pr-1">
+            <span class="text-base sm:text-lg shrink-0">📷</span>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap min-w-0">
+                <span id="finalSetupCamera" class="text-xs sm:text-sm font-bold text-white truncate max-w-[140px] xs:max-w-[200px] sm:max-w-none">Sony A7 IV / A7R V</span>
+                <span class="text-slate-600 hidden xs:inline">•</span>
+                <span id="finalSetupLensHold" class="text-xs sm:text-sm font-semibold text-slate-300 truncate max-w-[130px] xs:max-w-[180px] sm:max-w-none">50mm • Handheld</span>
+              </div>
             </div>
           </div>
-          <div class="flex items-center gap-2">
-            <button type="button" onclick="window.resetExposureOverrides()" id="resetSimBtn" class="hidden px-2.5 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-xs font-mono text-amber-300 hover:bg-amber-500/25 transition">
-              ↺ Auto-Reset
-            </button>
-            <button type="button" onclick="window.logCurrentShot()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-xs font-semibold text-amber-300 transition active:scale-95 shadow-sm" title="Log current exposure & environmental telemetry to Shot Journal">
-              <span>📸</span> Log Shot
-            </button>
-            <button type="button" onclick="window.copyRecipeToClipboard()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-dial hover:bg-slate-700 border border-borderline text-xs font-medium text-slate-200 transition active:scale-95">
-              <span>📋</span> Copy
-            </button>
-          </div>
+          <button type="button" onclick="window.toggleCameraSetupDrawer()" id="toggleCameraSetupBtn" class="shrink-0 inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl bg-dial hover:bg-slate-700 text-xs font-semibold text-amber-300 border border-borderline transition active:scale-95" title="Tap to expand Camera Body, Lens & Hold options">
+            <span id="toggleCameraSetupText">⚙️ Setup</span>
+            <span id="toggleCameraSetupChevron" class="text-[10px] text-slate-400">▾</span>
+          </button>
         </div>
 
-        <!-- Integrated Quick Subject & Gear Bar (Zero-scroll tuning) -->
-        <div class="bg-obsidian/80 border border-borderline rounded-2xl p-3.5 space-y-3">
-          <div>
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-[11px] font-mono uppercase tracking-wider text-slate-400">1. What are you shooting?</span>
-              <span class="text-[10px] font-mono text-slate-500">Tap to recalculate</span>
-            </div>
-            <div class="grid grid-cols-3 sm:grid-cols-7 gap-1.5" id="styleButtonsGrid">
-              <button type="button" data-style="landscape" onclick="window.setStyle('landscape')" class="style-btn px-2 py-2 rounded-xl border text-xs font-medium transition">🏔️ Scenic</button>
-              <button type="button" data-style="portrait" onclick="window.setStyle('portrait')" class="style-btn px-2 py-2 rounded-xl border text-xs font-medium transition">🧑 Portrait</button>
-              <button type="button" data-style="street" onclick="window.setStyle('street')" class="style-btn px-2 py-2 rounded-xl border text-xs font-medium transition">🚶 Street</button>
-              <button type="button" data-style="action" onclick="window.setStyle('action')" class="style-btn px-2 py-2 rounded-xl border text-xs font-medium transition">⚡ Action</button>
-              <button type="button" data-style="night" onclick="window.setStyle('night')" class="style-btn px-2 py-2 rounded-xl border text-xs font-medium transition">✨ Night</button>
-              <button type="button" data-style="astro" onclick="window.setStyle('astro')" class="style-btn px-2 py-2 rounded-xl border text-xs font-medium transition">🌌 Astro</button>
-              <button type="button" data-style="longexp" onclick="window.setStyle('longexp')" class="style-btn px-2 py-2 rounded-xl border text-xs font-medium transition">🌊 Silk</button>
-            </div>
-          </div>
-
-          <!-- Camera Body, Lens & Support Selectors (3-Column Grid) -->
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-            <!-- Camera Body Selector -->
-            <div class="flex items-center gap-2 bg-camera border border-borderline rounded-xl px-3 py-1.5">
-              <span class="text-[10px] font-mono text-slate-400 uppercase shrink-0">Body:</span>
-              <select id="cameraSelect" onchange="window.setCamera(this.value)" class="w-full bg-transparent text-xs font-semibold text-white focus:outline-none cursor-pointer">
-                <!-- Dynamically populated -->
-              </select>
-            </div>
-
-            <!-- Lens Selector -->
-            <div class="flex items-center gap-2 bg-camera border border-borderline rounded-xl px-3 py-1.5">
-              <span class="text-[10px] font-mono text-slate-400 uppercase shrink-0">Lens:</span>
-              <select id="gearSelect" onchange="window.setGear(this.value)" class="w-full bg-transparent text-xs font-semibold text-white focus:outline-none cursor-pointer">
-                <!-- Dynamically populated -->
-              </select>
-            </div>
-
-            <!-- Support Selector -->
-            <div class="flex items-center gap-2 bg-camera border border-borderline rounded-xl px-3 py-1.5">
-              <span class="text-[10px] font-mono text-slate-400 uppercase shrink-0">Hold:</span>
-              <select id="supportSelect" onchange="window.setSupport(this.value)" class="w-full bg-transparent text-xs font-semibold text-white focus:outline-none cursor-pointer">
-                <option value="handheld" class="bg-obsidian">Handheld (No Tripod)</option>
-                <option value="tripod" class="bg-obsidian">Tripod / Solid Surface</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Live Optical & Sensor Telemetry Bar -->
-          <div id="gearTelemetryBar" class="flex flex-wrap items-center justify-between gap-2 text-[10px] sm:text-[11px] font-mono text-slate-400 bg-camera/60 border border-borderline rounded-xl px-3 py-2">
-            <div class="flex items-center gap-2 flex-wrap">
-              <span id="telemetrySensorBadge" class="text-amber-400 font-semibold">Full Frame • 1.0×</span>
-              <span class="text-slate-600">•</span>
-              <span id="telemetryFocalBadge" class="text-slate-200">50mm (50mm eq)</span>
-            </div>
-            <div class="flex items-center gap-2 flex-wrap text-slate-400">
-              <span id="telemetryHandheldBadge">Safe Handheld: ≥ 1/60s</span>
-              <span class="text-slate-600">•</span>
-              <span id="telemetryAstroBadge" class="text-sky-300">500-Rule: ≤ 10s</span>
-            </div>
-          </div>
-
-          <!-- Custom Camera Builder Panel (Shown when '+ Add Custom Camera Body' is chosen) -->
-          <div id="customCameraPanel" class="hidden bg-camera/90 border border-amber-500/30 rounded-xl p-3.5 space-y-3">
+        <!-- Collapsible Camera Setup Drawer -->
+        <div id="cameraSetupDrawer" class="hidden border-t border-borderline/60 pt-3 space-y-4 transition-all">
+          <!-- 1. Camera Body & Sensor Format -->
+          <div class="space-y-1.5">
             <div class="flex items-center justify-between">
-              <span class="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-semibold">Custom Camera Body Setup</span>
-              <button type="button" onclick="window.cancelCustomCamera()" class="text-xs text-slate-400 hover:text-white">✕ Cancel</button>
+              <span class="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-semibold flex items-center gap-1.5">
+                <span>1. Camera Body &amp; Sensor Format</span>
+              </span>
+              <span class="text-[10px] font-mono text-slate-400">Sets sensor crop factor</span>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-              <div class="bg-obsidian border border-borderline rounded-xl px-2.5 py-2">
-                <label for="customCameraNameInput" class="block text-[10px] font-mono text-slate-400 uppercase mb-1">Camera Name</label>
-                <input type="text" id="customCameraNameInput" placeholder="e.g. Blackmagic 4K" class="w-full bg-transparent text-xs font-semibold text-white focus:outline-none" />
+            <div class="flex items-center justify-between bg-obsidian border border-borderline rounded-xl px-3.5 py-2.5">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <span class="text-base sm:text-lg shrink-0">📷</span>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span id="activeCameraNameText" class="text-xs sm:text-sm font-bold text-white truncate">Sony A7 IV / A7R V</span>
+                    <span id="activeCameraCropBadge" class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30 shrink-0">1.0× Full Frame</span>
+                  </div>
+                </div>
               </div>
-              <div class="bg-obsidian border border-borderline rounded-xl px-2.5 py-2">
-                <label for="customCameraSensorSelect" class="block text-[10px] font-mono text-slate-400 uppercase mb-1">Sensor Format</label>
-                <select id="customCameraSensorSelect" onchange="window.onCustomCameraSensorChange(this.value)" class="w-full bg-transparent text-xs font-semibold text-white focus:outline-none cursor-pointer">
-                  <option value="1.0" class="bg-obsidian">Full Frame (1.0×)</option>
-                  <option value="1.5" class="bg-obsidian">APS-C Sony/Fuji/Nikon (1.5×)</option>
-                  <option value="1.6" class="bg-obsidian">APS-C Canon (1.6×)</option>
-                  <option value="2.0" class="bg-obsidian">Micro Four Thirds (2.0×)</option>
-                  <option value="0.79" class="bg-obsidian">Medium Format (0.79×)</option>
-                  <option value="3.6" class="bg-obsidian">Smartphone (3.6×)</option>
-                  <option value="custom" class="bg-obsidian">Custom Crop Factor</option>
-                </select>
-              </div>
-              <div id="customCropInputBox" class="bg-obsidian border border-borderline rounded-xl px-2.5 py-2">
-                <label for="customCropFactorInput" class="block text-[10px] font-mono text-slate-400 uppercase mb-1">Crop Factor</label>
-                <input type="number" step="0.01" min="0.5" max="10" id="customCropFactorInput" value="1.0" class="w-full bg-transparent text-xs font-mono font-semibold text-white focus:outline-none" />
-              </div>
-            </div>
-            <div class="flex justify-end gap-2 pt-1">
-              <button type="button" onclick="window.saveCustomCamera()" class="px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-obsidian text-xs font-bold transition">
-                💾 Save Camera Body to Bag
+              <button type="button" onclick="window.openCameraModal()" class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-dial hover:bg-slate-700 text-xs font-semibold text-amber-300 border border-borderline transition active:scale-95 ml-2" title="Change camera body or sensor format">
+                <span>Change Body</span>
+                <span class="text-[10px] text-slate-400">▾</span>
               </button>
             </div>
           </div>
 
-          <!-- Custom Lens Builder Panel (Shown when Custom Lens is selected) -->
-          <div id="customLensPanel" class="hidden bg-camera/90 border border-amber-500/30 rounded-xl p-3.5 space-y-3">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div class="flex items-center gap-2">
-                <span class="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-semibold">Custom Lens Setup</span>
-                <span id="customLensSummaryBadge" class="text-[10px] font-mono text-slate-300 bg-obsidian border border-borderline px-2 py-0.5 rounded-md">
-                  Zoom • 24–70mm • f/2.8–f/22
-                </span>
-              </div>
-              <!-- Prime vs Zoom Segmented Toggle -->
-              <div class="flex items-center bg-obsidian border border-borderline rounded-lg p-0.5" role="group" aria-label="Lens Type">
-                <button type="button" id="customTypePrimeBtn" onclick="window.setCustomLensType('prime')" class="px-2.5 py-1 rounded-md text-[11px] font-medium text-slate-400 hover:text-white transition">
-                  Prime
-                </button>
-                <button type="button" id="customTypeZoomBtn" onclick="window.setCustomLensType('zoom')" class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-amber-500 text-obsidian transition">
-                  Zoom
-                </button>
-              </div>
+          <!-- 2. Lens & Support (Hold) -->
+          <div class="space-y-2 border-t border-borderline/60 pt-3">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-mono uppercase tracking-wider text-slate-300 font-semibold">
+                2. Lens &amp; Support
+              </span>
+              <span class="text-[10px] font-mono text-slate-400">Focal length &amp; stability</span>
             </div>
-
-            <!-- f-stop & Focal Length Controls -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              <!-- Widest f-stop (Lowest f-number) -->
-              <div class="bg-obsidian border border-borderline rounded-xl px-2.5 py-2">
-                <label for="customMinFStop" class="block text-[10px] font-mono text-slate-400 uppercase mb-1">Widest f-stop</label>
-                <select id="customMinFStop" onchange="window.updateCustomLens('minApertureIdx', this.value)" class="w-full bg-transparent text-xs font-mono font-semibold text-white focus:outline-none cursor-pointer">
-                  <option value="0" class="bg-obsidian">f/1.4</option>
-                  <option value="1" class="bg-obsidian">f/1.8</option>
-                  <option value="2" class="bg-obsidian">f/2.0</option>
-                  <option value="3" class="bg-obsidian" selected>f/2.8</option>
-                  <option value="4" class="bg-obsidian">f/3.5</option>
-                  <option value="5" class="bg-obsidian">f/4.0</option>
-                  <option value="6" class="bg-obsidian">f/5.6</option>
-                  <option value="7" class="bg-obsidian">f/8.0</option>
-                  <option value="8" class="bg-obsidian">f/11</option>
-                  <option value="9" class="bg-obsidian">f/16</option>
-                  <option value="10" class="bg-obsidian">f/22</option>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <!-- Lens Selector -->
+              <div class="flex items-center gap-2 bg-obsidian border border-borderline rounded-xl px-3 py-2">
+                <span class="text-[10px] font-mono text-slate-400 uppercase shrink-0">Lens:</span>
+                <select id="gearSelect" onchange="window.setGear(this.value)" class="w-full bg-transparent text-xs sm:text-sm font-semibold text-white focus:outline-none cursor-pointer">
+                  <!-- Dynamically populated -->
                 </select>
               </div>
 
-              <!-- Narrowest f-stop (Highest f-number) -->
-              <div class="bg-obsidian border border-borderline rounded-xl px-2.5 py-2">
-                <label for="customMaxFStop" class="block text-[10px] font-mono text-slate-400 uppercase mb-1">Narrowest f-stop</label>
-                <select id="customMaxFStop" onchange="window.updateCustomLens('maxApertureIdx', this.value)" class="w-full bg-transparent text-xs font-mono font-semibold text-white focus:outline-none cursor-pointer">
-                  <option value="0" class="bg-obsidian">f/1.4</option>
-                  <option value="1" class="bg-obsidian">f/1.8</option>
-                  <option value="2" class="bg-obsidian">f/2.0</option>
-                  <option value="3" class="bg-obsidian">f/2.8</option>
-                  <option value="4" class="bg-obsidian">f/3.5</option>
-                  <option value="5" class="bg-obsidian">f/4.0</option>
-                  <option value="6" class="bg-obsidian">f/5.6</option>
-                  <option value="7" class="bg-obsidian">f/8.0</option>
-                  <option value="8" class="bg-obsidian">f/11</option>
-                  <option value="9" class="bg-obsidian">f/16</option>
-                  <option value="10" class="bg-obsidian" selected>f/22</option>
+              <!-- Support Selector -->
+              <div class="flex items-center gap-2 bg-obsidian border border-borderline rounded-xl px-3 py-2">
+                <span class="text-[10px] font-mono text-slate-400 uppercase shrink-0">Hold:</span>
+                <select id="supportSelect" onchange="window.setSupport(this.value)" class="w-full bg-transparent text-xs sm:text-sm font-semibold text-white focus:outline-none cursor-pointer">
+                  <option value="handheld" class="bg-obsidian">Handheld (No Tripod)</option>
+                  <option value="tripod" class="bg-obsidian">Tripod / Solid Surface</option>
                 </select>
               </div>
+            </div>
 
-              <!-- Min Focal Length (or Fixed Prime mm) -->
-              <div class="bg-obsidian border border-borderline rounded-xl px-2.5 py-2">
-                <label id="customMinMmLabel" for="customMinMm" class="block text-[10px] font-mono text-slate-400 uppercase mb-1">Min mm</label>
-                <div class="flex items-center gap-1">
-                  <input type="number" id="customMinMm" min="8" max="1200" value="24" onchange="window.updateCustomLens('minMm', this.value)" class="w-full bg-transparent text-xs font-mono font-semibold text-white focus:outline-none" />
-                  <span class="text-[10px] font-mono text-slate-500">mm</span>
+            <!-- Optical Telemetry Readout -->
+            <div id="gearTelemetryBar" class="flex flex-wrap items-center justify-between gap-2 text-[10px] sm:text-[11px] font-mono text-slate-400 bg-obsidian/60 border border-borderline rounded-xl px-3 py-2">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span id="telemetrySensorBadge" class="text-amber-400 font-semibold">Sony A7 IV • Full Frame</span>
+                <span class="text-slate-600">•</span>
+                <span id="telemetryFocalBadge" class="text-slate-200">50mm (50mm eq)</span>
+              </div>
+              <div class="flex items-center gap-2 flex-wrap text-slate-400">
+                <span id="telemetryHandheldBadge">Safe Handheld: ≥ 1/60s</span>
+                <span class="text-slate-600">•</span>
+                <span id="telemetryAstroBadge" class="text-sky-300">500-Rule: ≤ 10s</span>
+              </div>
+            </div>
+
+            <!-- Custom Lens Builder Panel (Shown when Custom Lens is selected) -->
+            <div id="customLensPanel" class="hidden bg-obsidian/90 border border-amber-500/30 rounded-xl p-3.5 space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-semibold">Custom Lens Setup</span>
+                  <span id="customLensSummaryBadge" class="text-[10px] font-mono text-slate-300 bg-obsidian border border-borderline px-2 py-0.5 rounded-md">
+                    Zoom • 24–70mm • f/2.8–f/22
+                  </span>
+                </div>
+                <!-- Prime vs Zoom Segmented Toggle -->
+                <div class="flex items-center bg-obsidian border border-borderline rounded-lg p-0.5" role="group" aria-label="Lens Type">
+                  <button type="button" id="customTypePrimeBtn" onclick="window.setCustomLensType('prime')" class="px-2.5 py-1 rounded-md text-[11px] font-medium text-slate-400 hover:text-white transition">
+                    Prime
+                  </button>
+                  <button type="button" id="customTypeZoomBtn" onclick="window.setCustomLensType('zoom')" class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-amber-500 text-obsidian transition">
+                    Zoom
+                  </button>
                 </div>
               </div>
 
-              <!-- Max Focal Length (Disabled/Hidden feel when Prime) -->
-              <div id="customMaxMmBox" class="bg-obsidian border border-borderline rounded-xl px-2.5 py-2">
-                <label for="customMaxMm" class="block text-[10px] font-mono text-slate-400 uppercase mb-1">Max mm</label>
-                <div class="flex items-center gap-1">
-                  <input type="number" id="customMaxMm" min="8" max="1200" value="70" onchange="window.updateCustomLens('maxMm', this.value)" class="w-full bg-transparent text-xs font-mono font-semibold text-white focus:outline-none" />
-                  <span class="text-[10px] font-mono text-slate-500">mm</span>
+              <!-- f-stop & Focal Length Controls -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                <!-- Widest f-stop (Lowest f-number) -->
+                <div class="bg-obsidian border border-borderline rounded-xl px-2.5 py-2">
+                  <label for="customMinFStop" class="block text-[10px] font-mono text-slate-400 uppercase mb-1">Widest f-stop</label>
+                  <select id="customMinFStop" onchange="window.updateCustomLens('minApertureIdx', this.value)" class="w-full bg-transparent text-xs font-mono font-semibold text-white focus:outline-none cursor-pointer">
+                    <option value="0" class="bg-obsidian">f/1.4</option>
+                    <option value="1" class="bg-obsidian">f/1.8</option>
+                    <option value="2" class="bg-obsidian">f/2.0</option>
+                    <option value="3" class="bg-obsidian" selected>f/2.8</option>
+                    <option value="4" class="bg-obsidian">f/3.5</option>
+                    <option value="5" class="bg-obsidian">f/4.0</option>
+                    <option value="6" class="bg-obsidian">f/5.6</option>
+                    <option value="7" class="bg-obsidian">f/8.0</option>
+                    <option value="8" class="bg-obsidian">f/11</option>
+                    <option value="9" class="bg-obsidian">f/16</option>
+                    <option value="10" class="bg-obsidian">f/22</option>
+                  </select>
+                </div>
+
+                <!-- Narrowest f-stop (Highest f-number) -->
+                <div class="bg-obsidian border border-borderline rounded-xl px-2.5 py-2">
+                  <label for="customMaxFStop" class="block text-[10px] font-mono text-slate-400 uppercase mb-1">Narrowest f-stop</label>
+                  <select id="customMaxFStop" onchange="window.updateCustomLens('maxApertureIdx', this.value)" class="w-full bg-transparent text-xs font-mono font-semibold text-white focus:outline-none cursor-pointer">
+                    <option value="0" class="bg-obsidian">f/1.4</option>
+                    <option value="1" class="bg-obsidian">f/1.8</option>
+                    <option value="2" class="bg-obsidian">f/2.0</option>
+                    <option value="3" class="bg-obsidian">f/2.8</option>
+                    <option value="4" class="bg-obsidian">f/3.5</option>
+                    <option value="5" class="bg-obsidian">f/4.0</option>
+                    <option value="6" class="bg-obsidian">f/5.6</option>
+                    <option value="7" class="bg-obsidian">f/8.0</option>
+                    <option value="8" class="bg-obsidian">f/11</option>
+                    <option value="9" class="bg-obsidian">f/16</option>
+                    <option value="10" class="bg-obsidian" selected>f/22</option>
+                  </select>
+                </div>
+
+                <!-- Min Focal Length (or Fixed Prime mm) -->
+                <div class="bg-obsidian border border-borderline rounded-xl px-2.5 py-2">
+                  <label id="customMinMmLabel" for="customMinMm" class="block text-[10px] font-mono text-slate-400 uppercase mb-1">Min mm</label>
+                  <div class="flex items-center gap-1">
+                    <input type="number" id="customMinMm" min="8" max="1200" value="24" onchange="window.updateCustomLens('minMm', this.value)" class="w-full bg-transparent text-xs font-mono font-semibold text-white focus:outline-none" />
+                    <span class="text-[10px] font-mono text-slate-500">mm</span>
+                  </div>
+                </div>
+
+                <!-- Max Focal Length -->
+                <div id="customMaxMmBox" class="bg-obsidian border border-borderline rounded-xl px-2.5 py-2">
+                  <label for="customMaxMm" class="block text-[10px] font-mono text-slate-400 uppercase mb-1">Max mm</label>
+                  <div class="flex items-center gap-1">
+                    <input type="number" id="customMaxMm" min="8" max="1200" value="70" onchange="window.updateCustomLens('maxMm', this.value)" class="w-full bg-transparent text-xs font-mono font-semibold text-white focus:outline-none" />
+                    <span class="text-[10px] font-mono text-slate-500">mm</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Active Zoom Position Slider (Shown only for Zoom lenses) -->
+              <div id="customZoomSliderRow" class="pt-0.5">
+                <div class="flex items-center justify-between text-[10px] font-mono text-slate-400 mb-1">
+                  <span>Active Zoom Focal Length (affects handheld shake limit)</span>
+                  <span id="customCurrentMmLabel" class="text-amber-400 font-semibold">50mm</span>
+                </div>
+                <input type="range" id="customCurrentMmSlider" min="24" max="70" value="50" oninput="window.updateCustomLens('currentMm', this.value)" class="w-full" aria-label="Current Zoom Focal Length" />
+              </div>
+
+              <!-- Save Custom Lens to Gear Bag Section -->
+              <div class="pt-2 border-t border-borderline/60 flex flex-wrap items-center justify-between gap-2.5">
+                <div class="flex items-center gap-2 flex-1 min-w-[200px]">
+                  <input type="text" id="saveCustomLensNameInput" placeholder="Lens Name (e.g. Sigma 18–35mm f/1.8)" class="w-full bg-obsidian border border-borderline rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50" />
+                </div>
+                <div class="flex items-center gap-2">
+                  <button type="button" onclick="window.saveCustomLensToBag()" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-obsidian text-xs font-bold transition flex items-center gap-1">
+                    <span>💾</span> Save Lens to Bag
+                  </button>
+                  <button type="button" id="deleteSavedLensBtn" onclick="window.deleteCurrentSavedLens()" class="hidden px-2.5 py-1.5 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 text-xs font-semibold transition" title="Delete this saved lens from bag">
+                    🗑️ Delete
+                  </button>
                 </div>
               </div>
             </div>
+          </div>
 
-            <!-- Active Zoom Position Slider (Shown only for Zoom lenses) -->
-            <div id="customZoomSliderRow" class="pt-0.5">
-              <div class="flex items-center justify-between text-[10px] font-mono text-slate-400 mb-1">
-                <span>Active Zoom Focal Length (affects handheld shake limit)</span>
-                <span id="customCurrentMmLabel" class="text-amber-400 font-semibold">50mm</span>
-              </div>
-              <input type="range" id="customCurrentMmSlider" min="24" max="70" value="50" oninput="window.updateCustomLens('currentMm', this.value)" class="w-full" aria-label="Current Zoom Focal Length" />
-            </div>
+          <!-- Drawer Footer Collapse Button -->
+          <div class="flex justify-end pt-2 border-t border-borderline/60">
+            <button type="button" onclick="window.toggleCameraSetupDrawer()" class="px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-obsidian text-xs font-bold transition active:scale-95 shadow">
+              Done ▴
+            </button>
+          </div>
+        </div>
+      </section>
 
-            <!-- Save Custom Lens to Gear Bag Section -->
-            <div class="pt-2 border-t border-borderline/60 flex flex-wrap items-center justify-between gap-2.5">
-              <div class="flex items-center gap-2 flex-1 min-w-[200px]">
-                <input type="text" id="saveCustomLensNameInput" placeholder="Lens Name (e.g. Sigma 18–35mm f/1.8)" class="w-full bg-obsidian border border-borderline rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50" />
-              </div>
-              <div class="flex items-center gap-2">
-                <button type="button" onclick="window.saveCustomLensToBag()" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-obsidian text-xs font-bold transition flex items-center gap-1">
-                  <span>💾</span> Save Lens to Bag
-                </button>
-                <button type="button" id="deleteSavedLensBtn" onclick="window.deleteCurrentSavedLens()" class="hidden px-2.5 py-1.5 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 text-xs font-semibold transition" title="Delete this saved lens from bag">
-                  🗑️ Delete
-                </button>
-              </div>
+      <!-- =======================================================================
+           2. SECOND OPTION: SCENE SELECTION (Separate Section — Moved Out of Setup)
+           ======================================================================= -->
+      <section class="bg-camera border border-borderline rounded-2xl p-3.5 sm:p-4 shadow-xl space-y-2.5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-sm">🎯</span>
+            <span class="text-xs font-bold uppercase tracking-wider text-white">Scene Selection</span>
+            <span class="text-[11px] text-slate-400 hidden xs:inline">— What are you shooting?</span>
+          </div>
+          <span class="text-[10px] font-mono text-slate-500">Tap to recalculate</span>
+        </div>
+        <div class="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-7 gap-1.5" id="styleButtonsGrid">
+          <button type="button" data-style="landscape" onclick="window.setStyle('landscape')" class="style-btn px-2 py-2 rounded-xl border text-xs font-medium transition">🏔️ Scenic</button>
+          <button type="button" data-style="portrait" onclick="window.setStyle('portrait')" class="style-btn px-2 py-2 rounded-xl border text-xs font-medium transition">🧑 Portrait</button>
+          <button type="button" data-style="street" onclick="window.setStyle('street')" class="style-btn px-2 py-2 rounded-xl border text-xs font-medium transition">🚶 Street</button>
+          <button type="button" data-style="action" onclick="window.setStyle('action')" class="style-btn px-2 py-2 rounded-xl border text-xs font-medium transition">⚡ Action</button>
+          <button type="button" data-style="night" onclick="window.setStyle('night')" class="style-btn px-2 py-2 rounded-xl border text-xs font-medium transition">✨ Night</button>
+          <button type="button" data-style="astro" onclick="window.setStyle('astro')" class="style-btn px-2 py-2 rounded-xl border text-xs font-medium transition">🌌 Astro</button>
+          <button type="button" data-style="longexp" onclick="window.setStyle('longexp')" class="style-btn px-2 py-2 rounded-xl border text-xs font-medium transition">🌊 Silk</button>
+        </div>
+      </section>
+
+      <!-- =======================================================================
+           3. THIRD OPTION: RECOMMENDED EXPOSURE HERO CARD
+           ======================================================================= -->
+      <section class="bg-camera border-2 border-amber-500/25 rounded-2xl p-4 sm:p-6 shadow-2xl space-y-5">
+
+        <!-- Hero Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-300 font-mono text-xs font-bold shrink-0">M / Av</span>
+            <div class="min-w-0">
+              <h2 class="text-base sm:text-lg font-bold text-white leading-tight truncate">Recommended Settings</h2>
+              <p class="text-[11px] text-slate-400 truncate" id="heroSubtitle">Auto-calculated for your current light &amp; subject</p>
             </div>
+          </div>
+          <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap shrink-0">
+            <button type="button" onclick="window.openCameraDialModal()" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-dial hover:bg-slate-700 border border-borderline text-xs font-semibold text-amber-300 transition active:scale-95" title="Hardware Control Guide: See where dials are located on your camera">
+              <span>🎛️</span>
+              <span class="hidden xs:inline">Dials</span>
+            </button>
+            <button type="button" onclick="window.resetExposureOverrides()" id="resetSimBtn" class="hidden px-2.5 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-xs font-mono text-amber-300 hover:bg-amber-500/25 transition">
+              ↺ Reset
+            </button>
+            <button type="button" onclick="window.toggleLockAll()" id="btnLockAll" class="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl bg-dial hover:bg-slate-700 border border-borderline text-xs font-semibold text-slate-200 transition active:scale-95" title="Lock all exposure dials (Exposure Lock AE-L)">
+              <span id="iconLockAll">🔒</span>
+              <span id="labelLockAll" class="hidden xs:inline">Lock All</span>
+            </button>
+            <button type="button" onclick="window.logCurrentShot()" class="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-xs font-semibold text-amber-300 transition active:scale-95 shadow-sm" title="Log current exposure &amp; environmental telemetry to Shot Journal">
+              <span>📸</span>
+              <span class="hidden xs:inline">Log</span>
+            </button>
+            <button type="button" onclick="window.copyRecipeToClipboard()" class="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl bg-dial hover:bg-slate-700 border border-borderline text-xs font-medium text-slate-200 transition active:scale-95" title="Copy exposure recipe">
+              <span>📋</span>
+              <span class="hidden xs:inline">Copy</span>
+            </button>
           </div>
         </div>
 
@@ -454,52 +512,253 @@
           <span id="exposureWarningText" class="leading-relaxed"></span>
         </div>
 
-        <!-- PRIMARY EXPOSURE TRIANGLE DIALS (Large, Tactile, with +/- Step Buttons) -->
+        <!-- PRIMARY EXPOSURE TRIANGLE DIALS (With Individual Lock Buttons & Camera Dial Guides) -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
 
           <!-- Aperture Dial -->
-          <div class="bg-gradient-to-b from-obsidian to-camera border border-borderline rounded-2xl p-4 flex flex-col justify-between shadow-inner">
-            <div class="flex items-center justify-between">
-              <span class="text-[11px] font-mono font-semibold text-slate-300">APERTURE</span>
-              <span id="labelApertureHint" class="text-[10px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md">Blur / Depth</span>
+          <div class="bg-gradient-to-b from-obsidian to-camera border border-borderline rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between shadow-inner transition" id="cardAperture">
+            <div class="flex items-center justify-between gap-1">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="text-[11px] font-mono font-semibold text-slate-300">APERTURE</span>
+                <span id="badgeLockAperture" class="hidden text-[8px] font-mono font-bold bg-amber-500 text-obsidian px-1 py-0.5 rounded shrink-0">LOCKED</span>
+              </div>
+              <div class="flex items-center gap-1 shrink-0">
+                <button type="button" onclick="window.toggleCameraGuide('aperture')" id="btnGuideAperture" class="w-7 h-7 rounded-lg border border-borderline hover:border-amber-500/50 text-slate-400 hover:text-amber-300 text-xs flex items-center justify-center transition active:scale-95" title="Where to change Aperture on your camera">
+                  <span>🎛️</span>
+                </button>
+                <button type="button" onclick="window.toggleLock('aperture')" id="btnLockAperture" class="w-7 h-7 rounded-lg border border-borderline hover:border-amber-500/50 text-slate-400 hover:text-amber-300 text-xs flex items-center justify-center transition active:scale-95" title="Lock Aperture (Aperture Priority)">
+                  <span id="iconLockAperture">🔓</span>
+                </button>
+              </div>
             </div>
-            <div id="readoutAperture" class="text-4xl font-mono font-bold text-white my-2.5 tracking-tight">f/8.0</div>
-            <div id="descAperture" class="text-xs text-slate-400 mb-3 min-h-[20px]">Sharp front-to-back</div>
+            <div id="readoutAperture" class="text-3xl sm:text-4xl font-mono font-bold text-white my-2 tracking-tight">f/8.0</div>
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-2 min-h-[20px] gap-1.5">
+              <span id="descAperture" class="truncate">Sharp front-to-back</span>
+              <span id="labelApertureHint" class="text-[9px] font-mono text-amber-400/90 bg-amber-500/10 px-1.5 py-0.5 rounded shrink-0">DOF</span>
+            </div>
+            <!-- Inline Camera Control Guide for Aperture -->
+            <div id="camGuideAperture" class="hidden my-2 bg-obsidian border border-amber-500/40 rounded-xl p-2.5 text-[11px] space-y-1">
+              <div class="flex items-center justify-between font-semibold text-amber-300">
+                <span class="flex items-center gap-1">
+                  <span>🎛️</span>
+                  <span id="camGuideApertureTitle">Front Control Dial</span>
+                </span>
+                <button type="button" onclick="window.toggleCameraGuide('aperture')" class="text-slate-400 hover:text-white text-xs px-1">✕</button>
+              </div>
+              <p id="camGuideApertureDetail" class="text-slate-300 text-[10px] leading-relaxed">
+                Rotate front dial under your right index finger on the grip.
+              </p>
+            </div>
             <div class="flex items-center gap-2">
-              <button type="button" id="btnApMinus" onclick="window.stepExposure('aperture', -1)" class="w-8 h-8 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-sm font-bold text-slate-200 flex items-center justify-center shrink-0 active:scale-95 transition">−</button>
+              <button type="button" id="btnApMinus" onclick="window.stepExposure('aperture', -1)" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-sm font-bold text-slate-200 flex items-center justify-center shrink-0 active:scale-95 transition">−</button>
               <input type="range" id="sliderAperture" min="0" max="10" value="7" oninput="window.onManualExposureChange('aperture', this.value)" class="w-full" aria-label="Aperture" />
-              <button type="button" id="btnApPlus" onclick="window.stepExposure('aperture', 1)" class="w-8 h-8 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-sm font-bold text-slate-200 flex items-center justify-center shrink-0 active:scale-95 transition">+</button>
+              <button type="button" id="btnApPlus" onclick="window.stepExposure('aperture', 1)" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-sm font-bold text-slate-200 flex items-center justify-center shrink-0 active:scale-95 transition">+</button>
             </div>
           </div>
 
           <!-- Shutter Speed Dial -->
-          <div class="bg-gradient-to-b from-obsidian to-camera border border-borderline rounded-2xl p-4 flex flex-col justify-between shadow-inner">
-            <div class="flex items-center justify-between">
-              <span class="text-[11px] font-mono font-semibold text-slate-300">SHUTTER</span>
-              <span id="labelShutterHint" class="text-[10px] font-mono text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-md">Motion</span>
+          <div class="bg-gradient-to-b from-obsidian to-camera border border-borderline rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between shadow-inner transition" id="cardShutter">
+            <div class="flex items-center justify-between gap-1">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="text-[11px] font-mono font-semibold text-slate-300">SHUTTER</span>
+                <span id="badgeLockShutter" class="hidden text-[8px] font-mono font-bold bg-sky-400 text-obsidian px-1 py-0.5 rounded shrink-0">LOCKED</span>
+              </div>
+              <div class="flex items-center gap-1 shrink-0">
+                <button type="button" onclick="window.toggleCameraGuide('shutter')" id="btnGuideShutter" class="w-7 h-7 rounded-lg border border-borderline hover:border-sky-500/50 text-slate-400 hover:text-sky-300 text-xs flex items-center justify-center transition active:scale-95" title="Where to change Shutter Speed on your camera">
+                  <span>🎛️</span>
+                </button>
+                <button type="button" onclick="window.toggleLock('shutter')" id="btnLockShutter" class="w-7 h-7 rounded-lg border border-borderline hover:border-sky-500/50 text-slate-400 hover:text-sky-300 text-xs flex items-center justify-center transition active:scale-95" title="Lock Shutter Speed (Shutter Priority)">
+                  <span id="iconLockShutter">🔓</span>
+                </button>
+              </div>
             </div>
-            <div id="readoutShutter" class="text-4xl font-mono font-bold text-white my-2.5 tracking-tight">1/125s</div>
-            <div id="descShutter" class="text-xs text-slate-400 mb-3 min-h-[20px]">Safe for handheld</div>
+            <div id="readoutShutter" class="text-3xl sm:text-4xl font-mono font-bold text-white my-2 tracking-tight">1/125s</div>
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-2 min-h-[20px] gap-1.5">
+              <span id="descShutter" class="truncate">Safe for handheld</span>
+              <span id="labelShutterHint" class="text-[9px] font-mono text-sky-400/90 bg-sky-500/10 px-1.5 py-0.5 rounded shrink-0">Motion</span>
+            </div>
+            <!-- Inline Camera Control Guide for Shutter -->
+            <div id="camGuideShutter" class="hidden my-2 bg-obsidian border border-sky-500/40 rounded-xl p-2.5 text-[11px] space-y-1">
+              <div class="flex items-center justify-between font-semibold text-sky-300">
+                <span class="flex items-center gap-1">
+                  <span>🎛️</span>
+                  <span id="camGuideShutterTitle">Rear Control Dial</span>
+                </span>
+                <button type="button" onclick="window.toggleCameraGuide('shutter')" class="text-slate-400 hover:text-white text-xs px-1">✕</button>
+              </div>
+              <p id="camGuideShutterDetail" class="text-slate-300 text-[10px] leading-relaxed">
+                Rotate the upper rear dial located under your right thumb on the top plate.
+              </p>
+            </div>
             <div class="flex items-center gap-2">
-              <button type="button" onclick="window.stepExposure('shutter', -1)" class="w-8 h-8 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-sm font-bold text-slate-200 flex items-center justify-center shrink-0 active:scale-95 transition">−</button>
+              <button type="button" onclick="window.stepExposure('shutter', -1)" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-sm font-bold text-slate-200 flex items-center justify-center shrink-0 active:scale-95 transition">−</button>
               <input type="range" id="sliderShutter" min="0" max="18" value="12" oninput="window.onManualExposureChange('shutter', this.value)" class="w-full" aria-label="Shutter Speed" />
-              <button type="button" onclick="window.stepExposure('shutter', 1)" class="w-8 h-8 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-sm font-bold text-slate-200 flex items-center justify-center shrink-0 active:scale-95 transition">+</button>
+              <button type="button" onclick="window.stepExposure('shutter', 1)" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-sm font-bold text-slate-200 flex items-center justify-center shrink-0 active:scale-95 transition">+</button>
             </div>
           </div>
 
           <!-- ISO Dial -->
-          <div class="bg-gradient-to-b from-obsidian to-camera border border-borderline rounded-2xl p-4 flex flex-col justify-between shadow-inner">
-            <div class="flex items-center justify-between">
-              <span class="text-[11px] font-mono font-semibold text-slate-300">ISO</span>
-              <span id="labelIsoHint" class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">Brightness</span>
+          <div class="bg-gradient-to-b from-obsidian to-camera border border-borderline rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between shadow-inner transition" id="cardISO">
+            <div class="flex items-center justify-between gap-1">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="text-[11px] font-mono font-semibold text-slate-300">ISO</span>
+                <span id="badgeLockISO" class="hidden text-[8px] font-mono font-bold bg-emerald-400 text-obsidian px-1 py-0.5 rounded shrink-0">LOCKED</span>
+              </div>
+              <div class="flex items-center gap-1 shrink-0">
+                <button type="button" onclick="window.toggleCameraGuide('iso')" id="btnGuideISO" class="w-7 h-7 rounded-lg border border-borderline hover:border-emerald-500/50 text-slate-400 hover:text-emerald-300 text-xs flex items-center justify-center transition active:scale-95" title="Where to change ISO on your camera">
+                  <span>🎛️</span>
+                </button>
+                <button type="button" onclick="window.toggleLock('iso')" id="btnLockISO" class="w-7 h-7 rounded-lg border border-borderline hover:border-emerald-500/50 text-slate-400 hover:text-emerald-300 text-xs flex items-center justify-center transition active:scale-95" title="Lock ISO (Base ISO Lock)">
+                  <span id="iconLockISO">🔓</span>
+                </button>
+              </div>
             </div>
-            <div id="readoutISO" class="text-4xl font-mono font-bold text-white my-2.5 tracking-tight">ISO 100</div>
-            <div id="descISO" class="text-xs text-slate-400 mb-3 min-h-[20px]">Cleanest quality</div>
+            <div id="readoutISO" class="text-3xl sm:text-4xl font-mono font-bold text-white my-2 tracking-tight">ISO 100</div>
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-2 min-h-[20px] gap-1.5">
+              <span id="descISO" class="truncate">Cleanest quality</span>
+              <span id="labelIsoHint" class="text-[9px] font-mono text-emerald-400/90 bg-emerald-500/10 px-1.5 py-0.5 rounded shrink-0">Gain</span>
+            </div>
+            <!-- Inline Camera Control Guide for ISO -->
+            <div id="camGuideISO" class="hidden my-2 bg-obsidian border border-emerald-500/40 rounded-xl p-2.5 text-[11px] space-y-1">
+              <div class="flex items-center justify-between font-semibold text-emerald-300">
+                <span class="flex items-center gap-1">
+                  <span>🎛️</span>
+                  <span id="camGuideISOTitle">Rear Control Wheel</span>
+                </span>
+                <button type="button" onclick="window.toggleCameraGuide('iso')" class="text-slate-400 hover:text-white text-xs px-1">✕</button>
+              </div>
+              <p id="camGuideISODetail" class="text-slate-300 text-[10px] leading-relaxed">
+                Rotate the circular control wheel on the back, or press the right edge marked ISO.
+              </p>
+            </div>
             <div class="flex items-center gap-2">
-              <button type="button" onclick="window.stepExposure('iso', -1)" class="w-8 h-8 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-sm font-bold text-slate-200 flex items-center justify-center shrink-0 active:scale-95 transition">−</button>
+              <button type="button" onclick="window.stepExposure('iso', -1)" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-sm font-bold text-slate-200 flex items-center justify-center shrink-0 active:scale-95 transition">−</button>
               <input type="range" id="sliderISO" min="0" max="8" value="0" oninput="window.onManualExposureChange('iso', this.value)" class="w-full" aria-label="ISO" />
-              <button type="button" onclick="window.stepExposure('iso', 1)" class="w-8 h-8 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-sm font-bold text-slate-200 flex items-center justify-center shrink-0 active:scale-95 transition">+</button>
+              <button type="button" onclick="window.stepExposure('iso', 1)" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-sm font-bold text-slate-200 flex items-center justify-center shrink-0 active:scale-95 transition">+</button>
             </div>
+          </div>
+        </div>
+
+        <!-- =======================================================================
+             4. INTERACTIVE DEPTH OF FIELD (DoF) & HYPERFOCAL DISTANCE BAR
+             ======================================================================= -->
+        <div class="bg-obsidian border border-borderline rounded-2xl p-3.5 sm:p-4 space-y-3.5 shadow-inner" id="cardDof">
+          <!-- Card Header & Snap Hyperfocal Button -->
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <div class="flex items-center gap-2">
+              <span class="text-sm shrink-0">🔍</span>
+              <div>
+                <span class="text-xs font-bold uppercase tracking-wider text-white">Depth of Field &amp; Hyperfocal</span>
+                <span class="text-[10px] text-slate-400 block xs:inline xs:ml-1 font-mono">— In-Focus Zone</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onclick="window.snapToHyperfocal()"
+              id="btnSnapHyperfocal"
+              class="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-[11px] font-mono font-semibold text-amber-300 transition active:scale-95 shadow-sm"
+              title="Snap subject distance to Hyperfocal distance for maximum front-to-infinity sharpness">
+              <span>🎯</span>
+              <span>Snap Hyperfocal</span>
+            </button>
+          </div>
+
+          <!-- DoF Numerical Metrics Grid (2x2 on mobile, 4 across on desktop) -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+            <div class="bg-camera border border-borderline rounded-xl p-2.5">
+              <div class="text-[9px] font-mono text-slate-400 uppercase font-medium">Hyperfocal (H)</div>
+              <div id="dofHyperfocalVal" class="text-xs sm:text-sm font-mono font-bold text-amber-400 mt-0.5">-- m</div>
+            </div>
+            <div class="bg-camera border border-borderline rounded-xl p-2.5">
+              <div class="text-[9px] font-mono text-slate-400 uppercase font-medium">Near Limit (Dn)</div>
+              <div id="dofNearLimitVal" class="text-xs sm:text-sm font-mono font-bold text-emerald-400 mt-0.5">-- m</div>
+            </div>
+            <div class="bg-camera border border-borderline rounded-xl p-2.5">
+              <div class="text-[9px] font-mono text-slate-400 uppercase font-medium">Far Limit (Df)</div>
+              <div id="dofFarLimitVal" class="text-xs sm:text-sm font-mono font-bold text-emerald-400 mt-0.5">-- m</div>
+            </div>
+            <div class="bg-camera border border-borderline rounded-xl p-2.5">
+              <div class="text-[9px] font-mono text-slate-400 uppercase font-medium">Total Sharp Zone</div>
+              <div id="dofTotalDepthVal" class="text-xs sm:text-sm font-mono font-bold text-white mt-0.5">-- m</div>
+            </div>
+          </div>
+
+          <!-- Visual Depth of Field Bar -->
+          <div class="space-y-1.5 pt-1">
+            <div class="flex items-center justify-between text-[10px] font-mono text-slate-400">
+              <span class="text-slate-400">0.3m (Camera)</span>
+              <span id="dofSubjectReadout" class="text-amber-400 font-semibold px-2 py-0.5 bg-amber-500/10 rounded border border-amber-500/20">Focus: 3.0m</span>
+              <span class="text-slate-400">∞ (Infinity)</span>
+            </div>
+
+            <!-- The Bar Track -->
+            <div class="relative h-7 sm:h-8 bg-dial rounded-xl border border-borderline overflow-hidden flex items-center shadow-inner">
+              <!-- Sharp Focus Zone (dynamically sized and positioned) -->
+              <div
+                id="dofSharpZone"
+                class="absolute top-0 bottom-0 bg-gradient-to-r from-emerald-500/35 via-emerald-400/50 to-emerald-500/35 border-x-2 border-emerald-400/90 shadow-md transition-all duration-150 flex items-center justify-center pointer-events-none"
+                style="left: 20%; width: 40%;">
+                <span class="text-[9px] font-mono font-bold text-emerald-200 tracking-wider uppercase px-1 truncate select-none">SHARP FOCUS</span>
+              </div>
+
+              <!-- Subject Distance Pin -->
+              <div
+                id="dofSubjectPin"
+                class="absolute top-0 bottom-0 w-0.5 bg-amber-400 shadow-lg shadow-amber-500/50 z-10 transition-all duration-150 pointer-events-none"
+                style="left: 40%;">
+                <div class="absolute -top-1 -left-1.5 w-3.5 h-3.5 bg-amber-500 rounded-full border border-obsidian flex items-center justify-center text-[7px] font-bold text-obsidian shadow">
+                  ●
+                </div>
+              </div>
+            </div>
+
+            <!-- Distance Scale Labels -->
+            <div class="flex justify-between text-[9px] font-mono text-slate-500 px-0.5">
+              <span>0.3m</span>
+              <span>1m</span>
+              <span>2m</span>
+              <span>5m</span>
+              <span>10m</span>
+              <span>25m</span>
+              <span>∞</span>
+            </div>
+          </div>
+
+          <!-- Interactive Subject Distance Slider & Steppers -->
+          <div class="pt-2 border-t border-borderline/60 space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <label for="dofSubjectSlider" class="text-[11px] font-mono text-slate-300">
+                Subject Distance: <span id="dofSliderLabel" class="text-amber-400 font-bold">3.0 m</span>
+              </label>
+              <div class="flex items-center gap-1">
+                <button type="button" onclick="window.stepSubjectDistance(-0.5)" class="w-7 h-7 rounded-lg bg-dial hover:bg-slate-700 text-xs font-mono font-bold text-slate-200 flex items-center justify-center active:scale-95 transition">−</button>
+                <button type="button" onclick="window.stepSubjectDistance(0.5)" class="w-7 h-7 rounded-lg bg-dial hover:bg-slate-700 text-xs font-mono font-bold text-slate-200 flex items-center justify-center active:scale-95 transition">+</button>
+              </div>
+            </div>
+            <input
+              type="range"
+              id="dofSubjectSlider"
+              min="0.3"
+              max="30"
+              step="0.1"
+              value="3.0"
+              oninput="window.setSubjectDistance(parseFloat(this.value))"
+              class="w-full"
+              aria-label="Subject Distance"
+            />
+            <!-- Quick Distance Chips -->
+            <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+              <span class="text-[10px] font-mono text-slate-500 mr-0.5">Quick:</span>
+              <button type="button" onclick="window.setSubjectDistance(1.0)" class="px-2 py-0.5 rounded-md bg-dial hover:bg-slate-700 text-[10px] font-mono text-slate-300 border border-borderline transition active:scale-95">1m (Headshot)</button>
+              <button type="button" onclick="window.setSubjectDistance(2.5)" class="px-2 py-0.5 rounded-md bg-dial hover:bg-slate-700 text-[10px] font-mono text-slate-300 border border-borderline transition active:scale-95">2.5m (Portrait)</button>
+              <button type="button" onclick="window.setSubjectDistance(5.0)" class="px-2 py-0.5 rounded-md bg-dial hover:bg-slate-700 text-[10px] font-mono text-slate-300 border border-borderline transition active:scale-95">5m (Street)</button>
+              <button type="button" onclick="window.setSubjectDistance(15.0)" class="px-2 py-0.5 rounded-md bg-dial hover:bg-slate-700 text-[10px] font-mono text-slate-300 border border-borderline transition active:scale-95">15m (Landscape)</button>
+            </div>
+          </div>
+
+          <!-- Plain-English Optical Coaching Text -->
+          <div id="dofCoachingText" class="text-[11px] text-slate-300 leading-relaxed bg-camera/60 rounded-xl p-2.5 border border-borderline/80 font-sans">
+            At f/8.0 on a 50mm lens, focusing at 3.0m keeps subjects from 2.4m to 4.1m in focus (1.7m total depth).
           </div>
         </div>
 
@@ -569,29 +828,18 @@
           <span id="activeCoords" class="text-[10px] font-mono text-slate-400">28.61° N, 77.21° E</span>
         </div>
 
-        <!-- City Search Bar -->
-        <div class="relative" id="citySearchContainer">
-          <div class="flex gap-2">
-            <input
-              type="text"
-              id="citySearchInput"
-              placeholder="Change city (e.g., Mumbai, Tokyo, Reykjavik)..."
-              onkeydown="if(event.key==='Enter') window.searchCity()"
-              class="w-full bg-obsidian border border-borderline focus:border-amber-500/60 focus:outline-none rounded-xl px-3.5 py-2 text-xs sm:text-sm text-white placeholder-slate-500"
-            />
-            <button type="button" onclick="window.searchCity()" class="px-3.5 py-2 rounded-xl bg-dial hover:bg-slate-700 border border-borderline text-xs font-semibold text-slate-200 transition">
-              Search
-            </button>
+        <!-- Quick Lighting Presets (One-Tap Environmental Scenarios) -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-mono uppercase text-slate-400">Quick Environmental Presets</span>
+            <span class="text-[10px] font-mono text-slate-500">1-Tap Scenarios</span>
           </div>
-          <div id="cityResultsDropdown" class="hidden absolute left-0 right-0 mt-1.5 bg-dial border border-borderline rounded-xl shadow-2xl overflow-hidden z-30"></div>
-        </div>
-
-        <!-- Quick Lighting Presets -->
-        <div class="flex flex-wrap gap-1.5">
-          <button type="button" onclick="window.applyPreset('iceland')" class="px-2.5 py-1 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-[11px] text-amber-300 transition">🌅 Iceland Golden</button>
-          <button type="button" onclick="window.applyPreset('tokyo')" class="px-2.5 py-1 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-[11px] text-indigo-300 transition">🌃 Tokyo Night</button>
-          <button type="button" onclick="window.applyPreset('sahara')" class="px-2.5 py-1 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-[11px] text-yellow-300 transition">☀️ Sahara Noon</button>
-          <button type="button" onclick="window.applyPreset('london')" class="px-2.5 py-1 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-[11px] text-slate-300 transition">☁️ London Overcast</button>
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" onclick="window.applyPreset('iceland')" class="px-2.5 py-1 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-[11px] text-amber-300 transition active:scale-95">🌅 Iceland Golden</button>
+            <button type="button" onclick="window.applyPreset('tokyo')" class="px-2.5 py-1 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-[11px] text-indigo-300 transition active:scale-95">🌃 Tokyo Night</button>
+            <button type="button" onclick="window.applyPreset('sahara')" class="px-2.5 py-1 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-[11px] text-yellow-300 transition active:scale-95">☀️ Sahara Noon</button>
+            <button type="button" onclick="window.applyPreset('london')" class="px-2.5 py-1 rounded-lg bg-dial hover:bg-slate-700 border border-borderline text-[11px] text-slate-300 transition active:scale-95">☁️ London Overcast</button>
+          </div>
         </div>
 
         <!-- Active Weather & Sun Telemetry Banner -->
@@ -816,6 +1064,145 @@
     </div>
   </div>
 
+  <!-- =========================================================================
+       CAMERA BODY & SENSOR FORMAT MODAL
+       Touch-friendly modal for camera body selection (infrequently accessed)
+       ========================================================================= -->
+  <div id="cameraModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-obsidian/85 backdrop-blur-md hidden transition-all duration-300" role="dialog" aria-modal="true" aria-labelledby="cameraModalTitle">
+    <div class="bg-camera border border-borderline rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+
+      <!-- Modal Header -->
+      <div class="p-4 sm:p-5 border-b border-borderline flex items-center justify-between bg-obsidian/70 shrink-0">
+        <div class="flex items-center gap-2.5">
+          <span class="text-2xl">📷</span>
+          <div>
+            <h2 id="cameraModalTitle" class="text-sm sm:text-base font-bold text-white tracking-tight">Camera Body &amp; Sensor Format</h2>
+            <p class="text-[11px] text-slate-400">Sets sensor crop factor, 35mm equivalent field of view &amp; camera shake limits</p>
+          </div>
+        </div>
+        <button type="button" onclick="window.closeCameraModal()" class="w-8 h-8 rounded-xl bg-dial hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center text-sm transition active:scale-95" aria-label="Close modal">
+          ✕
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable Camera Cards) -->
+      <div class="p-4 sm:p-5 overflow-y-auto space-y-4 flex-1">
+        <div id="cameraCardsContainer" class="space-y-4"></div>
+
+        <!-- Custom Camera Drawer -->
+        <div class="border-t border-borderline pt-4">
+          <button type="button" onclick="window.toggleCustomCameraDrawer()" class="w-full flex items-center justify-between p-3 rounded-xl bg-obsidian/70 border border-borderline hover:border-amber-500/40 text-left transition active:scale-98">
+            <div class="flex items-center gap-2">
+              <span class="text-amber-400 font-bold text-base">＋</span>
+              <span class="text-xs font-semibold text-white">Add Custom Camera Body</span>
+            </div>
+            <span id="customCameraDrawerChevron" class="text-xs text-slate-400">▾</span>
+          </button>
+
+          <div id="modalCustomCameraDrawer" class="hidden mt-3 p-3.5 bg-obsidian border border-amber-500/30 rounded-xl space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div>
+                <label for="modalCustomCameraName" class="block text-[10px] font-mono text-slate-400 uppercase mb-1">Camera Name</label>
+                <input type="text" id="modalCustomCameraName" placeholder="e.g. Leica M11, Lumix S1H..." class="w-full bg-camera border border-borderline focus:border-amber-500/60 focus:outline-none rounded-xl px-3 py-2 text-xs font-semibold text-white placeholder-slate-500" />
+              </div>
+              <div>
+                <label for="modalCustomCameraSensor" class="block text-[10px] font-mono text-slate-400 uppercase mb-1">Sensor Format</label>
+                <select id="modalCustomCameraSensor" onchange="window.onModalCustomCameraSensorChange(this.value)" class="w-full bg-camera border border-borderline focus:border-amber-500/60 focus:outline-none rounded-xl px-3 py-2 text-xs font-semibold text-white cursor-pointer">
+                  <option value="1.0" class="bg-obsidian">Full Frame (1.0×)</option>
+                  <option value="1.5" class="bg-obsidian">APS-C Sony/Fuji/Nikon (1.5×)</option>
+                  <option value="1.6" class="bg-obsidian">APS-C Canon (1.6×)</option>
+                  <option value="2.0" class="bg-obsidian">Micro Four Thirds (2.0×)</option>
+                  <option value="0.79" class="bg-obsidian">Medium Format (0.79×)</option>
+                  <option value="2.7" class="bg-obsidian">1-Inch Sensor (2.7×)</option>
+                  <option value="3.6" class="bg-obsidian">Smartphone (3.6×)</option>
+                  <option value="custom" class="bg-obsidian">Custom Crop Factor</option>
+                </select>
+              </div>
+            </div>
+            <div id="modalCustomCropContainer" class="hidden">
+              <label for="modalCustomCropFactor" class="block text-[10px] font-mono text-slate-400 uppercase mb-1">Custom Crop Factor (e.g. 1.3 for APS-H, 5.6 for 1/2.3")</label>
+              <input type="number" step="0.01" min="0.5" max="15" id="modalCustomCropFactor" value="1.0" class="w-full bg-camera border border-borderline focus:border-amber-500/60 focus:outline-none rounded-xl px-3 py-2 text-xs font-mono font-semibold text-white" />
+            </div>
+            <div class="flex justify-end gap-2 pt-1">
+              <button type="button" onclick="window.saveModalCustomCamera()" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-obsidian text-xs font-bold transition active:scale-95 shadow-md">
+                💾 Save Camera to Bag
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-3 sm:p-4 border-t border-borderline bg-obsidian/70 flex items-center justify-between shrink-0">
+        <span class="text-[11px] text-slate-400">Settings persist automatically in local storage</span>
+        <button type="button" onclick="window.closeCameraModal()" class="px-4 py-2 rounded-xl bg-dial hover:bg-slate-700 text-xs font-semibold text-white border border-borderline transition active:scale-95">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Camera Hardware Control Guide Modal -->
+  <div id="cameraDialGuideModal" class="hidden fixed inset-0 z-50 bg-obsidian/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-camera border border-amber-500/40 rounded-2xl max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <!-- Modal Header -->
+      <div class="p-4 sm:p-5 border-b border-borderline flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="text-xl">🎛️</span>
+          <div>
+            <h3 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+              <span>Hardware Control Guide</span>
+            </h3>
+            <p id="modalDialCamName" class="text-xs text-amber-400 font-mono">Sony A7 IV / A7R V</p>
+          </div>
+        </div>
+        <button type="button" onclick="window.closeCameraDialModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">✕</button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-4 sm:p-5 space-y-3.5 overflow-y-auto flex-1 text-xs">
+        <div class="bg-obsidian/80 border border-borderline rounded-xl p-3 space-y-1">
+          <div class="text-[10px] font-mono text-slate-400 uppercase font-semibold">Recommended Shooting Mode</div>
+          <div id="modalDialModeText" class="text-white font-medium">Set top Mode Dial to A, S, or M</div>
+        </div>
+
+        <div class="bg-obsidian/80 border border-amber-500/30 rounded-xl p-3 space-y-1">
+          <div class="text-[10px] font-mono text-amber-400 uppercase font-semibold flex items-center gap-1.5">
+            <span>🔘</span>
+            <span>Aperture (f-stop / DOF)</span>
+          </div>
+          <div id="modalDialApText" class="text-slate-200 leading-relaxed">Front Control Dial — Rotate the front dial located directly beneath your right index finger on the grip.</div>
+        </div>
+
+        <div class="bg-obsidian/80 border border-sky-500/30 rounded-xl p-3 space-y-1">
+          <div class="text-[10px] font-mono text-sky-400 uppercase font-semibold flex items-center gap-1.5">
+            <span>🔘</span>
+            <span>Shutter Speed (Motion Blur)</span>
+          </div>
+          <div id="modalDialShText" class="text-slate-200 leading-relaxed">Rear Control Dial — Rotate the upper-rear dial located under your right thumb on the top plate.</div>
+        </div>
+
+        <div class="bg-obsidian/80 border border-emerald-500/30 rounded-xl p-3 space-y-1">
+          <div class="text-[10px] font-mono text-emerald-400 uppercase font-semibold flex items-center gap-1.5">
+            <span>🔘</span>
+            <span>ISO (Sensor Sensitivity)</span>
+          </div>
+          <div id="modalDialIsoText" class="text-slate-200 leading-relaxed">Rear Control Wheel — Rotate the circular control wheel on the back, or press the right edge of the wheel (marked ISO).</div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-3.5 sm:p-4 border-t border-borderline bg-obsidian/60 flex items-center justify-between gap-2">
+        <button type="button" onclick="window.closeCameraDialModal(); window.openCameraModal();" class="text-xs font-semibold text-amber-300 hover:underline">
+          Switch Camera Body ▾
+        </button>
+        <button type="button" onclick="window.closeCameraDialModal()" class="px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-obsidian text-xs font-bold transition active:scale-95">
+          Got It
+        </button>
+      </div>
+    </div>
+  </div>
+
   <footer class="border-t border-borderline py-4 text-center text-[11px] font-mono text-slate-500">
     Luminary • 100% Client-Side Exposure & Solar Ephemeris Calculator • Open-Meteo Telemetry
   </footer>
@@ -863,6 +1250,179 @@
       lumix_gh6:   { id: 'lumix_gh6', name: 'Panasonic Lumix GH6 / G9', brand: 'Lumix', sensorType: 'Micro 4/3 (2.0×)', cropFactor: 2.0 },
       fuji_gfx:    { id: 'fuji_gfx', name: 'Fujifilm GFX 100 II', brand: 'Fujifilm', sensorType: 'Medium Format (0.79×)', cropFactor: 0.79 },
       phone_pro:   { id: 'phone_pro', name: 'Smartphone Pro (1/1.3")', brand: 'Phone', sensorType: 'Mobile (3.6×)', cropFactor: 3.6 }
+    };
+
+    /**
+     * Camera Hardware Control Guidance Dictionary
+     * Tells photographers the exact physical dials, wheels, buttons, and menus
+     * on their specific camera body to adjust Aperture, Shutter, and ISO.
+     */
+    const CAMERA_CONTROL_GUIDE = {
+      sony_a7iv: {
+        modeDial: 'Set top Mode Dial to A (Aperture Priority), S (Shutter Priority), or M (Manual)',
+        aperture: {
+          location: 'Front Control Dial',
+          detail: 'Rotate the front dial located directly beneath your right index finger on the grip.'
+        },
+        shutter: {
+          location: 'Rear Control Dial',
+          detail: 'Rotate the upper-rear dial located under your right thumb on the top plate.'
+        },
+        iso: {
+          location: 'Rear Control Wheel (or C1 / Fn)',
+          detail: 'Rotate the circular control wheel on the back, or press the right edge of the wheel (marked ISO).'
+        }
+      },
+      canon_r5: {
+        modeDial: 'Press Mode button in the center of the rear dial, rotate to Av, Tv, or M',
+        aperture: {
+          location: 'Top Main Dial (or Lens Control Ring)',
+          detail: 'Rotate the main electronic dial on the grip just behind the shutter button, or the customizable control ring on RF lenses.'
+        },
+        shutter: {
+          location: 'Quick Control Dial 1 (Back Wheel)',
+          detail: 'Rotate the large circular Quick Control dial on the back panel with your thumb.'
+        },
+        iso: {
+          location: 'M-Fn Button (or Top Dial 2)',
+          detail: 'Tap the M-Fn button next to the shutter button and turn the main dial, or rotate the top-plate Quick Control Dial 2.'
+        }
+      },
+      nikon_z6: {
+        modeDial: 'Hold Mode button on top left and rotate main command dial to A, S, or M',
+        aperture: {
+          location: 'Sub-Command Dial (Front)',
+          detail: 'Rotate the front sub-command dial on the grip under your right index finger.'
+        },
+        shutter: {
+          location: 'Main Command Dial (Rear)',
+          detail: 'Rotate the rear main command dial on the back corner under your right thumb.'
+        },
+        iso: {
+          location: 'Dedicated ISO Button + Rear Dial',
+          detail: 'Hold down the physical ISO button located behind the shutter release, and rotate the rear command dial.'
+        }
+      },
+      panasonic_s5: {
+        modeDial: 'Turn the top-left Mode Dial to A, S, or M',
+        aperture: {
+          location: 'Front Command Dial',
+          detail: 'Rotate the front dial circling the shutter button on the grip.'
+        },
+        shutter: {
+          location: 'Rear Command Dial',
+          detail: 'Rotate the rear thumb dial located on the top-right back edge.'
+        },
+        iso: {
+          location: 'Dedicated ISO Button',
+          detail: 'Press the middle tactile button on top (between WB and Exposure Comp) with your index finger, then rotate the rear dial.'
+        }
+      },
+      fuji_xt5: {
+        modeDial: 'Turn physical dials: set Aperture ring & Shutter dial to desired values (or "A" for auto)',
+        aperture: {
+          location: 'Lens Physical Aperture Ring',
+          detail: 'Rotate the marked aperture ring on your Fujinon lens barrel (or front command dial if lens has no ring).'
+        },
+        shutter: {
+          location: 'Top Shutter Speed Dial',
+          detail: 'Rotate the dedicated mechanical shutter dial on the top plate (e.g. 250, 1000, or "T" for sub-second precision).'
+        },
+        iso: {
+          location: 'Top-Left ISO Dial',
+          detail: 'Lift the outer ring of the top-left mechanical dial and rotate to select your target ISO value.'
+        }
+      },
+      sony_a6700: {
+        modeDial: 'Set top Mode Dial to A, S, or M',
+        aperture: {
+          location: 'Front Grip Dial',
+          detail: 'Rotate the front control dial under your index finger on the grip.'
+        },
+        shutter: {
+          location: 'Rear Top Dial',
+          detail: 'Rotate the rear top dial under your right thumb.'
+        },
+        iso: {
+          location: 'Control Wheel (Right edge)',
+          detail: 'Press the right side of the directional wheel on the back (labeled ISO) and rotate the wheel.'
+        }
+      },
+      nikon_z50: {
+        modeDial: 'Turn Mode Dial to A, S, or M (or top mechanical dials on Z fc)',
+        aperture: {
+          location: 'Sub-Command Dial (Front)',
+          detail: 'Rotate the front sub-command dial on the grip under your index finger.'
+        },
+        shutter: {
+          location: 'Main Command Dial (Rear)',
+          detail: 'Rotate the rear command dial under your thumb (or top mechanical dial on Z fc).'
+        },
+        iso: {
+          location: 'ISO Button + Rear Command Dial',
+          detail: 'Press the physical ISO button on top and turn the rear command dial (or dedicated ISO dial on Z fc).'
+        }
+      },
+      canon_r7: {
+        modeDial: 'Rotate top Mode Dial to Av, Tv, or M',
+        aperture: {
+          location: 'Main Dial (Grip)',
+          detail: 'Rotate the main dial on top of the grip directly behind the shutter button.'
+        },
+        shutter: {
+          location: 'Quick Control Dial (Thumb Wheel)',
+          detail: 'Rotate the control wheel circling the multi-controller joystick on the back.'
+        },
+        iso: {
+          location: 'M-Fn Button',
+          detail: 'Tap the M-Fn button near the shutter release and scroll to ISO with the main dial.'
+        }
+      },
+      lumix_gh6: {
+        modeDial: 'Turn top Mode Dial to A, S, or M',
+        aperture: {
+          location: 'Front Dial (Grip)',
+          detail: 'Rotate the front dial around the shutter button with your index finger.'
+        },
+        shutter: {
+          location: 'Rear Dial (Thumb)',
+          detail: 'Rotate the rear control dial on the top back edge with your thumb.'
+        },
+        iso: {
+          location: 'Dedicated ISO Button',
+          detail: 'Press the raised ISO button on top (next to WB) and adjust with the front or rear dial.'
+        }
+      },
+      fuji_gfx: {
+        modeDial: 'Set top Mode Dial to A, S, or M',
+        aperture: {
+          location: 'Front Command Dial / Lens Ring',
+          detail: 'Rotate the lens aperture ring or click the front command dial on the grip.'
+        },
+        shutter: {
+          location: 'Rear Command Dial',
+          detail: 'Rotate the rear command dial under your right thumb.'
+        },
+        iso: {
+          location: 'Dedicated ISO Button (or Q Menu)',
+          detail: 'Press the ISO button on the top plate or tap Q menu on the touchscreen.'
+        }
+      },
+      phone_pro: {
+        modeDial: 'Open Pro / Manual mode in your camera app (or Halide / Blackmagic Cam / Expert RAW)',
+        aperture: {
+          location: 'Fixed Physical Aperture (Portrait Mode for Depth)',
+          detail: 'Smartphones have fixed lenses (typically f/1.8). Use "Portrait Mode" to adjust simulated depth-of-field (f-stop slider) in software.'
+        },
+        shutter: {
+          location: 'Pro Mode "S / Speed" Slider',
+          detail: 'Switch to Pro / Manual mode and drag the Shutter Speed slider (e.g. 1/60s, 1/500s) on screen.'
+        },
+        iso: {
+          location: 'Pro Mode "ISO" Slider',
+          detail: 'Drag the ISO slider in Pro mode (e.g. 50, 100, 400, 800) to adjust sensor gain.'
+        }
+      }
     };
 
     const DEFAULT_LENSES = {
@@ -937,7 +1497,6 @@
     };
 
     const appState = {
-      mode: 'beginner',
       location: {
         name: 'New Delhi, India',
         lat: 28.6139,
@@ -983,6 +1542,12 @@
         currentMm: 50
       },
       support: 'handheld',
+      dofSubjectDistance: 3.0,
+      locked: {
+        aperture: false,
+        shutter: false,
+        iso: false
+      },
       exposure: {
         apertureIdx: 7,
         shutterIdx: 12,
@@ -996,10 +1561,33 @@
         manualOverride: false
       }
     };
+    window.appState = appState;
 
     // =========================================================================
-    // 2. TOAST NOTIFICATION UTILITY
+    // 2. TACTILE HAPTIC FEEDBACK & TOAST NOTIFICATION UTILITIES
     // =========================================================================
+    /**
+     * Mobile-first Haptic Feedback for Mechanical Dials
+     * Provides subtle vibration ticks on real physical mobile devices (Android / PWA)
+     * using the Web Vibration API (navigator.vibrate). Gracefully silent if unsupported.
+     */
+    window.triggerHaptic = function triggerHaptic(type = 'click') {
+      if (!navigator || typeof navigator.vibrate !== 'function') return;
+      try {
+        if (type === 'click') {
+          navigator.vibrate(12); // Subtle tactile mechanical click
+        } else if (type === 'tick') {
+          navigator.vibrate(8);  // Continuous slider detent tick
+        } else if (type === 'lock') {
+          navigator.vibrate([15, 30, 15]); // Double-click for lock engagement
+        } else if (type === 'unlock') {
+          navigator.vibrate(20); // Firm single-click for unlock
+        } else if (type === 'snap') {
+          navigator.vibrate([12, 25, 20]); // Ascending cadence for Hyperfocal snap
+        }
+      } catch (_) {}
+    };
+
     function showToast(message) {
       const container = document.getElementById('toastContainer');
       if (!container) return;
@@ -1455,7 +2043,11 @@
         return;
       }
       const btn = document.getElementById('gpsBtn');
-      if (btn) btn.innerHTML = '⏳ Locating...';
+      const gpsIcon = document.getElementById('gpsBtnIcon');
+      const gpsText = document.getElementById('gpsBtnText');
+      if (gpsIcon) gpsIcon.textContent = '⏳';
+      if (gpsText) gpsText.textContent = '...';
+      else if (btn) btn.innerHTML = '<span id="gpsBtnIcon">⏳</span><span id="gpsBtnText" class="text-[10px] font-mono hidden xs:inline">...</span>';
 
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
@@ -1481,11 +2073,15 @@
           document.getElementById('stripLocationName').textContent = cityName;
           document.getElementById('activeLocationName').textContent = cityName;
 
-          if (btn) btn.innerHTML = '📍 Use GPS';
+          if (gpsIcon) gpsIcon.textContent = '📍';
+          if (gpsText) gpsText.textContent = 'GPS';
+          else if (btn) btn.innerHTML = '<span id="gpsBtnIcon">📍</span><span id="gpsBtnText" class="text-[10px] font-mono hidden xs:inline">GPS</span>';
           showToast(`GPS locked: ${cityName}`);
         },
         () => {
-          if (btn) btn.innerHTML = '📍 Use GPS';
+          if (gpsIcon) gpsIcon.textContent = '📍';
+          if (gpsText) gpsText.textContent = 'GPS';
+          else if (btn) btn.innerHTML = '<span id="gpsBtnIcon">📍</span><span id="gpsBtnText" class="text-[10px] font-mono hidden xs:inline">GPS</span>';
           showToast('Location access denied. Search a city or pick a preset.');
         },
         { enableHighAccuracy: false, timeout: 6000 }
@@ -1645,7 +2241,9 @@
       const effectiveMm = gear.effectiveFocalLengthMm;
       const style = appState.style;
       const isTripod = appState.support === 'tripod';
+      const locks = appState.locked || { aperture: false, shutter: false, iso: false };
 
+      // Base style recommendations when not locked
       let desiredApertureIdx = 7; // f/8.0
       if (style === 'portrait') desiredApertureIdx = 1; // f/1.8
       else if (style === 'landscape') desiredApertureIdx = 7; // f/8.0
@@ -1655,7 +2253,9 @@
       else if (style === 'astro') desiredApertureIdx = 0; // Widest possible (f/1.4+)
       else if (style === 'longexp') desiredApertureIdx = 8; // f/11
 
-      const apertureIdx = Math.max(gear.minApertureIdx, Math.min(gear.maxApertureIdx, desiredApertureIdx));
+      let apertureIdx = locks.aperture
+        ? Math.max(gear.minApertureIdx, Math.min(gear.maxApertureIdx, appState.exposure.apertureIdx))
+        : Math.max(gear.minApertureIdx, Math.min(gear.maxApertureIdx, desiredApertureIdx));
 
       const handheldSafeIdx = getHandheldMinShutterIdx(effectiveMm, 60);
       let minShutterIdx = isTripod ? 0 : handheldSafeIdx;
@@ -1666,27 +2266,53 @@
       else if (style === 'night') minShutterIdx = isTripod ? 1 : getHandheldMinShutterIdx(effectiveMm, 30);
       else if (style === 'astro') minShutterIdx = getAstro500RuleShutterIdx(effectiveMm);
 
-      let isoIdx = 0;
-      let bestShutterIdx = minShutterIdx;
+      let bestShutterIdx = locks.shutter ? appState.exposure.shutterIdx : minShutterIdx;
+      let isoIdx = locks.iso ? appState.exposure.isoIdx : 0;
 
-      if (style === 'astro') {
-        bestShutterIdx = minShutterIdx;
-        const neededIsoEV = Math.log2((APERTURES[apertureIdx] ** 2) / SHUTTERS[bestShutterIdx].sec) - targetEV;
-        isoIdx = Math.max(0, Math.min(ISOS.length - 1, Math.round(neededIsoEV)));
-      } else if (style === 'longexp' || (style === 'night' && isTripod)) {
-        bestShutterIdx = minShutterIdx;
-        const neededIsoEV = Math.log2((APERTURES[apertureIdx] ** 2) / SHUTTERS[bestShutterIdx].sec) - targetEV;
-        isoIdx = Math.max(0, Math.min(ISOS.length - 1, Math.round(neededIsoEV)));
-      } else {
+      // Handle locking combinations:
+      if (locks.aperture && locks.shutter && locks.iso) {
+        // All 3 locked (Exposure Lock AE-L)
+        apertureIdx = Math.max(gear.minApertureIdx, Math.min(gear.maxApertureIdx, appState.exposure.apertureIdx));
+        bestShutterIdx = appState.exposure.shutterIdx;
+        isoIdx = appState.exposure.isoIdx;
+      } else if (locks.aperture && locks.shutter) {
+        // Aperture & Shutter locked -> Balance ISO
         const N = APERTURES[apertureIdx];
-        const neededSec = (N * N) / Math.pow(2, targetEV);
-        let closestShutter = 0;
-        let minDiff = Infinity;
+        const t = SHUTTERS[bestShutterIdx].sec;
+        const neededIsoEV = Math.log2((N * N) / t) - targetEV;
+        isoIdx = Math.max(0, Math.min(ISOS.length - 1, Math.round(neededIsoEV)));
+      } else if (locks.aperture && locks.iso) {
+        // Aperture & ISO locked -> Balance Shutter
+        const N = APERTURES[apertureIdx];
+        const iso = ISOS[isoIdx];
+        const neededSec = (N * N) / (Math.pow(2, targetEV) * (iso / 100));
+        let closestShutter = 0, minDiff = Infinity;
         SHUTTERS.forEach((s, idx) => {
           const d = Math.abs(Math.log2(s.sec) - Math.log2(neededSec));
           if (d < minDiff) { minDiff = d; closestShutter = idx; }
         });
-
+        bestShutterIdx = closestShutter;
+      } else if (locks.shutter && locks.iso) {
+        // Shutter & ISO locked -> Balance Aperture
+        const t = SHUTTERS[bestShutterIdx].sec;
+        const iso = ISOS[isoIdx];
+        const neededN2 = t * Math.pow(2, targetEV) * (iso / 100);
+        const neededN = Math.sqrt(Math.max(0.5, neededN2));
+        let closestAp = gear.minApertureIdx, minDiff = Infinity;
+        for (let i = gear.minApertureIdx; i <= gear.maxApertureIdx; i++) {
+          const d = Math.abs(APERTURES[i] - neededN);
+          if (d < minDiff) { minDiff = d; closestAp = i; }
+        }
+        apertureIdx = closestAp;
+      } else if (locks.aperture) {
+        // Aperture Priority (Av): Aperture fixed, balance Shutter & ISO
+        const N = APERTURES[apertureIdx];
+        const neededSec = (N * N) / Math.pow(2, targetEV);
+        let closestShutter = 0, minDiff = Infinity;
+        SHUTTERS.forEach((s, idx) => {
+          const d = Math.abs(Math.log2(s.sec) - Math.log2(neededSec));
+          if (d < minDiff) { minDiff = d; closestShutter = idx; }
+        });
         if (closestShutter < minShutterIdx) {
           bestShutterIdx = minShutterIdx;
           const deficitStops = Math.log2((N * N) / SHUTTERS[bestShutterIdx].sec) - targetEV;
@@ -1694,6 +2320,64 @@
         } else {
           bestShutterIdx = closestShutter;
           isoIdx = 0;
+        }
+      } else if (locks.shutter) {
+        // Shutter Priority (Tv): Shutter fixed, balance Aperture & ISO
+        const t = SHUTTERS[bestShutterIdx].sec;
+        const neededN2 = t * Math.pow(2, targetEV);
+        const neededN = Math.sqrt(Math.max(0.5, neededN2));
+        let closestAp = gear.minApertureIdx, minDiff = Infinity;
+        for (let i = gear.minApertureIdx; i <= gear.maxApertureIdx; i++) {
+          const d = Math.abs(APERTURES[i] - neededN);
+          if (d < minDiff) { minDiff = d; closestAp = i; }
+        }
+        apertureIdx = closestAp;
+        const actualEVBase = Math.log2((APERTURES[apertureIdx] ** 2) / t);
+        if (actualEVBase > targetEV) {
+          const deficit = actualEVBase - targetEV;
+          isoIdx = Math.max(0, Math.min(ISOS.length - 1, Math.round(deficit)));
+        } else {
+          isoIdx = 0;
+        }
+      } else if (locks.iso) {
+        // ISO locked: ISO fixed, balance Aperture & Shutter
+        const iso = ISOS[isoIdx];
+        const N = APERTURES[apertureIdx];
+        const neededSec = (N * N) / (Math.pow(2, targetEV) * (iso / 100));
+        let closestShutter = 0, minDiff = Infinity;
+        SHUTTERS.forEach((s, idx) => {
+          const d = Math.abs(Math.log2(s.sec) - Math.log2(neededSec));
+          if (d < minDiff) { minDiff = d; closestShutter = idx; }
+        });
+        bestShutterIdx = closestShutter;
+      } else {
+        // Default Auto Balancing
+        if (style === 'astro') {
+          bestShutterIdx = minShutterIdx;
+          const neededIsoEV = Math.log2((APERTURES[apertureIdx] ** 2) / SHUTTERS[bestShutterIdx].sec) - targetEV;
+          isoIdx = Math.max(0, Math.min(ISOS.length - 1, Math.round(neededIsoEV)));
+        } else if (style === 'longexp' || (style === 'night' && isTripod)) {
+          bestShutterIdx = minShutterIdx;
+          const neededIsoEV = Math.log2((APERTURES[apertureIdx] ** 2) / SHUTTERS[bestShutterIdx].sec) - targetEV;
+          isoIdx = Math.max(0, Math.min(ISOS.length - 1, Math.round(neededIsoEV)));
+        } else {
+          const N = APERTURES[apertureIdx];
+          const neededSec = (N * N) / Math.pow(2, targetEV);
+          let closestShutter = 0;
+          let minDiff = Infinity;
+          SHUTTERS.forEach((s, idx) => {
+            const d = Math.abs(Math.log2(s.sec) - Math.log2(neededSec));
+            if (d < minDiff) { minDiff = d; closestShutter = idx; }
+          });
+
+          if (closestShutter < minShutterIdx) {
+            bestShutterIdx = minShutterIdx;
+            const deficitStops = Math.log2((N * N) / SHUTTERS[bestShutterIdx].sec) - targetEV;
+            isoIdx = Math.max(0, Math.min(ISOS.length - 1, Math.round(deficitStops)));
+          } else {
+            bestShutterIdx = closestShutter;
+            isoIdx = 0;
+          }
         }
       }
 
@@ -1706,29 +2390,26 @@
       let filter = 'None';
       let filterTip = {
         recommended: false,
-        beginner: 'No filter needed right now — you can shoot great photos with just your bare lens.',
-        pro: 'No optical filter required for this EV/subject combination; keep bare glass for maximum light transmission.'
+        text: 'No optical filter required for this EV/subject combination; keep bare glass for maximum light transmission.'
       };
 
       if (style === 'astro') {
         filter = 'Light Pollution (CLS)';
         filterTip = {
           recommended: false,
-          beginner: 'Optional! Under dark rural skies use no filter. Near city lights, a Light Pollution filter cuts orange skyglow.',
-          pro: 'Bare glass gives maximum starlight transmission in Bortle 1–3 skies; a didymium/CLS filter helps suppress sodium/LED glow in Bortle 4+.'
+          text: 'Optional! Under dark rural skies use no filter. Near city lights, a Light Pollution filter cuts orange skyglow.'
         };
       } else if (style === 'longexp' && targetEV > 10) {
+        filter = 'CPL Polarizer';
         filterTip = {
           recommended: true,
-          beginner: 'Completely optional! A Circular Polarizer (CPL) cuts glare off water or leaves and makes blue skies pop more.',
-          pro: 'CPL reduces specular reflections and boosts sky saturation most effectively when aiming 90° from the sun azimuth (~1.5 stop light loss).'
+          text: 'Circular Polarizer (CPL) cuts glare off water/leaves and deepens blue skies (~1.5 stop light loss).'
         };
       } else if (style === 'portrait' && targetEV > 13.5 && gear.minApertureIdx <= 2) {
         filter = 'ND4 / ND8';
         filterTip = {
           recommended: true,
-          beginner: 'Optional! In bright sunlight, a light ND filter lets you keep your wide blurry-background aperture without overexposing.',
-          pro: '2–3 stop ND lets you shoot wide open (f/1.4–f/2.0) in harsh sun without exceeding 1/4000s–1/8000s max shutter.'
+          text: '2–3 stop ND allows shooting wide open (f/1.4–f/2.0) in harsh sun without exceeding max shutter speed.'
         };
       }
 
@@ -1736,6 +2417,7 @@
     }
 
     window.stepExposure = function stepExposure(param, delta) {
+      window.triggerHaptic('click');
       const gear = getActiveGearConfig();
       if (param === 'aperture') {
         if (gear.fixedAperture) return;
@@ -1751,39 +2433,71 @@
     };
 
     window.onManualExposureChange = function onManualExposureChange(changedParam, rawVal) {
+      window.triggerHaptic('tick');
       const val = parseInt(rawVal, 10);
       const gear = getActiveGearConfig();
       appState.exposure.manualOverride = true;
       document.getElementById('resetSimBtn').classList.remove('hidden');
+      const locks = appState.locked || { aperture: false, shutter: false, iso: false };
 
       if (changedParam === 'aperture') {
         appState.exposure.apertureIdx = Math.max(gear.minApertureIdx, Math.min(gear.maxApertureIdx, val));
         const N = APERTURES[appState.exposure.apertureIdx];
-        const iso = ISOS[appState.exposure.isoIdx];
-        const neededSec = (N * N) / (Math.pow(2, appState.exposure.targetEV) * (iso / 100));
-        let bestS = 0, minDiff = Infinity;
-        SHUTTERS.forEach((s, idx) => {
-          const d = Math.abs(Math.log2(s.sec) - Math.log2(neededSec));
-          if (d < minDiff) { minDiff = d; bestS = idx; }
-        });
-        appState.exposure.shutterIdx = bestS;
+        if (!locks.shutter) {
+          const iso = ISOS[appState.exposure.isoIdx];
+          const neededSec = (N * N) / (Math.pow(2, appState.exposure.targetEV) * (iso / 100));
+          let bestS = 0, minDiff = Infinity;
+          SHUTTERS.forEach((s, idx) => {
+            const d = Math.abs(Math.log2(s.sec) - Math.log2(neededSec));
+            if (d < minDiff) { minDiff = d; bestS = idx; }
+          });
+          appState.exposure.shutterIdx = bestS;
+        } else if (!locks.iso) {
+          const t = SHUTTERS[appState.exposure.shutterIdx].sec;
+          const neededIsoStops = Math.log2((N * N) / t) - appState.exposure.targetEV;
+          appState.exposure.isoIdx = Math.max(0, Math.min(ISOS.length - 1, Math.round(neededIsoStops)));
+        }
       } else if (changedParam === 'shutter') {
         appState.exposure.shutterIdx = val;
         const N = APERTURES[appState.exposure.apertureIdx];
         const t = SHUTTERS[appState.exposure.shutterIdx].sec;
-        const neededIsoStops = Math.log2((N * N) / t) - appState.exposure.targetEV;
-        appState.exposure.isoIdx = Math.max(0, Math.min(ISOS.length - 1, Math.round(neededIsoStops)));
+        if (!locks.iso) {
+          const neededIsoStops = Math.log2((N * N) / t) - appState.exposure.targetEV;
+          appState.exposure.isoIdx = Math.max(0, Math.min(ISOS.length - 1, Math.round(neededIsoStops)));
+        } else if (!locks.aperture) {
+          const iso = ISOS[appState.exposure.isoIdx];
+          const neededN2 = t * Math.pow(2, appState.exposure.targetEV) * (iso / 100);
+          const neededN = Math.sqrt(Math.max(0.5, neededN2));
+          let closestAp = gear.minApertureIdx, minDiff = Infinity;
+          for (let i = gear.minApertureIdx; i <= gear.maxApertureIdx; i++) {
+            const d = Math.abs(APERTURES[i] - neededN);
+            if (d < minDiff) { minDiff = d; closestAp = i; }
+          }
+          appState.exposure.apertureIdx = closestAp;
+        }
       } else if (changedParam === 'iso') {
         appState.exposure.isoIdx = val;
         const N = APERTURES[appState.exposure.apertureIdx];
         const iso = ISOS[appState.exposure.isoIdx];
-        const neededSec = (N * N) / (Math.pow(2, appState.exposure.targetEV) * (iso / 100));
-        let bestS = 0, minDiff = Infinity;
-        SHUTTERS.forEach((s, idx) => {
-          const d = Math.abs(Math.log2(s.sec) - Math.log2(neededSec));
-          if (d < minDiff) { minDiff = d; bestS = idx; }
-        });
-        appState.exposure.shutterIdx = bestS;
+        if (!locks.shutter) {
+          const neededSec = (N * N) / (Math.pow(2, appState.exposure.targetEV) * (iso / 100));
+          let bestS = 0, minDiff = Infinity;
+          SHUTTERS.forEach((s, idx) => {
+            const d = Math.abs(Math.log2(s.sec) - Math.log2(neededSec));
+            if (d < minDiff) { minDiff = d; bestS = idx; }
+          });
+          appState.exposure.shutterIdx = bestS;
+        } else if (!locks.aperture) {
+          const t = SHUTTERS[appState.exposure.shutterIdx].sec;
+          const neededN2 = t * Math.pow(2, appState.exposure.targetEV) * (iso / 100);
+          const neededN = Math.sqrt(Math.max(0.5, neededN2));
+          let closestAp = gear.minApertureIdx, minDiff = Infinity;
+          for (let i = gear.minApertureIdx; i <= gear.maxApertureIdx; i++) {
+            const d = Math.abs(APERTURES[i] - neededN);
+            if (d < minDiff) { minDiff = d; closestAp = i; }
+          }
+          appState.exposure.apertureIdx = closestAp;
+        }
       }
 
       const solar = calculateSolarData(appState.location.lat, appState.location.lon, getEffectiveDate());
@@ -1792,10 +2506,120 @@
     };
 
     window.resetExposureOverrides = function resetExposureOverrides() {
+      window.triggerHaptic('click');
       appState.exposure.manualOverride = false;
+      appState.locked = { aperture: false, shutter: false, iso: false };
       document.getElementById('resetSimBtn').classList.add('hidden');
+      updateLockUI();
+      recalculateAll();
+      showToast('Exposure reset to auto-balanced settings.');
+    };
+
+    window.toggleLock = function toggleLock(param) {
+      if (!appState.locked) appState.locked = { aperture: false, shutter: false, iso: false };
+      appState.locked[param] = !appState.locked[param];
+      const isLocked = appState.locked[param];
+      window.triggerHaptic(isLocked ? 'lock' : 'unlock');
+      const labels = {
+        aperture: `Aperture (f/${APERTURES[appState.exposure.apertureIdx]})`,
+        shutter: `Shutter (${SHUTTERS[appState.exposure.shutterIdx].label})`,
+        iso: `ISO (${ISOS[appState.exposure.isoIdx]})`
+      };
+      showToast(isLocked ? `🔒 ${labels[param]} locked` : `🔓 ${labels[param]} unlocked`);
+      updateLockUI();
       recalculateAll();
     };
+
+    window.toggleLockAll = function toggleLockAll() {
+      if (!appState.locked) appState.locked = { aperture: false, shutter: false, iso: false };
+      const allLocked = appState.locked.aperture && appState.locked.shutter && appState.locked.iso;
+      const newState = !allLocked;
+      appState.locked.aperture = newState;
+      appState.locked.shutter = newState;
+      appState.locked.iso = newState;
+      window.triggerHaptic(newState ? 'lock' : 'unlock');
+      showToast(newState ? '🔒 All exposure dials locked (Exposure Lock AE-L)' : '🔓 All exposure dials unlocked');
+      updateLockUI();
+      recalculateAll();
+    };
+
+    function updateLockUI() {
+      if (!appState.locked) appState.locked = { aperture: false, shutter: false, iso: false };
+      const l = appState.locked;
+
+      // Aperture Lock UI
+      const btnAp = document.getElementById('btnLockAperture');
+      const iconAp = document.getElementById('iconLockAperture');
+      const badgeAp = document.getElementById('badgeLockAperture');
+      const cardAp = document.getElementById('cardAperture');
+      if (iconAp) iconAp.textContent = l.aperture ? '🔒' : '🔓';
+      if (badgeAp) badgeAp.classList.toggle('hidden', !l.aperture);
+      if (btnAp) {
+        btnAp.className = l.aperture
+          ? 'w-7 h-7 rounded-lg border border-amber-500/80 bg-amber-500/20 text-amber-300 text-xs flex items-center justify-center transition active:scale-95 shadow-sm'
+          : 'w-7 h-7 rounded-lg border border-borderline hover:border-amber-500/50 text-slate-400 hover:text-amber-300 text-xs flex items-center justify-center transition active:scale-95';
+        btnAp.title = l.aperture ? 'Aperture Locked (Click to Unlock)' : 'Click to Lock Aperture (Aperture Priority)';
+      }
+      if (cardAp) {
+        cardAp.classList.toggle('border-amber-500/60', l.aperture);
+        cardAp.classList.toggle('ring-1', l.aperture);
+        cardAp.classList.toggle('ring-amber-500/30', l.aperture);
+      }
+
+      // Shutter Lock UI
+      const btnSh = document.getElementById('btnLockShutter');
+      const iconSh = document.getElementById('iconLockShutter');
+      const badgeSh = document.getElementById('badgeLockShutter');
+      const cardSh = document.getElementById('cardShutter');
+      if (iconSh) iconSh.textContent = l.shutter ? '🔒' : '🔓';
+      if (badgeSh) badgeSh.classList.toggle('hidden', !l.shutter);
+      if (btnSh) {
+        btnSh.className = l.shutter
+          ? 'w-7 h-7 rounded-lg border border-sky-500/80 bg-sky-500/20 text-sky-300 text-xs flex items-center justify-center transition active:scale-95 shadow-sm'
+          : 'w-7 h-7 rounded-lg border border-borderline hover:border-sky-500/50 text-slate-400 hover:text-sky-300 text-xs flex items-center justify-center transition active:scale-95';
+        btnSh.title = l.shutter ? 'Shutter Locked (Click to Unlock)' : 'Click to Lock Shutter (Shutter Priority)';
+      }
+      if (cardSh) {
+        cardSh.classList.toggle('border-sky-500/60', l.shutter);
+        cardSh.classList.toggle('ring-1', l.shutter);
+        cardSh.classList.toggle('ring-sky-500/30', l.shutter);
+      }
+
+      // ISO Lock UI
+      const btnIso = document.getElementById('btnLockISO');
+      const iconIso = document.getElementById('iconLockISO');
+      const badgeIso = document.getElementById('badgeLockISO');
+      const cardIso = document.getElementById('cardISO');
+      if (iconIso) iconIso.textContent = l.iso ? '🔒' : '🔓';
+      if (badgeIso) badgeIso.classList.toggle('hidden', !l.iso);
+      if (btnIso) {
+        btnIso.className = l.iso
+          ? 'w-7 h-7 rounded-lg border border-emerald-500/80 bg-emerald-500/20 text-emerald-300 text-xs flex items-center justify-center transition active:scale-95 shadow-sm'
+          : 'w-7 h-7 rounded-lg border border-borderline hover:border-emerald-500/50 text-slate-400 hover:text-emerald-300 text-xs flex items-center justify-center transition active:scale-95';
+        btnIso.title = l.iso ? 'ISO Locked (Click to Unlock)' : 'Click to Lock ISO';
+      }
+      if (cardIso) {
+        cardIso.classList.toggle('border-emerald-500/60', l.iso);
+        cardIso.classList.toggle('ring-1', l.iso);
+        cardIso.classList.toggle('ring-emerald-500/30', l.iso);
+      }
+
+      // Master Lock All Button UI
+      const allLocked = l.aperture && l.shutter && l.iso;
+      const anyLocked = l.aperture || l.shutter || l.iso;
+      const btnLockAll = document.getElementById('btnLockAll');
+      const iconLockAll = document.getElementById('iconLockAll');
+      const labelLockAll = document.getElementById('labelLockAll');
+      if (iconLockAll) iconLockAll.textContent = allLocked ? '🔒' : anyLocked ? '🔐' : '🔒';
+      if (labelLockAll) labelLockAll.textContent = allLocked ? 'Unlock All' : 'Lock All';
+      if (btnLockAll) {
+        btnLockAll.className = allLocked
+          ? 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/50 text-xs font-semibold text-amber-300 transition active:scale-95 shadow-sm'
+          : anyLocked
+          ? 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-dial border border-amber-500/40 text-xs font-semibold text-amber-200 transition active:scale-95'
+          : 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-dial hover:bg-slate-700 border border-borderline text-xs font-semibold text-slate-200 transition active:scale-95';
+      }
+    }
 
     // =========================================================================
     // 7. CANVAS SOLAR ARC VISUALIZATION (Responsive Hi-DPI)
@@ -1877,7 +2701,8 @@
       appState.exposure.wbKelvin = (appState.style === 'astro' && solar.altitude < -12) ? 4000 : phase.wbKelvin;
       appState.exposure.wbLabel = (appState.style === 'astro' && solar.altitude < -12) ? 'Astro Neutral' : phase.wbLabel;
 
-      if (!appState.exposure.manualOverride) {
+      const anyLocked = appState.locked && (appState.locked.aperture || appState.locked.shutter || appState.locked.iso);
+      if (!appState.exposure.manualOverride || anyLocked) {
         const rec = recommendExposure(effectiveEV);
         appState.exposure.apertureIdx = rec.apertureIdx;
         appState.exposure.shutterIdx = rec.shutterIdx;
@@ -1939,6 +2764,7 @@
 
       drawSolarArc(solar);
       updateLightRadarUI(solar);
+      updateFinalSetupSummaryLine();
       renderExposureUI(phase, solar);
     }
 
@@ -1954,10 +2780,10 @@
       document.getElementById('readoutShutter').textContent = shutterObj.label;
       document.getElementById('readoutISO').textContent = `ISO ${iso}`;
 
-      // Plain-English Beginner vs Pro Micro-Hints
-      document.getElementById('labelApertureHint').textContent = gear.fixedAperture ? 'Fixed Lens' : (appState.mode === 'pro' ? 'DOF / f-stop' : 'Blur / Depth');
-      document.getElementById('labelShutterHint').textContent = appState.mode === 'pro' ? 'Exposure Time' : 'Motion';
-      document.getElementById('labelIsoHint').textContent = appState.mode === 'pro' ? 'Sensor Gain' : 'Brightness';
+      // Clear Photographic Micro-Hints
+      document.getElementById('labelApertureHint').textContent = gear.fixedAperture ? 'Fixed Lens' : 'DOF / f-stop';
+      document.getElementById('labelShutterHint').textContent = 'Motion / Shutter';
+      document.getElementById('labelIsoHint').textContent = 'Sensor Gain / ISO';
 
       document.getElementById('descAperture').textContent =
         N <= 2.8 ? 'Soft blurred background' : N <= 5.6 ? 'Balanced sharpness' : 'Sharp front-to-back';
@@ -2045,117 +2871,73 @@
 
       updateGearTelemetryBar();
       renderCoachingGuide(phase, solar, N, shutterObj, iso);
+      updateDofUI();
     }
 
     function renderCoachingGuide(phase, solar, N, shutterObj, iso) {
-      const isPro = appState.mode === 'pro';
       const gear = getActiveGearConfig();
       const maxStarSec = Math.min(30, Math.round(500 / Math.max(10, gear.focalLengthMm || 24)));
-      document.getElementById('guideSectionTitle').textContent = isPro
-        ? 'Pro Technical Notes & Tips'
-        : 'Why These Settings? — Beginner Tips & Field Guide';
+      document.getElementById('guideSectionTitle').textContent = 'Field Guide & Exposure Notes';
 
       let cards;
       if (appState.style === 'astro') {
-        cards = isPro
-          ? [
-              {
-                icon: '🌌',
-                title: `500 Rule @ ${gear.focalLengthMm}mm`,
-                body: `500 ÷ ${gear.focalLengthMm}mm ≈ ${maxStarSec}s max before Earth's rotation trails stars (use 300 Rule for APS-C or NPF for high-MP sensors).`
-              },
-              {
-                icon: '🔭',
-                title: `Wide Open at f/${N}`,
-                body: `Maximizes photon capture. If corners show heavy coma on fast primes, stop down 1/3–1 stop (e.g., f/2.0–f/2.8).`
-              },
-              {
-                icon: '🎯',
-                title: 'Manual Star Focusing',
-                body: `Disable AF and lens stabilization (IS/VR) on tripod. Zoom Live View 10× onto a bright star and focus until it is the tiniest pinpoint.`
-              },
-              {
-                icon: '🌡️',
-                title: `RAW + ${appState.exposure.wbKelvin}K`,
-                body: `Shoot 14-bit RAW at ISO ${iso} (near your sensor's dual-gain sweet spot) with a 2s timer or intervalometer to eliminate shutter slap.`
-              }
-            ]
-          : [
-              {
-                icon: '🌌',
-                title: `Why ${shutterObj.label}? (Star Rule)`,
-                body: `Stars slowly move across the sky! At ${gear.focalLengthMm}mm, staying at or under ${maxStarSec}s keeps stars as sharp dots instead of blurry streaks.`
-              },
-              {
-                icon: '✨',
-                title: `Why f/${N} & ISO ${iso}?`,
-                body: `Your lens is opened as wide as possible (f/${N}) with high ISO (${iso}) so your camera can see faint stars and the Milky Way.`
-              },
-              {
-                icon: '🎯',
-                title: 'How to Focus in the Dark',
-                body: `Autofocus struggles at night. Switch to Manual Focus, turn on Live View, zoom in on the brightest star, and twist the ring until it's a tiny crisp dot.`
-              },
-              {
-                icon: '⏱️',
-                title: 'Use a 2-Second Timer',
-                body: `Pressing the shutter button shakes the camera on a tripod. Turn on your camera's 2-second self-timer for razor-sharp night skies.`
-              }
-            ];
+        cards = [
+          {
+            icon: '🌌',
+            title: `500 Rule @ ${gear.focalLengthMm}mm (${shutterObj.label})`,
+            body: `500 ÷ ${gear.focalLengthMm}mm ≈ ${maxStarSec}s max before Earth's rotation causes star trailing. Handheld is impossible—sturdy tripod and 2s self-timer required.`
+          },
+          {
+            icon: '🔭',
+            title: `Aperture f/${N} Light Gathering`,
+            body: `Opened wide to maximize light gathering on faint stars. If corners exhibit coma on fast glass, stop down 1/3–1 stop (e.g. f/2.0–f/2.8) for crisp pinpoints.`
+          },
+          {
+            icon: '🎯',
+            title: 'Manual Star Focusing',
+            body: `Autofocus fails in dark skies. Disable AF, switch to Manual Focus, zoom 10× in Live View onto the brightest star, and fine-tune until it is a sharp pinpoint.`
+          },
+          {
+            icon: '✨',
+            title: `ISO ${iso} & RAW Capture`,
+            body: `Shoot uncompressed RAW at ISO ${iso} (near your sensor's dual-gain sweet spot) with manual white balance (${appState.exposure.wbKelvin}K) for natural astro tones.`
+          }
+        ];
       } else {
-        cards = isPro
-          ? [
-              {
-                icon: '🔭',
-                title: 'Optical & DOF Strategy',
-                body: `At f/${N} in ${appState.style} mode, focus ~1/3 into the frame for hyperfocal depth (or lock Eye-AF for portraits).`
-              },
-              {
-                icon: '📊',
-                title: `Scene EV100: ${phase.baseEV.toFixed(1)}`,
-                body: `Sun altitude is ${solar.altitude.toFixed(1)}° with ${appState.weather.cloudCover}% cloud cover. Shoot RAW and protect bright highlights.`
-              },
-              {
-                icon: '🌡️',
-                title: `Color Temp: ${appState.exposure.wbKelvin}K`,
-                body: `Manual Kelvin prevents color shifts between shots. ${solar.altitude <= 8 ? 'Warm Kelvin preserves golden hour tones.' : 'Matches ambient daylight spectrum.'}`
-              },
-              {
-                icon: '🧭',
-                title: `Sun Azimuth: ${solar.azimuth}°`,
-                body: `Aiming 90° from the sun maximizes CPL sky contrast and gives sculpted side-lighting.`
-              }
-            ]
-          : [
-              {
-                icon: '🎯',
-                title: `Why f/${N}?`,
-                body: N <= 2.8
-                  ? `A wide lens opening lets in lots of light and softly blurs the background so your subject stands out.`
-                  : `A narrower opening keeps both nearby objects and distant scenery crisp and in focus.`
-              },
-              {
-                icon: '⏱️',
-                title: `Why ${shutterObj.label}?`,
-                body: shutterObj.sec >= 0.5
-                  ? `Stays open longer to capture dim light or silky motion—rest your camera on a tripod or ledge!`
-                  : `Fast enough to stop blurry photos from hand shake while keeping movement crisp.`
-              },
-              {
-                icon: '✨',
-                title: `Why ISO ${iso}?`,
-                body: iso <= 400
-                  ? `Low ISO keeps your photo super clean, smooth, and free of digital grain.`
-                  : `Boosted so your camera can brighten a dimmer scene without slowing down your shutter.`
-              },
-              {
-                icon: '☀️',
-                title: `Light Tip (${phase.name})`,
-                body: solar.altitude <= 8 && solar.altitude >= -4
-                  ? `Soft warm light! Use the Light-Source Radar to keep the sun at 45° for glowing highlights.`
-                  : `Use the Light-Source Radar to place the sun behind you or at 45° to avoid harsh shadows.`
-              }
-            ];
+        cards = [
+          {
+            icon: '🎯',
+            title: `Aperture f/${N} & Depth of Field`,
+            body: N <= 2.8
+              ? `Wide opening (f/${N}) gives shallow depth of field and creamy background blur (bokeh), isolating your subject cleanly.`
+              : N <= 5.6
+              ? `Balanced aperture (f/${N}) sits in the optical sweet spot, giving edge-to-edge sharpness and moderate background separation.`
+              : `Narrow aperture (f/${N}) delivers deep depth of field from near foreground to distant horizon—ideal for landscapes and architecture.`
+          },
+          {
+            icon: '⏱️',
+            title: `Shutter ${shutterObj.label} Motion Strategy`,
+            body: shutterObj.sec >= 0.5
+              ? `Long exposure (${shutterObj.label}) creates silky water and light trails. Camera must be locked onto a tripod or solid surface.`
+              : shutterObj.sec > (1 / 60)
+              ? `Shutter (${shutterObj.label}) requires steady hands or IBIS/lens stabilization at ${gear.focalLengthMm}mm. Tuck elbows in or use a support.`
+              : `Fast shutter (${shutterObj.label}) freezes rapid motion and completely eliminates handheld camera shake for tack-sharp shots.`
+          },
+          {
+            icon: '✨',
+            title: `ISO ${iso} Sensor Gain`,
+            body: iso <= 400
+              ? `Base ISO (${iso}) delivers maximum dynamic range, richest shadow detail, and clean, grain-free images.`
+              : `Amplified ISO (${iso}) enables fast shutter speeds in lower light while keeping exposures balanced with manageable noise.`
+          },
+          {
+            icon: '☀️',
+            title: `Light Angle & Quality (${phase.name})`,
+            body: solar.altitude <= 8 && solar.altitude >= -4
+              ? `Warm golden light (sun at ${solar.altitude.toFixed(0)}°). Aim at 45°–90° to the sun for three-dimensional texture and warm rim lighting.`
+              : `Sun altitude is ${solar.altitude.toFixed(0)}° / azimuth ${solar.azimuth}°. Position your subject at 45° to the light source to avoid harsh top-down shadows.`
+          }
+        ];
       }
 
       document.getElementById('coachingCardsContainer').innerHTML = cards.map((c) => `
@@ -2193,7 +2975,7 @@
               </span>
             </div>
             <p class="text-xs text-slate-400 leading-relaxed">
-              ${isPro ? tip.pro : tip.beginner}
+              ${tip.pro || tip.beginner}
             </p>
           </div>
         `;
@@ -2201,23 +2983,270 @@
     }
 
     // =========================================================================
-    // 9. USER INTERACTION HANDLERS
+    // 8.5. OPTICAL DEPTH OF FIELD (DoF) & HYPERFOCAL DISTANCE ENGINE
     // =========================================================================
-    window.setAppMode = function setAppMode(mode) {
-      appState.mode = mode;
-      const bBtn = document.getElementById('modeBeginnerBtn');
-      const pBtn = document.getElementById('modeProBtn');
-      if (mode === 'beginner') {
-        bBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-obsidian transition';
-        pBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition';
-      } else {
-        pBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-obsidian transition';
-        bBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition';
+    /**
+     * Calculates optical Depth of Field and Hyperfocal distance using physical
+     * lens geometry, sensor Circle of Confusion (CoC), and active aperture.
+     */
+    function updateDofUI() {
+      const dofEl = document.getElementById('cardDof');
+      if (!dofEl) return;
+
+      const cam = getActiveCamera();
+      const crop = cam.cropFactor || 1.0;
+      const coc = 0.029 / crop; // Circle of Confusion in mm
+
+      const gear = getActiveGearConfig();
+      const focalMm = gear.focalLengthMm || 50;
+
+      const exp = appState.exposure;
+      const aperture = APERTURES[exp.apertureIdx] || 8.0;
+
+      // Hyperfocal distance (meters): H = f^2 / (1000 * N * c)
+      const H = (focalMm * focalMm) / (1000 * aperture * coc);
+
+      // Subject Distance (meters)
+      if (appState.dofSubjectDistance === undefined || appState.dofSubjectDistance === null) {
+        appState.dofSubjectDistance = 3.0;
       }
-      recalculateAll();
+      const s = Math.max(0.3, appState.dofSubjectDistance);
+
+      // Near limit Dn (meters): Dn = (s * H) / (H + s)
+      const Dn = (s * H) / (H + s);
+
+      // Far limit Df (meters) & Total DoF
+      let Df = Infinity;
+      let totalDof = Infinity;
+      const isHyperfocalOrBeyond = s >= H;
+
+      if (!isHyperfocalOrBeyond) {
+        Df = (s * H) / (H - s);
+        totalDof = Df - Dn;
+      }
+
+      // Update text values
+      const hypEl = document.getElementById('dofHyperfocalVal');
+      const nearEl = document.getElementById('dofNearLimitVal');
+      const farEl = document.getElementById('dofFarLimitVal');
+      const totalEl = document.getElementById('dofTotalDepthVal');
+      const readoutEl = document.getElementById('dofSubjectReadout');
+      const sliderLabel = document.getElementById('dofSliderLabel');
+      const slider = document.getElementById('dofSubjectSlider');
+      const coachEl = document.getElementById('dofCoachingText');
+
+      if (hypEl) hypEl.textContent = H >= 10 ? `${H.toFixed(1)} m` : `${H.toFixed(2)} m`;
+      if (nearEl) nearEl.textContent = `${Dn.toFixed(2)} m`;
+      if (farEl) farEl.textContent = isHyperfocalOrBeyond ? '∞ (Infinity)' : (Df >= 10 ? `${Df.toFixed(1)} m` : `${Df.toFixed(2)} m`);
+      if (totalEl) totalEl.textContent = isHyperfocalOrBeyond ? '∞ (Infinite)' : (totalDof >= 10 ? `${totalDof.toFixed(1)} m` : `${totalDof.toFixed(2)} m`);
+      if (readoutEl) readoutEl.textContent = `Focus: ${s.toFixed(1)}m`;
+      if (sliderLabel) sliderLabel.textContent = `${s.toFixed(1)} m`;
+      if (slider && Math.abs(parseFloat(slider.value) - s) > 0.05) {
+        slider.value = s;
+      }
+
+      // Visual Bar mapping: Logarithmic 0.3m -> 40m / Infinity
+      const leftPct = distanceToBarPercent(Dn);
+      const rightPct = isHyperfocalOrBeyond ? 100 : distanceToBarPercent(Df);
+      const pinPct = distanceToBarPercent(s);
+
+      const zoneEl = document.getElementById('dofSharpZone');
+      const pinEl = document.getElementById('dofSubjectPin');
+
+      if (zoneEl) {
+        const widthPct = Math.max(2, Math.min(100 - leftPct, rightPct - leftPct));
+        zoneEl.style.left = `${leftPct.toFixed(1)}%`;
+        zoneEl.style.width = `${widthPct.toFixed(1)}%`;
+      }
+
+      if (pinEl) {
+        pinEl.style.left = `${Math.min(99, Math.max(1, pinPct)).toFixed(1)}%`;
+      }
+
+      if (coachEl) {
+        if (isHyperfocalOrBeyond) {
+          coachEl.innerHTML = `🎯 <strong class="text-amber-300">Hyperfocal Depth Achieved:</strong> Focusing at <strong>${s.toFixed(1)}m</strong> (≥ Hyperfocal <strong>${H.toFixed(1)}m</strong>) renders everything from <strong>${Dn.toFixed(1)}m</strong> all the way to <strong>Infinity (∞)</strong> tack-sharp. Maximum depth for landscapes.`;
+        } else {
+          const depthStr = totalDof < 1 ? `${Math.round(totalDof * 100)} cm` : `${totalDof.toFixed(2)} m`;
+          coachEl.innerHTML = `At <strong>f/${aperture}</strong> on <strong>${focalMm}mm</strong> (${cam.name}), focusing at <strong>${s.toFixed(1)}m</strong> keeps subjects from <strong>${Dn.toFixed(2)}m</strong> to <strong>${Df.toFixed(2)}m</strong> sharp (Depth: <strong>${depthStr}</strong>). Tap <em>Snap Hyperfocal</em> to extend depth to infinity.`;
+        }
+      }
+    }
+
+    function distanceToBarPercent(d) {
+      if (d <= 0.3) return 0;
+      if (!isFinite(d) || d >= 40) return 100;
+      // Logarithmic progression matching physical lens distance scales
+      const p = Math.log10(d / 0.3) / Math.log10(40 / 0.3);
+      return Math.min(100, Math.max(0, p * 100));
+    }
+
+    window.updateDofUI = updateDofUI;
+
+    window.snapToHyperfocal = function snapToHyperfocal() {
+      const cam = getActiveCamera();
+      const crop = cam.cropFactor || 1.0;
+      const coc = 0.029 / crop;
+      const gear = getActiveGearConfig();
+      const f = gear.focalLengthMm || 50;
+      const N = APERTURES[appState.exposure.apertureIdx] || 8.0;
+      const H = (f * f) / (1000 * N * coc);
+
+      appState.dofSubjectDistance = Math.max(0.3, Math.min(30, Math.round(H * 10) / 10));
+      const slider = document.getElementById('dofSubjectSlider');
+      if (slider) slider.value = appState.dofSubjectDistance;
+      window.triggerHaptic('snap');
+      updateDofUI();
+      showToast(`🎯 Snapped to Hyperfocal distance: ${H.toFixed(1)}m`);
     };
 
+    window.setSubjectDistance = function setSubjectDistance(dist) {
+      appState.dofSubjectDistance = Math.max(0.3, Math.min(30, parseFloat(dist) || 3.0));
+      const slider = document.getElementById('dofSubjectSlider');
+      if (slider && parseFloat(slider.value) !== appState.dofSubjectDistance) {
+        slider.value = appState.dofSubjectDistance;
+      }
+      window.triggerHaptic('tick');
+      updateDofUI();
+    };
+
+    window.stepSubjectDistance = function stepSubjectDistance(delta) {
+      const current = appState.dofSubjectDistance || 3.0;
+      const next = Math.max(0.3, Math.min(30, Math.round((current + delta) * 10) / 10));
+      window.setSubjectDistance(next);
+      window.triggerHaptic('click');
+    };
+
+    // =========================================================================
+    // 9. USER INTERACTION HANDLERS
+    // =========================================================================
+    window.setAppMode = function setAppMode() {};
+
+    window.toggleCameraSetupDrawer = function toggleCameraSetupDrawer() {
+      const drawer = document.getElementById('cameraSetupDrawer');
+      const chevron = document.getElementById('toggleCameraSetupChevron');
+      if (!drawer) return;
+      const isHidden = drawer.classList.contains('hidden');
+      if (isHidden) {
+        drawer.classList.remove('hidden');
+        if (chevron) chevron.textContent = '▲';
+      } else {
+        drawer.classList.add('hidden');
+        if (chevron) chevron.textContent = '▾';
+      }
+    };
+    window.toggleGearSceneDrawer = window.toggleCameraSetupDrawer;
+
+    window.toggleCameraGuide = function toggleCameraGuide(param) {
+      const idMap = {
+        aperture: 'camGuideAperture',
+        shutter: 'camGuideShutter',
+        iso: 'camGuideISO'
+      };
+      const el = document.getElementById(idMap[param]);
+      if (!el) return;
+      el.classList.toggle('hidden');
+    };
+
+    window.openCameraDialModal = function openCameraDialModal() {
+      const modal = document.getElementById('cameraDialGuideModal');
+      if (modal) {
+        updateCameraGuideUI();
+        modal.classList.remove('hidden');
+      }
+    };
+
+    window.closeCameraDialModal = function closeCameraDialModal() {
+      const modal = document.getElementById('cameraDialGuideModal');
+      if (modal) modal.classList.add('hidden');
+    };
+
+    function updateCameraGuideUI() {
+      const cam = getActiveCamera();
+      const guide = CAMERA_CONTROL_GUIDE[appState.camera] || {
+        modeDial: 'Set camera Mode Dial to A (Aperture Priority), S/Tv (Shutter Priority), or M (Manual)',
+        aperture: {
+          location: 'Front Dial or Lens Aperture Ring',
+          detail: 'Rotate the front command dial under your index finger or turn the physical ring on the lens barrel.'
+        },
+        shutter: {
+          location: 'Rear Main Command Dial',
+          detail: 'Rotate the rear control dial on the back or top plate under your thumb.'
+        },
+        iso: {
+          location: 'ISO Button or Quick / Function (Q/Fn) Menu',
+          detail: 'Press the physical ISO button near the shutter release and turn the dial, or adjust in the Q/Fn quick menu.'
+        }
+      };
+
+      // Aperture inline card
+      const apTitle = document.getElementById('camGuideApertureTitle');
+      const apDetail = document.getElementById('camGuideApertureDetail');
+      if (apTitle) apTitle.textContent = `${cam.name}: ${guide.aperture.location}`;
+      if (apDetail) apDetail.textContent = guide.aperture.detail;
+
+      // Shutter inline card
+      const shTitle = document.getElementById('camGuideShutterTitle');
+      const shDetail = document.getElementById('camGuideShutterDetail');
+      if (shTitle) shTitle.textContent = `${cam.name}: ${guide.shutter.location}`;
+      if (shDetail) shDetail.textContent = guide.shutter.detail;
+
+      // ISO inline card
+      const isoTitle = document.getElementById('camGuideISOTitle');
+      const isoDetail = document.getElementById('camGuideISODetail');
+      if (isoTitle) isoTitle.textContent = `${cam.name}: ${guide.iso.location}`;
+      if (isoDetail) isoDetail.textContent = guide.iso.detail;
+
+      // Master Dialog
+      const modalCamName = document.getElementById('modalDialCamName');
+      const modalMode = document.getElementById('modalDialModeText');
+      const modalAp = document.getElementById('modalDialApText');
+      const modalSh = document.getElementById('modalDialShText');
+      const modalIso = document.getElementById('modalDialIsoText');
+      if (modalCamName) modalCamName.textContent = cam.name;
+      if (modalMode) modalMode.textContent = guide.modeDial;
+      if (modalAp) modalAp.textContent = `${guide.aperture.location} — ${guide.aperture.detail}`;
+      if (modalSh) modalSh.textContent = `${guide.shutter.location} — ${guide.shutter.detail}`;
+      if (modalIso) modalIso.textContent = `${guide.iso.location} — ${guide.iso.detail}`;
+    }
+
+    function updateFinalSetupSummaryLine() {
+      const cam = getActiveCamera();
+      const gear = getActiveGearConfig();
+      const isTripod = appState.support === 'tripod';
+
+      const camEl = document.getElementById('finalSetupCamera');
+      const lensHoldEl = document.getElementById('finalSetupLensHold');
+
+      if (camEl) {
+        camEl.textContent = cam.name || 'Camera';
+      }
+
+      if (lensHoldEl) {
+        const focalText = gear.focalLengthMm ? `${gear.focalLengthMm}mm` : 'Standard Lens';
+        const holdText = isTripod ? 'Tripod' : 'Handheld';
+        lensHoldEl.textContent = `${focalText} • ${holdText}`;
+      }
+
+      const activeCamNameEl = document.getElementById('activeCameraNameText');
+      const activeCamCropEl = document.getElementById('activeCameraCropBadge');
+      if (activeCamNameEl) activeCamNameEl.textContent = cam.name;
+      if (activeCamCropEl) {
+        const crop = cam.cropFactor || 1.0;
+        const formatName = cam.sensorType || (crop === 1.0 ? 'Full Frame' : `${crop}× Crop`);
+        activeCamCropEl.textContent = `${crop}× ${formatName}`;
+      }
+
+      const supSel = document.getElementById('supportSelect');
+      if (supSel && supSel.value !== appState.support) {
+        supSel.value = appState.support;
+      }
+
+      updateCameraGuideUI();
+    }
+
     window.setStyle = function setStyle(style) {
+      window.triggerHaptic('click');
       appState.style = style;
       appState.exposure.manualOverride = false;
       document.getElementById('resetSimBtn').classList.add('hidden');
@@ -2225,6 +3254,7 @@
     };
 
     window.setGear = function setGear(gear) {
+      window.triggerHaptic('click');
       if (gear === 'custom') {
         appState.gear = 'custom';
       } else {
@@ -2252,25 +3282,70 @@
       showToast(`Selected Camera: ${cam.name} (${cam.sensorType || cam.cropFactor + '×'})`);
     };
 
-    window.cancelCustomCamera = function cancelCustomCamera() {
-      const panel = document.getElementById('customCameraPanel');
-      if (panel) panel.classList.add('hidden');
-      const sel = document.getElementById('cameraSelect');
-      if (sel) sel.value = appState.camera;
-    };
-
-    window.onCustomCameraSensorChange = function onCustomCameraSensorChange(val) {
-      const cropInput = document.getElementById('customCropFactorInput');
-      if (val !== 'custom') {
-        cropInput.value = val;
+    window.openCameraModal = function openCameraModal() {
+      const modal = document.getElementById('cameraModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        window.renderCameraCards();
       }
     };
 
-    window.saveCustomCamera = function saveCustomCamera() {
-      const nameInput = document.getElementById('customCameraNameInput');
-      const cropInput = document.getElementById('customCropFactorInput');
-      const name = (nameInput.value || '').trim();
-      const crop = parseFloat(cropInput.value);
+    window.closeCameraModal = function closeCameraModal() {
+      const modal = document.getElementById('cameraModal');
+      if (modal) {
+        modal.classList.add('hidden');
+      }
+    };
+
+    window.selectCamera = function selectCamera(id) {
+      window.setCamera(id);
+      window.closeCameraModal();
+    };
+
+    window.cancelCustomCamera = function cancelCustomCamera() {
+      window.closeCameraModal();
+    };
+
+    window.toggleCustomCameraDrawer = function toggleCustomCameraDrawer() {
+      const drawer = document.getElementById('modalCustomCameraDrawer');
+      const chevron = document.getElementById('customCameraDrawerChevron');
+      if (drawer) {
+        const isHidden = drawer.classList.contains('hidden');
+        if (isHidden) {
+          drawer.classList.remove('hidden');
+          if (chevron) chevron.textContent = '▲';
+        } else {
+          drawer.classList.add('hidden');
+          if (chevron) chevron.textContent = '▾';
+        }
+      }
+    };
+
+    window.onModalCustomCameraSensorChange = function onModalCustomCameraSensorChange(val) {
+      const cropContainer = document.getElementById('modalCustomCropContainer');
+      const cropInput = document.getElementById('modalCustomCropFactor');
+      if (val === 'custom') {
+        if (cropContainer) cropContainer.classList.remove('hidden');
+      } else {
+        if (cropContainer) cropContainer.classList.add('hidden');
+        if (cropInput) cropInput.value = val;
+      }
+    };
+
+    window.onCustomCameraSensorChange = function onCustomCameraSensorChange(val) {
+      window.onModalCustomCameraSensorChange(val);
+    };
+
+    window.saveModalCustomCamera = function saveModalCustomCamera() {
+      const nameInput = document.getElementById('modalCustomCameraName');
+      const sensorSelect = document.getElementById('modalCustomCameraSensor');
+      const cropInput = document.getElementById('modalCustomCropFactor');
+      const name = (nameInput?.value || '').trim();
+      let crop = parseFloat(cropInput?.value);
+
+      if (sensorSelect && sensorSelect.value !== 'custom') {
+        crop = parseFloat(sensorSelect.value);
+      }
 
       if (!name) {
         showToast('Please enter a camera body name.');
@@ -2295,12 +3370,120 @@
       appState.camera = id;
       try { localStorage.setItem('luminary_active_camera', id); } catch (_) {}
 
-      populateCameraSelect();
-      document.getElementById('customCameraPanel').classList.add('hidden');
-      nameInput.value = '';
+      if (nameInput) nameInput.value = '';
+      window.closeCameraModal();
       updateGearTelemetryBar();
       recalculateAll();
       showToast(`Camera "${name}" saved to your gear bag!`);
+    };
+
+    window.saveCustomCamera = function saveCustomCamera() {
+      window.saveModalCustomCamera();
+    };
+
+    window.deleteCustomCamera = function deleteCustomCamera(id, event) {
+      if (event) event.stopPropagation();
+      const cameras = getSavedCustomCameras();
+      if (!cameras[id]) return;
+      const camName = cameras[id].name;
+      delete cameras[id];
+      saveCustomCameras(cameras);
+      if (appState.camera === id) {
+        appState.camera = 'sony_a7iv';
+        try { localStorage.setItem('luminary_active_camera', 'sony_a7iv'); } catch (_) {}
+      }
+      window.renderCameraCards();
+      updateGearTelemetryBar();
+      recalculateAll();
+      showToast(`Deleted "${camName}" from gear bag.`);
+    };
+
+    window.renderCameraCards = function renderCameraCards() {
+      const container = document.getElementById('cameraCardsContainer');
+      if (!container) return;
+
+      const optCustoms = getSavedCustomCameras();
+      const customKeys = Object.keys(optCustoms);
+
+      const optGroups = [
+        {
+          title: 'Full Frame (1.0× Crop)',
+          ids: ['sony_a7iv', 'canon_r5', 'nikon_z6', 'panasonic_s5']
+        },
+        {
+          title: 'APS-C (1.5× / 1.6× Crop)',
+          ids: ['fuji_xt5', 'sony_a6700', 'nikon_z50', 'canon_r7']
+        },
+        {
+          title: 'Micro Four Thirds (2.0× Crop)',
+          ids: ['lumix_gh6']
+        },
+        {
+          title: 'Medium Format (0.79× Crop)',
+          ids: ['fuji_gfx']
+        },
+        {
+          title: 'Smartphone (3.6× Crop)',
+          ids: ['phone_pro']
+        }
+      ];
+
+      let html = '';
+
+      // If user has custom cameras
+      if (customKeys.length > 0) {
+        html += `<div class="space-y-1.5">
+          <div class="text-[10px] font-mono uppercase tracking-wider text-amber-400 font-semibold px-1">🎒 My Custom Camera Bodies</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">`;
+        customKeys.forEach(id => {
+          const cam = optCustoms[id];
+          const isActive = appState.camera === id;
+          html += `
+            <div onclick="window.selectCamera('${id}')" class="cursor-pointer p-3 rounded-xl border transition flex items-center justify-between active:scale-98 ${isActive ? 'bg-amber-500/15 border-amber-500/60 ring-1 ring-amber-500/40 text-white' : 'bg-obsidian/70 hover:bg-slate-800 border-borderline text-slate-200'}">
+              <div class="flex items-center gap-2.5 min-w-0 pr-2">
+                <span class="text-base shrink-0">${isActive ? '📷' : '📸'}</span>
+                <div class="min-w-0">
+                  <div class="text-xs sm:text-sm font-semibold truncate text-white">${escapeHtml(cam.name)}</div>
+                  <div class="text-[10px] font-mono text-slate-400 truncate">${cam.sensorType || cam.cropFactor + '×'}</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold ${isActive ? 'bg-amber-500 text-obsidian' : 'bg-dial text-slate-300 border border-borderline'}">${cam.cropFactor}×</span>
+                <button type="button" onclick="window.deleteCustomCamera('${id}', event)" class="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-rose-500/20 transition" title="Delete custom camera">🗑️</button>
+              </div>
+            </div>`;
+        });
+        html += `</div></div>`;
+      }
+
+      // Standard Preset Groups
+      optGroups.forEach(grp => {
+        html += `<div class="space-y-1.5">
+          <div class="text-[10px] font-mono uppercase tracking-wider text-slate-400 px-1">${grp.title}</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">`;
+        grp.ids.forEach(id => {
+          const cam = DEFAULT_CAMERAS[id];
+          if (!cam) return;
+          const isActive = appState.camera === id;
+          html += `
+            <button type="button" onclick="window.selectCamera('${id}')" class="w-full text-left p-3 rounded-xl border transition flex items-center justify-between active:scale-98 ${isActive ? 'bg-amber-500/15 border-amber-500/60 ring-1 ring-amber-500/40 text-white' : 'bg-obsidian/70 hover:bg-slate-800 border-borderline text-slate-200 hover:text-white'}">
+              <div class="flex items-center gap-2.5 min-w-0 pr-2">
+                <span class="text-base shrink-0">${isActive ? '📷' : '📸'}</span>
+                <div class="min-w-0">
+                  <div class="text-xs sm:text-sm font-semibold truncate text-white">${cam.name}</div>
+                  <div class="text-[10px] font-mono text-slate-400 truncate">${cam.sensorType || cam.cropFactor + '×'} • ${cam.brand}</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold ${isActive ? 'bg-amber-500 text-obsidian' : 'bg-dial text-slate-300 border border-borderline'}">${cam.cropFactor}×</span>
+                ${isActive ? '<span class="text-amber-400 font-bold text-xs">✓</span>' : ''}
+              </div>
+            </button>`;
+        });
+        html += `</div></div>`;
+      });
+
+      container.innerHTML = html;
     };
 
     window.saveCustomLensToBag = function saveCustomLensToBag() {
@@ -2364,6 +3547,15 @@
       const safeHandheldLabel = SHUTTERS[handheldSafeIdx].label;
       const astroSec = Math.min(30, Math.round(500 / Math.max(10, effectiveMm)));
 
+      const activeCamName = document.getElementById('activeCameraNameText');
+      const activeCamCrop = document.getElementById('activeCameraCropBadge');
+      if (activeCamName) {
+        activeCamName.textContent = cam.name;
+      }
+      if (activeCamCrop) {
+        activeCamCrop.textContent = `${cam.cropFactor}× ${cam.sensorType || ''}`.trim();
+      }
+
       const sensorBadge = document.getElementById('telemetrySensorBadge');
       const focalBadge = document.getElementById('telemetryFocalBadge');
       const handheldBadge = document.getElementById('telemetryHandheldBadge');
@@ -2388,62 +3580,10 @@
     }
 
     function populateCameraSelect() {
-      const sel = document.getElementById('cameraSelect');
-      if (!sel) return;
-      sel.innerHTML = '';
-
-      const optCustoms = getSavedCustomCameras();
-      const optGroups = {
-        'Full Frame (1.0×)': ['sony_a7iv', 'canon_r5', 'nikon_z6', 'panasonic_s5'],
-        'APS-C (1.5× / 1.6×)': ['fuji_xt5', 'sony_a6700', 'nikon_z50', 'canon_r7'],
-        'Micro Four Thirds (2.0×)': ['lumix_gh6'],
-        'Medium Format (0.79×)': ['fuji_gfx'],
-        'Smartphone (3.6×)': ['phone_pro']
-      };
-
-      for (const [groupName, ids] of Object.entries(optGroups)) {
-        const grp = document.createElement('optgroup');
-        grp.label = groupName;
-        grp.className = 'bg-obsidian text-slate-400';
-        ids.forEach(id => {
-          const cam = DEFAULT_CAMERAS[id];
-          if (cam) {
-            const opt = document.createElement('option');
-            opt.value = id;
-            opt.className = 'bg-obsidian text-white';
-            opt.textContent = `${cam.name} (${cam.cropFactor}×)`;
-            grp.appendChild(opt);
-          }
-        });
-        sel.appendChild(grp);
-      }
-
-      const customKeys = Object.keys(optCustoms);
-      if (customKeys.length > 0) {
-        const customGrp = document.createElement('optgroup');
-        customGrp.label = '🎒 My Saved Camera Bodies';
-        customGrp.className = 'bg-obsidian text-amber-400 font-semibold';
-        customKeys.forEach(id => {
-          const cam = optCustoms[id];
-          const opt = document.createElement('option');
-          opt.value = id;
-          opt.className = 'bg-obsidian text-white';
-          opt.textContent = `★ ${cam.name} (${cam.cropFactor}×)`;
-          customGrp.appendChild(opt);
-        });
-        sel.appendChild(customGrp);
-      }
-
-      const addOpt = document.createElement('option');
-      addOpt.value = '__add_custom_camera__';
-      addOpt.className = 'bg-obsidian text-amber-300 font-semibold';
-      addOpt.textContent = '⚙️ + Add Custom Camera Body...';
-      sel.appendChild(addOpt);
-
-      sel.value = appState.camera;
-      if (!sel.value) {
-        appState.camera = 'sony_a7iv';
-        sel.value = 'sony_a7iv';
+      updateGearTelemetryBar();
+      const modal = document.getElementById('cameraModal');
+      if (modal && !modal.classList.contains('hidden')) {
+        window.renderCameraCards();
       }
     }
 
@@ -2623,10 +3763,12 @@
       appState.support = support;
       appState.exposure.manualOverride = false;
       document.getElementById('resetSimBtn').classList.add('hidden');
+      updateFinalSetupSummaryLine();
       recalculateAll();
     };
 
     window.shiftTime = function shiftTime(hours) {
+      window.triggerHaptic('click');
       appState.forcedSunAlt = null;
       appState.timeOffsetHours = Math.max(-12, Math.min(12, appState.timeOffsetHours + hours));
       appState.exposure.manualOverride = false;
@@ -2635,6 +3777,7 @@
     };
 
     window.resetTime = function resetTime() {
+      window.triggerHaptic('click');
       appState.timeOffsetHours = 0;
       appState.exposure.manualOverride = false;
       updateTimeOffsetLabels();
@@ -3001,12 +4144,42 @@
         .replace(/'/g, '&#39;');
     }
 
-    // Dismiss city search dropdown when clicking outside
+    // Dismiss city search dropdown when clicking outside & handle modal backdrops
     document.addEventListener('click', (e) => {
-      const container = document.getElementById('citySearchContainer');
+      const container = document.getElementById('headerCitySearchContainer') || document.getElementById('citySearchContainer');
       const dropdown = document.getElementById('cityResultsDropdown');
       if (container && dropdown && !container.contains(e.target)) {
         dropdown.classList.add('hidden');
+      }
+      const camModal = document.getElementById('cameraModal');
+      if (camModal && e.target === camModal) {
+        window.closeCameraModal();
+      }
+      const journalModal = document.getElementById('shotJournalModal');
+      if (journalModal && e.target === journalModal) {
+        window.closeShotJournal();
+      }
+      const dialModal = document.getElementById('cameraDialGuideModal');
+      if (dialModal && e.target === dialModal) {
+        window.closeCameraDialModal();
+      }
+    });
+
+    // Close open modals on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const camModal = document.getElementById('cameraModal');
+        if (camModal && !camModal.classList.contains('hidden')) {
+          window.closeCameraModal();
+        }
+        const journalModal = document.getElementById('shotJournalModal');
+        if (journalModal && !journalModal.classList.contains('hidden')) {
+          window.closeShotJournal();
+        }
+        const dialModal = document.getElementById('cameraDialGuideModal');
+        if (dialModal && !dialModal.classList.contains('hidden')) {
+          window.closeCameraDialModal();
+        }
       }
     });
 
@@ -3060,6 +4233,15 @@
       }
     };
 
+    // Immediate early initialization of UI components (before window.onload waits for CDNs)
+    try {
+      populateLensSelect();
+      updateGearTelemetryBar();
+      updateJournalBadge();
+      updateFinalSetupSummaryLine();
+      updateLockUI();
+    } catch (_) {}
+
     window.onload = function () {
       // 1. Support Android App Shortcuts & URL Parameters (?style=astro, ?style=portrait, etc.)
       try {
@@ -3093,6 +4275,8 @@
       syncCustomLensUI();
       updateGearTelemetryBar();
       updateJournalBadge();
+      updateFinalSetupSummaryLine();
+      updateLockUI();
 
       updateLiveClockDisplay();
       setInterval(updateLiveClockDisplay, 1000);

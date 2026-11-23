@@ -25,7 +25,10 @@ Whether capturing deep-sky Milky Way exposures using the 500-Rule, chasing 3D Re
 | **Compass Sun & Shadow Radar** | Gyroscope and magnetometer-driven radar tracking the sun's position relative to where your camera is pointing, diagnosing lighting angles and shadow cast vectors. |
 | **Custom Lens Builder** | Supports prime and zoom lenses (8mm to 1200mm, f/1.4 to f/22) with automatic reciprocal camera-shake protection and aperture limiting. |
 | **Live Atmospheric Telemetry** | Real-time cloud cover, temperature, weather conditions, and UV index dynamically adjusting EV ratings and shadow softness. |
-| **Dual Experience Modes** | Toggle between **Beginner Mode** (explaining the "why" behind every setting) and **Pro Mode** (dense, high-efficiency dials and raw telemetry). |
+| **Exposure Lock (AE-L) & Dial Locks** | Independent locks for Aperture, Shutter, and ISO plus 1-tap master AE-L lock; mimics camera priority modes (Av, Tv, M) while auto-balancing unlocked dials. |
+| **Interactive DoF & Hyperfocal Bar** | Real-time optical depth-of-field visualizer calculating Near Limit, Far Limit, Total Sharp Zone, and Hyperfocal distance with 1-tap *Snap Hyperfocal* and logarithmic focus scale. |
+| **Mechanical Dial Haptic Feedback** | Tactile micro-vibrations (`navigator.vibrate`) on mobile devices for dial steppers, continuous sliders, hyperfocal snapping, and AE-L locks. |
+| **Streamlined Mobile Drawer Setup** | Single summary line on top (`📷 Camera • Lens • Hold • Scene`) with collapsible drawer ordered: 1. Camera Body, 2. Lens & Hold, 3. Scene Selection. |
 | **Interactive Solar Arc** | Canvas-based visualization of the sun's trajectory across the horizon with countdown timers to the next golden or blue hour. |
 | **Global City Search & Presets** | Instant GPS location detection, global search for any city, or one-tap lighting presets (Iceland, Tokyo, Sahara, London). |
 | **Tactile Field Usability** | Dark-adapted `#0b0d10` UI, one-tap setting recipe copying, manual override sliders, and full offline functionality in the field. |
@@ -203,17 +206,25 @@ Luminary includes a built-in offline field journal allowing photographers to log
 
 ---
 
-## 🎓 Coaching, Field Guide & Experience Modes
+## 🎓 Field Guide, Exposure Locks & Priority Modes
 
-Luminary is built to empower both learning beginners and seasoned pros:
+Luminary is built to empower photographers in the field with tactile controls and clear optical physics:
 
-### Beginner vs. Pro Mode Toggle
-- **Beginner Mode**:
-  - Unrolls dedicated **"Why These Settings?"** coaching cards explaining the cause-and-effect of the recommended aperture, shutter speed, and ISO.
-  - Highlights real-world rules of thumb (e.g., *"Why f/8? Lenses are sharpest in their mid-range"* or *"Why 1/500s? Children and pets move unpredictably"*).
-  - Displays visual cues and warnings when settings reach risky thresholds.
-- **Pro Mode**:
-  - Collapses verbose explanations into a high-density, tactile instrument panel focused strictly on dials, stops, EV values, and azimuth coordinates.
+### Exposure Dials & Priority Mode Locking (Av / Tv / M / AE-L)
+- **Aperture Lock (Av - Aperture Priority)**: Locks your chosen f-stop (e.g. f/1.8 for portraits or f/8 for landscapes) while shutter speed and ISO auto-balance to maintain target exposure.
+- **Shutter Lock (Tv - Shutter Priority)**: Locks your exposure duration (e.g. 1/1000s for action or 1/60s for street) while aperture and ISO adjust to ambient light.
+- **ISO Lock**: Locks sensor gain to base sensitivity (e.g. ISO 100) for maximum dynamic range and clean shadow recovery.
+- **Master Lock All (AE-L / Manual Mode)**: Freezes all three exposure parameters simultaneously. As ambient light shifts, the Viewfinder EV needle visually indicates exposure delta ($\pm\text{EV}$).
+
+### Unified Field Guide & Exposure Notes
+- Replaces disjointed beginner/pro mode switches with a unified, professional field guide card for every scene.
+- Contextual cards breakdown **Aperture Depth Strategy**, **Shutter Motion Safety**, **Sensor Gain Quality**, and **Solar Lighting Angles** (along with 500-Rule astrophotography guidance).
+
+### Camera Hardware Control Guide ("Where on My Camera?")
+- Luminary bridges recommended settings to physical camera bodies:
+  - Tapping the `🎛️` icon on any dial card (Aperture, Shutter, or ISO) reveals the exact physical dial, wheel, button, or menu location on your currently selected camera.
+  - Covers front command dials, rear thumb wheels, physical lens aperture rings (Fujifilm/Leica), dedicated ISO buttons (Nikon/Canon/Lumix), and Pro smartphone camera sliders.
+  - A master **Dials Guide** button provides a full hardware reference modal for your active camera body.
 
 ### Lens Filter Advice Engine
 Based on active lighting and style selections, Luminary recommends physical lens filters:
