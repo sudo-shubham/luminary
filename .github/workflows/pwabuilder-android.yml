@@ -37,13 +37,17 @@ jobs:
           echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
           echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> $GITHUB_ENV
 
+          # Bubblewrap expects tools/ and bin/ directories inside ANDROID_HOME
+          sudo ln -sf $ANDROID_HOME/cmdline-tools/latest $ANDROID_HOME/tools || true
+          sudo ln -sf $ANDROID_HOME/cmdline-tools/latest/bin $ANDROID_HOME/bin || true
+
           # Accept all Android SDK licenses
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
-          # Install Bubblewrap CLI
+          # Install Bubblewrap CLI globally
           npm install -g @bubblewrap/cli
 
-          # Configure Bubblewrap paths non-interactively
+          # Configure Bubblewrap global configuration with absolute paths
           mkdir -p ~/.bubblewrap
           cat <<EOF > ~/.bubblewrap/config.json
           {
@@ -51,6 +55,9 @@ jobs:
             "androidSdkPath": "$ANDROID_HOME"
           }
           EOF
+
+          # Verify with bubblewrap doctor
+          bubblewrap doctor || true
 
           echo "Bubblewrap global config:"
           cat ~/.bubblewrap/config.json
@@ -118,6 +125,9 @@ jobs:
 
           # Sync twa-manifest.json into native Android project structure
           bubblewrap update --skipVersionUpgrade
+
+          # Ensure gradlew has execute permissions if generated
+          chmod +x gradlew || true
 
           # Build signed APK and App Bundle (.aab)
           bubblewrap build \
