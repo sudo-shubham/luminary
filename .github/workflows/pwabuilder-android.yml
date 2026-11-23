@@ -28,8 +28,33 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: 5. Setup Android SDK Tools
-        uses: android-actions/setup-android@v3
+      - name: 5. Configure Android SDK & Bubblewrap CLI
+        run: |
+          echo "=========================================="
+          echo "🤖 Configuring Android SDK & Bubblewrap CLI"
+          echo "=========================================="
+          export ANDROID_HOME="/usr/local/lib/android/sdk"
+          echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> $GITHUB_ENV
+
+          # Accept all Android SDK licenses
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
+          # Install Bubblewrap CLI
+          npm install -g @bubblewrap/cli
+
+          # Configure Bubblewrap paths non-interactively
+          mkdir -p ~/.bubblewrap
+          cat <<EOF > ~/.bubblewrap/config.json
+          {
+            "jdkPath": "$JAVA_HOME",
+            "androidSdkPath": "$ANDROID_HOME"
+          }
+          EOF
+
+          echo "Bubblewrap global config:"
+          cat ~/.bubblewrap/config.json
+          echo "=========================================="
 
       - name: 6. Prepare Signing Keystore
         id: keystore
@@ -82,10 +107,7 @@ jobs:
           keytool -list -v -keystore android.keystore -alias "$ALIAS" -storepass "$STORE_PASS" | grep "SHA256:"
           echo "=========================================="
 
-      - name: 7. Install Bubblewrap CLI
-        run: npm install -g @bubblewrap/cli
-
-      - name: 8. Build Android Project (TWA)
+      - name: 7. Build Android Project (TWA)
         env:
           BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ env.KEYSTORE_PASS }}
           BUBBLEWRAP_KEY_PASSWORD: ${{ env.KEY_PASS }}
@@ -103,7 +125,7 @@ jobs:
             --signingKeyAlias="${{ env.KEY_ALIAS }}" \
             --skipPwaValidation
 
-      - name: 9. Ensure & Sign Release APK
+      - name: 8. Ensure & Verify Signed Release APK
         run: |
           echo "=========================================="
           echo "🔍 Verifying Signed APK Generation"
@@ -138,7 +160,7 @@ jobs:
           echo ""
           echo "✨ Confirmed: app-release-signed.apk is cryptographically signed and verified!"
 
-      - name: 10. Upload Signed Android Artifacts
+      - name: 9. Upload Signed Android Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: luminary-signed-android-release
