@@ -85,4 +85,11 @@ test.describe('Luminary Photography Assistant', () => {
     const download = await downloadPromise;
     expect(download.suggestedFilename()).toMatch(/^luminary-golden-\d{4}-\d{2}-\d{2}\.ics$/);
   });
+
+  test('should compute valid Hyperfocal and Depth of Field without NaN', async ({ page }) => {
+    const dofSection = page.locator('div:has-text("Depth of Field & Hyperfocal")').filter({ hasText: 'Near Limit' }).last();
+    const dofText = await dofSection.innerText();
+    expect(dofText).not.toContain('NaN');
+    expect(dofText).toMatch(/\d+(\.\d+)?\s*m/);
+  });
 });

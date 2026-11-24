@@ -361,8 +361,7 @@ class AppState {
     const aperture = APERTURES[this.exposure.apertureIdx] || 8.0;
     const s = Math.max(0.3, this.dofSubjectDistance || 3.0);
 
-    const H = computeHyperfocal(focalMm, aperture, coc);
-    const dof = computeDof(s, H);
+    const dof = computeDof(focalMm, aperture, coc, s);
 
     const leftPct = distanceToBarPercent(dof.Dn);
     const rightPct = dof.isHyperfocalOrBeyond ? 100 : distanceToBarPercent(dof.Df);
@@ -370,8 +369,6 @@ class AppState {
     const widthPct = Math.max(2, Math.min(100 - leftPct, rightPct - leftPct));
 
     return {
-      H,
-      s,
       ...dof,
       leftPct,
       rightPct,
