@@ -123,6 +123,10 @@ test.describe('Luminary Photography Assistant', () => {
     await expect(page.locator('text=Ridge Sunset Overlook')).toBeVisible({ timeout: 5000 });
     await expect(page.locator('text=Yamuna Riverfront')).toBeVisible();
 
+    // Verify Maps link searches by actual place name centered at coordinates
+    const mapsHref = await page.getByRole('link', { name: /Maps/i }).first().getAttribute('href');
+    expect(mapsHref).toContain('google.com/maps/search/Yamuna%20Riverfront/@28.63,77.26,15z');
+
     // Filter to Water & Rivers
     await page.getByRole('button', { name: /Water & Rivers/i }).click();
     await expect(page.locator('text=Yamuna Riverfront')).toBeVisible();

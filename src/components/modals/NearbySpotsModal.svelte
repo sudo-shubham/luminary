@@ -188,7 +188,7 @@
                   Scout Here
                 </button>
                 <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}`}
+                  href={`https://www.google.com/maps/search/${encodeURIComponent(spot.name)}/@${spot.lat},${spot.lon},15z`}
                   target="_blank"
                   rel="noopener noreferrer"
                   class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-obsidian/80 hover:bg-slate-700/80 border border-borderline text-[11px] font-mono text-slate-300 hover:text-white transition">
