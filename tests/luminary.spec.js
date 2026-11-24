@@ -67,4 +67,22 @@ test.describe('Luminary Photography Assistant', () => {
     // In light mode, text-rose-900 (oklch(0.41 ...)) should be applied for high contrast
     expect(color).toMatch(/oklch\(0\.41|rgb\(136|rgb\(190/);
   });
+
+  test('should display Afterglow Forecast and Sunrise/Sunset azimuth pins', async ({ page }) => {
+    const solarCard = page.locator('#solar-ephemeris-card');
+    await expect(solarCard.locator('text=Sunrise Light')).toBeVisible();
+    await expect(solarCard.locator('text=Sunset Light')).toBeVisible();
+
+    const srPinBtn = page.getByRole('button', { name: /SR \d+°/ });
+    const ssPinBtn = page.getByRole('button', { name: /SS \d+°/ });
+    await expect(srPinBtn).toBeVisible();
+    await expect(ssPinBtn).toBeVisible();
+  });
+
+  test('should export shoot plan as .ics calendar file', async ({ page }) => {
+    const downloadPromise = page.waitForEvent('download');
+    await page.getByRole('button', { name: /Add to Calendar/i }).click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toMatch(/^luminary-golden-\d{4}-\d{2}-\d{2}\.ics$/);
+  });
 });

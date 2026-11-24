@@ -263,6 +263,85 @@ class AppState {
     return getLightPhase(this.solarData.altitude, this.weather.cloudCover);
   });
 
+  // Derived: Golden Hour & Sunrise/Sunset Quality Score ("Afterglow Forecast")
+  skyQuality = $derived.by(() => {
+    const scoreWindow = (cTotal, cLow, cMid, cHigh, pProb) => {
+      if (pProb >= 45) {
+        return {
+          score: Math.max(15, 42 - Math.round(pProb * 0.3)),
+          label: 'Rainy / Muted',
+          badgeClass: 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30',
+          detail: 'Rain & thick clouds likely mute horizon light.'
+        };
+      }
+      if (cLow > 70 || cTotal > 85) {
+        return {
+          score: 32,
+          label: 'Flat Overcast',
+          badgeClass: 'bg-slate-500/15 text-slate-700 dark:text-slate-300 border-slate-500/30',
+          detail: 'Dense low clouds may block direct horizon glow.'
+        };
+      }
+      if (cTotal < 15) {
+        return {
+          score: 72,
+          label: 'Clean Clear',
+          badgeClass: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30',
+          detail: 'Crisp warm gradient with minimal cloud texture.'
+        };
+      }
+      const midHigh = Math.min(100, cMid * 0.65 + cHigh * 0.75);
+      if (midHigh >= 25 && midHigh <= 75 && cLow < 45) {
+        return {
+          score: Math.min(96, Math.round(78 + (midHigh / 100) * 18)),
+          label: 'Vivid Afterglow',
+          badgeClass: 'bg-orange-500/20 text-orange-700 dark:text-orange-300 border-orange-500/40',
+          detail: 'Ideal mid/high clouds to catch deep red & gold.'
+        };
+      }
+      return {
+        score: Math.max(40, Math.round(64 - cLow * 0.2)),
+        label: 'Moderate Light',
+        badgeClass: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30',
+        detail: 'Balanced sky with mixed cloud cover.'
+      };
+    };
+
+    const hourly = this.rawWeatherData?.hourly;
+    const solar = this.solarData;
+    const dayBase = this.dayOffset * 24;
+
+    if (hourly?.cloud_cover?.length >= dayBase + 24) {
+      const srIdx = Math.min(hourly.cloud_cover.length - 1, Math.max(0, dayBase + Math.round(solar.sunriseLocal)));
+      const ssIdx = Math.min(hourly.cloud_cover.length - 1, Math.max(0, dayBase + Math.round(solar.sunsetLocal)));
+      return {
+        sunrise: scoreWindow(
+          hourly.cloud_cover[srIdx] ?? this.weather.cloudCover,
+          hourly.cloud_cover_low?.[srIdx] ?? 20,
+          hourly.cloud_cover_mid?.[srIdx] ?? 20,
+          hourly.cloud_cover_high?.[srIdx] ?? 20,
+          hourly.precipitation_probability?.[srIdx] ?? this.weather.precipitationProb ?? 0
+        ),
+        sunset: scoreWindow(
+          hourly.cloud_cover[ssIdx] ?? this.weather.cloudCover,
+          hourly.cloud_cover_low?.[ssIdx] ?? 20,
+          hourly.cloud_cover_mid?.[ssIdx] ?? 20,
+          hourly.cloud_cover_high?.[ssIdx] ?? 20,
+          hourly.precipitation_probability?.[ssIdx] ?? this.weather.precipitationProb ?? 0
+        )
+      };
+    }
+
+    const fallback = scoreWindow(
+      this.weather.cloudCover,
+      Math.round(this.weather.cloudCover * 0.5),
+      Math.round(this.weather.cloudCover * 0.35),
+      Math.round(this.weather.cloudCover * 0.25),
+      this.weather.precipitationProb ?? (this.weather.isRain ? 70 : 0)
+    );
+    return { sunrise: fallback, sunset: fallback };
+  });
+
   // Derived: Light Diagnosis
   lightDiagnosis = $derived.by(() => {
     return classifyLightDirection(
@@ -884,7 +963,7 @@ class AppState {
 
   async fetchWeatherForCoords(lat, lon) {
     try {
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}&current=temperature_2m,cloud_cover,weather_code,precipitation,rain&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,uv_index_max&timezone=auto`;
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}&current=temperature_2m,cloud_cover,weather_code,precipitation,rain&hourly=cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,precipitation_probability&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,uv_index_max&forecast_days=2&timezone=auto`;
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 4500);
       const res = await fetch(url, { signal: controller.signal });
@@ -1426,6 +1505,108 @@ class AppState {
       this.showToast(successMsg);
     } catch {
       this.showToast('Could not copy automatically.');
+    }
+  }
+
+  exportShootToCalendar(phase = 'active') {
+    const solar = this.solarData;
+    const exp = this.exposure;
+    const cam = this.activeCamera;
+    const gear = this.activeGearConfig;
+    const quality = this.skyQuality;
+
+    let startDate = new Date(this.effectiveDate.getTime());
+    let titlePhase = this.lightPhase.name;
+    let targetAz = solar.azimuth;
+    let qualityLine = '';
+
+    if (phase === 'sunrise' || phase === 'golden' || phase === 'sunset' || phase === 'blue') {
+      const curLocal = this.getCurrentLocalHour();
+      let targetHour = solar.sunsetLocal;
+      if (phase === 'sunrise') {
+        targetHour = solar.sunriseLocal;
+        titlePhase = 'Sunrise';
+        targetAz = solar.sunriseAzimuth ?? solar.azimuth;
+        qualityLine = `Afterglow Forecast: ${quality.sunrise.label} (${quality.sunrise.score}%)`;
+      } else if (phase === 'golden') {
+        targetHour = (solar.sunsetLocal - 0.75 + 24) % 24;
+        titlePhase = 'Golden Hour';
+        targetAz = solar.sunsetAzimuth ?? solar.azimuth;
+        qualityLine = `Afterglow Forecast: ${quality.sunset.label} (${quality.sunset.score}%)`;
+      } else if (phase === 'sunset') {
+        targetHour = solar.sunsetLocal;
+        titlePhase = 'Sunset';
+        targetAz = solar.sunsetAzimuth ?? solar.azimuth;
+        qualityLine = `Afterglow Forecast: ${quality.sunset.label} (${quality.sunset.score}%)`;
+      } else if (phase === 'blue') {
+        targetHour = solar.bluePM;
+        titlePhase = 'Blue Hour';
+        targetAz = solar.sunsetAzimuth ?? solar.azimuth;
+      }
+      const base = new Date();
+      base.setDate(base.getDate() + this.dayOffset);
+      base.setMinutes(base.getMinutes() + Math.round((targetHour - curLocal) * 60));
+      startDate = base;
+    } else {
+      qualityLine = `Sunrise: ${quality.sunrise.label} (${quality.sunrise.score}%) | Sunset: ${quality.sunset.label} (${quality.sunset.score}%)`;
+    }
+
+    const endDate = new Date(startDate.getTime() + 45 * 60 * 1000);
+    const toICSDate = (d) =>
+      d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
+
+    const esc = (str) =>
+      String(str || '')
+        .replace(/\\/g, '\\\\')
+        .replace(/;/g, '\\;')
+        .replace(/,/g, '\\,')
+        .replace(/\n/g, '\\n');
+
+    const rainNote = this.weather.isRain
+      ? `Rain Alert: ${this.weather.precipitationProb}% (${this.weather.precipitationMm.toFixed(1)}mm) - Pack weather sealing & UV protector`
+      : `Weather: ${this.weather.description}, Clouds ${this.weather.cloudCover}%, ${this.weather.tempC}C`;
+
+    const descLines = [
+      `Luminary Shoot Plan - ${this.location.name}`,
+      `Sun Azimuth: ${targetAz} deg | Alt: ${Number(solar.altitude || 0).toFixed(1)} deg`,
+      qualityLine,
+      rainNote,
+      `Gear: ${cam.name} + ${gear.label} (${this.support})`,
+      `Recommended Settings: f/${APERTURES[exp.apertureIdx]} | ${SHUTTERS[exp.shutterIdx].label} | ISO ${ISOS[exp.isoIdx]} | WB ${exp.wbKelvin}K`
+    ].filter(Boolean);
+
+    const icsContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Luminary//Photography Assistant//EN',
+      'CALSCALE:GREGORIAN',
+      'BEGIN:VEVENT',
+      `UID:luminary-${Date.now()}@luminary.app`,
+      `DTSTAMP:${toICSDate(new Date())}`,
+      `DTSTART:${toICSDate(startDate)}`,
+      `DTEND:${toICSDate(endDate)}`,
+      `SUMMARY:${esc(`📸 Luminary: ${titlePhase} — ${this.location.name}`)}`,
+      `LOCATION:${esc(`${this.location.name} (${this.location.lat.toFixed(4)}, ${this.location.lon.toFixed(4)})`)}`,
+      `GEO:${this.location.lat.toFixed(5)};${this.location.lon.toFixed(5)}`,
+      `DESCRIPTION:${esc(descLines.join('\n'))}`,
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].join('\r\n');
+
+    try {
+      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const dateSlug = startDate.toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `luminary-${phase}-${dateSlug}.ics`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      this.showToast(`📅 Calendar shoot (.ics) exported for ${titlePhase}!`);
+    } catch {
+      this.showToast('Could not generate calendar file.');
     }
   }
 

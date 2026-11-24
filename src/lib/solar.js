@@ -61,10 +61,19 @@ export function calculateSolarData(lat, lon, dateObj, forcedSunAlt = null, timez
 
   const cosH0 = (Math.cos(90.833 * Math.PI / 180) / (Math.cos(latRad) * Math.cos(decl))) - Math.tan(latRad) * Math.tan(decl);
   let sunriseUTC = 6, sunsetUTC = 18;
+  let sunriseAzimuth = 90, sunsetAzimuth = 270;
   if (cosH0 >= -1 && cosH0 <= 1) {
     const H0Deg = Math.acos(cosH0) * 180 / Math.PI;
     sunriseUTC = (720 - 4 * (lon + H0Deg) - eqTime) / 60;
     sunsetUTC = (720 - 4 * (lon - H0Deg) - eqTime) / 60;
+
+    const zHorizon = 90.833 * Math.PI / 180;
+    const cosAzH = Math.max(-1, Math.min(1,
+      (Math.sin(latRad) * Math.cos(zHorizon) - Math.sin(decl)) / ((Math.cos(latRad) || 0.0001) * Math.sin(zHorizon))
+    ));
+    const azHDeg = Math.acos(cosAzH) * 180 / Math.PI;
+    sunriseAzimuth = Math.round((180 - azHDeg + 360) % 360);
+    sunsetAzimuth = Math.round((180 + azHDeg) % 360);
   }
 
   const tzOffsetHours = getTimezoneOffsetHours(dateObj, timezone, lon);
@@ -75,6 +84,8 @@ export function calculateSolarData(lat, lon, dateObj, forcedSunAlt = null, timez
   return {
     altitude: safeAlt,
     azimuth: safeAz,
+    sunriseAzimuth,
+    sunsetAzimuth,
     localHour,
     sunriseLocal,
     sunsetLocal,

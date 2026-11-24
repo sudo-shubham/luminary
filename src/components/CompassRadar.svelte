@@ -72,6 +72,20 @@
           <circle cx="100" cy="92" r="1.5" fill="#38bdf8" />
         </g>
 
+        <!-- Sunrise Azimuth Pin (Outer Ring) -->
+        <g transform={`rotate(${solar.sunriseAzimuth ?? 90} 100 100)`}>
+          <line x1="100" y1="12" x2="100" y2="21" stroke="#fb923c" stroke-width="2" stroke-linecap="round" />
+          <circle cx="100" cy="12" r="4" fill="#fb923c" stroke="#0b0d10" stroke-width="1" />
+          <title>Sunrise Azimuth: {solar.sunriseAzimuth ?? 90}°</title>
+        </g>
+
+        <!-- Sunset Azimuth Pin (Outer Ring) -->
+        <g transform={`rotate(${solar.sunsetAzimuth ?? 270} 100 100)`}>
+          <line x1="100" y1="12" x2="100" y2="21" stroke="#f43f5e" stroke-width="2" stroke-linecap="round" />
+          <circle cx="100" cy="12" r="4" fill="#f43f5e" stroke="#0b0d10" stroke-width="1" />
+          <title>Sunset Azimuth: {solar.sunsetAzimuth ?? 270}°</title>
+        </g>
+
         <!-- Sun Azimuth Marker -->
         <g transform={`rotate(${solar.azimuth} 100 100)`}>
           <line x1="100" y1="100" x2="100" y2="20" stroke="#f59e0b" stroke-width="1.5" opacity="0.5" />
@@ -80,10 +94,28 @@
         </g>
       </svg>
 
-      <div class="flex items-center gap-3 text-[10px] font-mono text-slate-400 mt-1">
+      <div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[10px] font-mono text-slate-400 mt-1">
         <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400"></span>Sun</span>
         <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-sky-400"></span>Camera</span>
         <span class="flex items-center gap-1"><span class="w-2 h-0.5 bg-slate-400"></span>Shadow</span>
+      </div>
+      <div class="flex items-center justify-center gap-2 text-[9px] font-mono text-slate-400 mt-1">
+        <button
+          type="button"
+          onclick={() => appState.setManualHeading(solar.sunriseAzimuth ?? 90)}
+          class="px-1.5 py-0.5 rounded bg-obsidian/70 hover:bg-slate-700/70 border border-borderline flex items-center gap-1 transition active:scale-95"
+          title="Aim camera toward Sunrise azimuth">
+          <span class="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
+          <span>SR {solar.sunriseAzimuth ?? 90}° {getCardinal(solar.sunriseAzimuth ?? 90)}</span>
+        </button>
+        <button
+          type="button"
+          onclick={() => appState.setManualHeading(solar.sunsetAzimuth ?? 270)}
+          class="px-1.5 py-0.5 rounded bg-obsidian/70 hover:bg-slate-700/70 border border-borderline flex items-center gap-1 transition active:scale-95"
+          title="Aim camera toward Sunset azimuth">
+          <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+          <span>SS {solar.sunsetAzimuth ?? 270}° {getCardinal(solar.sunsetAzimuth ?? 270)}</span>
+        </button>
       </div>
     </div>
 

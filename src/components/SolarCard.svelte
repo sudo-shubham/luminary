@@ -1,12 +1,14 @@
 <script>
   import { appState } from '../lib/state.svelte.js';
   import { formatDecimalHour } from '../lib/solar.js';
+  import { CalendarPlus } from '@lucide/svelte';
   import { onMount } from 'svelte';
 
   let canvasEl = $state(null);
 
   const solar = $derived(appState.solarData);
   const phase = $derived(appState.lightPhase);
+  const quality = $derived(appState.skyQuality);
 
   // Sunset countdown calculation
   const countdownText = $derived.by(() => {
@@ -118,9 +120,19 @@
         {appState.formattedDate}
       </span>
     </div>
-    <span class="text-[10px] font-mono text-slate-500 tabular-nums">
-      {appState.location.lat.toFixed(2)}°, {appState.location.lon.toFixed(2)}°
-    </span>
+    <div class="flex items-center gap-2">
+      <button
+        type="button"
+        onclick={() => appState.exportShootToCalendar('golden')}
+        class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-dial hover:bg-slate-700/80 border border-borderline text-[10px] font-mono font-semibold text-slate-300 hover:text-white transition active:scale-95 shadow-sm"
+        title="Download Golden Hour / Shoot Plan as Calendar Event (.ics)">
+        <CalendarPlus class="w-3 h-3 text-amber-400" />
+        <span>Add to Calendar</span>
+      </button>
+      <span class="text-[10px] font-mono text-slate-500 tabular-nums">
+        {appState.location.lat.toFixed(2)}°, {appState.location.lon.toFixed(2)}°
+      </span>
+    </div>
   </div>
 
   <!-- Dynamic Phase Banner -->
@@ -225,6 +237,22 @@
         <div>Blue PM</div>
         <span class="text-sky-400 font-semibold tabular-nums">{formatDecimalHour(solar.bluePM)}</span>
       </button>
+    </div>
+
+    <!-- Afterglow & Light Quality Forecast -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2.5 pt-2.5 border-t border-borderline/60 text-[10px] font-mono">
+      <div class="flex items-center justify-between gap-2 bg-obsidian/40 rounded-lg px-2.5 py-1.5" title={quality.sunrise.detail}>
+        <span class="text-slate-400">🌅 Sunrise Light</span>
+        <span class={`px-1.5 py-0.5 rounded border font-semibold ${quality.sunrise.badgeClass}`}>
+          {quality.sunrise.score}% • {quality.sunrise.label}
+        </span>
+      </div>
+      <div class="flex items-center justify-between gap-2 bg-obsidian/40 rounded-lg px-2.5 py-1.5" title={quality.sunset.detail}>
+        <span class="text-slate-400">🌇 Sunset Light</span>
+        <span class={`px-1.5 py-0.5 rounded border font-semibold ${quality.sunset.badgeClass}`}>
+          {quality.sunset.score}% • {quality.sunset.label}
+        </span>
+      </div>
     </div>
   </div>
 </section>
