@@ -22,6 +22,7 @@
   import CameraModal from './components/modals/CameraModal.svelte';
   import CameraDialModal from './components/modals/CameraDialModal.svelte';
   import ShotJournalModal from './components/modals/ShotJournalModal.svelte';
+  import NearbySpotsModal from './components/modals/NearbySpotsModal.svelte';
   import ToastContainer from './components/ToastContainer.svelte';
 
   let deferredPrompt = $state(null);
@@ -78,6 +79,7 @@
         appState.isCameraModalOpen = false;
         appState.isCameraDialModalOpen = false;
         appState.isShotJournalModalOpen = false;
+        appState.isSpotsModalOpen = false;
       }
     };
     window.addEventListener('keydown', onKeyDown);
@@ -171,4 +173,5 @@
   <CameraModal />
   <CameraDialModal />
   <ShotJournalModal />
+  <NearbySpotsModal />
 </div>

@@ -49,6 +49,16 @@
           autocomplete="off" />
 
         <Search class="w-3.5 h-3.5 text-slate-500 shrink-0" />
+
+        <!-- Nearby Scenic Spots Trigger -->
+        <button
+          type="button"
+          onclick={() => appState.openNearbySpots()}
+          class="shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-[10px] font-mono font-semibold transition active:scale-95"
+          title="Find nearby viewpoints, mountains, rivers & scenic spots">
+          <span>🔭</span>
+          <span>Spots</span>
+        </button>
       </div>
 
       <!-- City Search Results Dropdown -->

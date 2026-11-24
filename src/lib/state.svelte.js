@@ -28,6 +28,7 @@ import {
   computeDof,
   distanceToBarPercent
 } from './dof.js';
+import { fetchNearbyScenicSpots } from './spots.js';
 
 // Local storage helpers
 function getSaved(key, fallback) {
@@ -162,6 +163,16 @@ class AppState {
   // City Search
   citySearchResults = $state([]);
   isCitySearching = $state(false);
+
+  // Nearby Scenic Spots Finder
+  isSpotsModalOpen = $state(false);
+  nearbySpots = $state([]);
+  nearbySpotsLoading = $state(false);
+  nearbySpotsError = $state('');
+  nearbySpotsSource = $state('');
+  nearbySpotsRadiusKm = $state(20);
+  nearbySpotsFilter = $state('all');
+  lastSpotsKey = '';
 
   // Derived: Active Camera Object
   activeCamera = $derived.by(() => {
@@ -1605,6 +1616,50 @@ class AppState {
     } catch {
       this.showToast('Could not generate calendar file.');
     }
+  }
+
+  openNearbySpots() {
+    this.triggerHaptic('click');
+    this.isSpotsModalOpen = true;
+    this.loadNearbySpots(false);
+  }
+
+  async loadNearbySpots(forceRefresh = false) {
+    const key = `${this.location.lat.toFixed(3)},${this.location.lon.toFixed(3)},${this.nearbySpotsRadiusKm}`;
+    if (!forceRefresh && key === this.lastSpotsKey && this.nearbySpots.length > 0) {
+      return;
+    }
+
+    this.nearbySpotsLoading = true;
+    this.nearbySpotsError = '';
+    try {
+      const result = await fetchNearbyScenicSpots(
+        this.location.lat,
+        this.location.lon,
+        this.nearbySpotsRadiusKm
+      );
+      this.nearbySpots = result.spots;
+      this.nearbySpotsSource = result.source;
+      this.lastSpotsKey = key;
+    } catch {
+      this.nearbySpotsError = 'Could not load nearby scenic spots. Check connection and try again.';
+    } finally {
+      this.nearbySpotsLoading = false;
+    }
+  }
+
+  scoutSpot(spot) {
+    this.triggerHaptic('snap');
+    this.location = {
+      ...this.location,
+      name: spot.name,
+      lat: spot.lat,
+      lon: spot.lon
+    };
+    this.isSpotsModalOpen = false;
+    this.fetchWeatherForCoords(spot.lat, spot.lon);
+    this.recalculate();
+    this.showToast(`🔭 Scouting ${spot.name} — Solar & weather updated!`);
   }
 
   updateLiveClock() {

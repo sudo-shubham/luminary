@@ -92,4 +92,45 @@ test.describe('Luminary Photography Assistant', () => {
     expect(dofText).not.toContain('NaN');
     expect(dofText).toMatch(/\d+(\.\d+)?\s*m/);
   });
+
+  test('should open Nearby Scenic Spots modal and display category filters', async ({ page }) => {
+    await page.route('https://overpass-api.de/api/interpreter', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          elements: [
+            {
+              type: 'node',
+              id: 101,
+              lat: 28.65,
+              lon: 77.25,
+              tags: { name: 'Ridge Sunset Overlook', tourism: 'viewpoint', ele: '245' }
+            },
+            {
+              type: 'way',
+              id: 102,
+              center: { lat: 28.63, lon: 77.26 },
+              tags: { name: 'Yamuna Riverfront', waterway: 'river' }
+            }
+          ]
+        })
+      });
+    });
+
+    await page.getByRole('button', { name: /Spots/i }).click();
+    await expect(page.locator('h3:has-text("Nearby Scenic Spots")')).toBeVisible();
+    await expect(page.locator('text=Ridge Sunset Overlook')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('text=Yamuna Riverfront')).toBeVisible();
+
+    // Filter to Water & Rivers
+    await page.getByRole('button', { name: /Water & Rivers/i }).click();
+    await expect(page.locator('text=Yamuna Riverfront')).toBeVisible();
+    await expect(page.locator('text=Ridge Sunset Overlook')).toBeHidden();
+
+    // Scout Here updates active location
+    await page.getByRole('button', { name: /Scout Here/i }).first().click();
+    await expect(page.locator('h3:has-text("Nearby Scenic Spots")')).toBeHidden();
+    await expect(page.locator('text=Yamuna Riverfront').first()).toBeVisible();
+  });
 });
