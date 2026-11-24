@@ -1,0 +1,190 @@
+@import "tailwindcss";
+@import "@fontsource/inter/index.css";
+@import "@fontsource/jetbrains-mono/index.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --color-obsidian: rgb(var(--color-obsidian-rgb));
+  --color-camera: rgb(var(--color-camera-rgb));
+  --color-dial: rgb(var(--color-dial-rgb));
+  --color-borderline: rgb(var(--color-borderline-rgb));
+}
+
+:root {
+  --color-obsidian-rgb: 245 247 250;
+  --color-camera-rgb: 255 255 255;
+  --color-dial-rgb: 236 241 247;
+  --color-borderline-rgb: 218 225 233;
+  --color-slider-track: #d2dae6;
+}
+
+html.dark {
+  --color-obsidian-rgb: 9 13 20;
+  --color-camera-rgb: 17 22 34;
+  --color-dial-rgb: 23 30 44;
+  --color-borderline-rgb: 35 45 63;
+  --color-slider-track: #263347;
+}
+
+/* Frosted glass header styling (iOS / macOS glassmorphism) */
+.frosted-header {
+  background-color: rgb(var(--color-camera-rgb) / 82%);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-bottom: 1px solid rgb(var(--color-borderline-rgb) / 75%);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.12);
+}
+
+html:not(.dark) .frosted-header {
+  background-color: rgba(255, 255, 255, 0.85);
+  border-bottom: 1px solid rgba(218, 225, 233, 0.8);
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Tactile camera dial slider styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+input[type="range"]:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--color-slider-track);
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #f59e0b;
+  border: 2px solid rgb(var(--color-camera-rgb));
+  margin-top: -7px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2), 0 0 0 2px rgba(245, 158, 11, 0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.12);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.25), 0 0 0 3px rgba(245, 158, 11, 0.35);
+}
+input[type="range"]::-moz-range-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--color-slider-track);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #f59e0b;
+  border: 2px solid rgb(var(--color-camera-rgb));
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Tabular numeric font feature for steady non-jittering readouts */
+.font-mono,
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+body {
+  background-color: rgb(var(--color-obsidian-rgb));
+  color: #0f172a;
+  overflow-x: hidden;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+html.dark body {
+  color: #f1f5f9;
+}
+
+/* Daylight (Light Mode) typography & contrast enhancements */
+html:not(.dark) .text-white {
+  color: #0f172a !important;
+}
+html:not(.dark) .text-slate-100 {
+  color: #1e293b !important;
+}
+html:not(.dark) .text-slate-200 {
+  color: #334155 !important;
+}
+html:not(.dark) .text-slate-300 {
+  color: #475569 !important;
+}
+html:not(.dark) .text-slate-400 {
+  color: #64748b !important;
+}
+html:not(.dark) .text-slate-500 {
+  color: #64748b !important;
+}
+html:not(.dark) .text-slate-600 {
+  color: #94a3b8 !important;
+}
+html:not(.dark) .text-amber-300,
+html:not(.dark) .text-amber-400,
+html:not(.dark) .text-amber-500,
+html:not(.dark) [class*="text-amber-400"],
+html:not(.dark) #modeDialActiveLabel {
+  color: #b45309 !important;
+}
+html:not(.dark) .text-yellow-300,
+html:not(.dark) .text-yellow-400,
+html:not(.dark) .text-yellow-500,
+html:not(.dark) [class*="text-yellow-"] {
+  color: #a16207 !important;
+}
+html:not(.dark) .text-sky-300,
+html:not(.dark) .text-sky-400 {
+  color: #0369a1 !important;
+}
+html:not(.dark) .text-indigo-300,
+html:not(.dark) .text-indigo-400 {
+  color: #4338ca !important;
+}
+html:not(.dark) .text-emerald-300,
+html:not(.dark) .text-emerald-400 {
+  color: #047857 !important;
+}
+html:not(.dark) .text-rose-300,
+html:not(.dark) .text-rose-400 {
+  color: #be123c !important;
+}
+html:not(.dark) .bg-yellow-500\/20 {
+  background-color: rgba(234, 179, 8, 0.18) !important;
+}
+html:not(.dark) .border-yellow-500\/40,
+html:not(.dark) .border-yellow-500\/30 {
+  border-color: rgba(202, 138, 4, 0.45) !important;
+}
+html:not(.dark) .hover\:bg-slate-700:hover {
+  background-color: #dbe3ed !important;
+}
+html:not(.dark) .hover\:bg-slate-800:hover {
+  background-color: #e2e8f0 !important;
+}
+html:not(.dark) #lightRadarSvg text {
+  fill: #475569 !important;
+}
+html:not(.dark) #lightRadarSvg text[fill="#f59e0b"] {
+  fill: #d97706 !important;
+}
+html:not(.dark) .radar-bg-circle {
+  fill: #f1f5f9 !important;
+  stroke: #cbd5e1 !important;
+}
+html:not(.dark) .radar-ring {
+  stroke: #cbd5e1 !important;
+}
+html:not(.dark) #radarCameraGroup rect {
+  fill: #ffffff !important;
+}

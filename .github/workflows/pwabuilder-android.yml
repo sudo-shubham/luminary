@@ -23,6 +23,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
+
+      - name: 2.1 Install Dependencies & Build Bundle
+        run: |
+          npm ci
+          npm run build
 
       - name: 3. Validate PWA Criteria
         run: node scripts/validate-pwa.js
@@ -188,7 +194,7 @@ jobs:
       - name: 10. Extract Version & Prepare Release Assets
         id: release_info
         run: |
-          VERSION=$(node -p "require('./package.json').version")
+          VERSION=$(node -p "JSON.parse(require('fs').readFileSync('./package.json','utf8')).version")
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           echo "TAG_NAME=v$VERSION" >> $GITHUB_OUTPUT
 

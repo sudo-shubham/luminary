@@ -1,5 +1,5 @@
 // Luminary Service Worker — Enables Android PWA installation & offline app-shell caching
-const CACHE_NAME = 'luminary-v3';
+const CACHE_NAME = 'luminary-v5';
 const APP_SHELL = [
   './',
   './index.html',
@@ -29,7 +29,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch: network-first for local assets & CDN dependencies, falling back to cache when offline
+// Fetch: network-first for local assets, falling back to cache when offline
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
@@ -44,24 +44,13 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Handle local origin requests and core static CDN resources (Tailwind, Fonts, PWABuilder)
-  const isStaticCdn =
-    url.hostname.includes('tailwindcss.com') ||
-    url.hostname.includes('jsdelivr.net') ||
-    url.hostname.includes('fonts.googleapis.com') ||
-    url.hostname.includes('fonts.gstatic.com');
-
-  if (url.origin !== self.location.origin && !isStaticCdn) {
+  // Only handle local origin requests (fully local, no CDNs)
+  if (url.origin !== self.location.origin) {
     return;
   }
 
   event.respondWith(
     caches.match(event.request).then((cached) => {
-      // Return cached CDN assets immediately if available
-      if (isStaticCdn && cached) {
-        return cached;
-      }
-
       return fetch(event.request)
         .then((response) => {
           if (response && response.status === 200) {
@@ -70,7 +59,7 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         })
-        .catch(() => cached || (url.origin === self.location.origin ? caches.match('./index.html') : null));
+        .catch(() => cached || caches.match('./index.html'));
     })
   );
 });

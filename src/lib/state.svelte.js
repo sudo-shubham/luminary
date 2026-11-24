@@ -1,0 +1,1298 @@
+import {
+  APERTURES,
+  SHUTTERS,
+  ISOS,
+  DEFAULT_CAMERAS,
+  DEFAULT_LENSES,
+  BRAND_CAMERA_MODES,
+  CAMERA_CONTROL_GUIDE,
+  PRESET_LOCATIONS,
+  getCameraBrandKey
+} from './constants.js';
+import {
+  calculateSolarData,
+  getLightPhase,
+  classifyLightDirection,
+  decodeWMOWeather,
+  getTimezoneOffsetHours
+} from './solar.js';
+import {
+  getHandheldMinShutterIdx,
+  getAstro500RuleShutterIdx,
+  computeSettingsEV100,
+  recommendExposure
+} from './exposure.js';
+import {
+  computeHyperfocal,
+  computeDof,
+  distanceToBarPercent
+} from './dof.js';
+
+// Local storage helpers
+function getSaved(key, fallback) {
+  try {
+    const val = localStorage.getItem(key);
+    return val !== null ? JSON.parse(val) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function saveLocal(key, val) {
+  try {
+    localStorage.setItem(key, JSON.stringify(val));
+  } catch {}
+}
+
+function getRawSaved(key, fallback) {
+  try {
+    return localStorage.getItem(key) || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function saveRawLocal(key, val) {
+  try {
+    localStorage.setItem(key, val);
+  } catch {}
+}
+
+class AppState {
+  // Theme & Toasts
+  theme = $state(getRawSaved('luminary_theme', 'dark'));
+  toasts = $state([]);
+
+  // Location & Time
+  location = $state({
+    name: 'New Delhi, India',
+    lat: 28.6139,
+    lon: 77.2090,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Kolkata'
+  });
+  timeOffsetHours = $state(0);
+  forcedSunAlt = $state(null);
+  liveWallClock = $state('--:--:--');
+
+  // Weather
+  weather = $state({
+    cloudCover: 18,
+    tempC: 24,
+    uvIndex: 2,
+    description: 'Mostly Clear',
+    isFallback: false
+  });
+
+  // Device Sensors & Radar
+  orientation = $state({
+    sensorActive: false,
+    heading: 0,
+    pitch: 0
+  });
+
+  // Scene & Gear
+  style = $state('landscape');
+  camera = $state(getRawSaved('luminary_active_camera', 'sony_a7iv'));
+  gear = $state(getRawSaved('luminary_active_lens', 'kit'));
+  support = $state('handheld');
+  dofSubjectDistance = $state(3.0);
+
+  // Custom Gear
+  customCameras = $state(getSaved('luminary_custom_cameras', {}));
+  customLenses = $state(getSaved('luminary_custom_lenses', {}));
+  customLens = $state({
+    type: 'zoom',
+    minApertureIdx: 3,
+    maxApertureIdx: 10,
+    minMm: 24,
+    maxMm: 70,
+    currentMm: 50
+  });
+
+  // Shooting Mode & Locks
+  shootingMode = $state(getRawSaved('luminary_shooting_mode', 'A'));
+  locked = $state((() => {
+    const m = getRawSaved('luminary_shooting_mode', 'A');
+    if (m === 'M') return { aperture: true, shutter: true, iso: true };
+    if (m === 'A') return { aperture: true, shutter: false, iso: false };
+    if (m === 'S') return { aperture: false, shutter: true, iso: false };
+    return { aperture: false, shutter: false, iso: false };
+  })());
+
+  // Exposure Parameters
+  exposure = $state({
+    apertureIdx: 7,
+    shutterIdx: 12,
+    isoIdx: 0,
+    wbKelvin: 5600,
+    wbLabel: 'Daylight',
+    focusMode: 'AF-S / Single',
+    metering: '0.0 EV • Matrix',
+    filter: 'None',
+    filterTip: {
+      recommended: false,
+      text: 'No optical filter required for this EV/subject combination; keep bare glass for maximum light transmission.'
+    },
+    targetEV: 12.0,
+    manualOverride: false
+  });
+
+  // Journal
+  journal = $state(getSaved('luminary_shot_journal', []));
+  journalStyleFilter = $state('all');
+  journalSearchQuery = $state('');
+
+  // Modals & Drawers
+  isCameraModalOpen = $state(false);
+  isCameraDialModalOpen = $state(false);
+  isShotJournalModalOpen = $state(false);
+  isCameraSetupOpen = $state(false);
+  camGuideVisible = $state({
+    aperture: false,
+    shutter: false,
+    iso: false
+  });
+
+  // City Search
+  citySearchResults = $state([]);
+  isCitySearching = $state(false);
+
+  // Derived: Active Camera Object
+  activeCamera = $derived.by(() => {
+    if (this.customCameras && this.customCameras[this.camera]) {
+      return this.customCameras[this.camera];
+    }
+    return DEFAULT_CAMERAS[this.camera] || DEFAULT_CAMERAS.sony_a7iv;
+  });
+
+  // Derived: Camera Brand Key
+  brandKey = $derived.by(() => {
+    return getCameraBrandKey(this.activeCamera);
+  });
+
+  // Derived: Brand Modes
+  brandModes = $derived.by(() => {
+    return BRAND_CAMERA_MODES[this.brandKey] || BRAND_CAMERA_MODES.sony;
+  });
+
+  // Derived: Active Mode Object
+  activeModeObj = $derived.by(() => {
+    return (
+      this.brandModes.modes.find((m) => m.id === this.shootingMode) ||
+      this.brandModes.modes[1]
+    );
+  });
+
+  // Derived: Active Gear Config
+  activeGearConfig = $derived.by(() => {
+    const cam = this.activeCamera;
+    const cropFactor = cam.cropFactor || 1.0;
+
+    if (this.gear === 'custom' || String(this.gear).startsWith('custom_lens_')) {
+      const c = this.customLenses[this.gear] || this.customLens;
+      const focalMm = c.type === 'prime' ? c.minMm : (c.currentMm || c.minMm);
+      const minF = APERTURES[c.minApertureIdx];
+      const maxF = APERTURES[c.maxApertureIdx];
+      const apStr = minF === maxF ? `f/${minF}` : `f/${minF}–f/${maxF}`;
+      const rangeStr = c.type === 'prime' ? `${c.minMm}mm` : `${c.minMm}–${c.maxMm}mm`;
+      const label = c.label || `Custom ${c.type === 'prime' ? 'Prime' : 'Zoom'} (${rangeStr} ${apStr})`;
+
+      return {
+        minApertureIdx: c.minApertureIdx,
+        maxApertureIdx: c.maxApertureIdx,
+        fixedAperture: c.minApertureIdx === c.maxApertureIdx,
+        focalLengthMm: focalMm,
+        cropFactor,
+        effectiveFocalLengthMm: Math.round(focalMm * cropFactor),
+        label,
+        cameraName: cam.name
+      };
+    }
+
+    const lens = this.customLenses[this.gear] || DEFAULT_LENSES[this.gear] || DEFAULT_LENSES.kit;
+    return {
+      minApertureIdx: lens.minApertureIdx,
+      maxApertureIdx: lens.maxApertureIdx,
+      fixedAperture: !!lens.fixedAperture,
+      focalLengthMm: lens.focalLengthMm,
+      cropFactor,
+      effectiveFocalLengthMm: Math.round(lens.focalLengthMm * cropFactor),
+      label: lens.label,
+      cameraName: cam.name
+    };
+  });
+
+  // Derived: Effective Date & Solar Data
+  effectiveDate = $derived.by(() => {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() + Math.round(this.timeOffsetHours * 60));
+    return d;
+  });
+
+  solarData = $derived.by(() => {
+    return calculateSolarData(
+      this.location.lat,
+      this.location.lon,
+      this.effectiveDate,
+      this.forcedSunAlt,
+      this.location.timezone
+    );
+  });
+
+  // Derived: Light Phase
+  lightPhase = $derived.by(() => {
+    return getLightPhase(this.solarData.altitude, this.weather.cloudCover);
+  });
+
+  // Derived: Light Diagnosis
+  lightDiagnosis = $derived.by(() => {
+    return classifyLightDirection(
+      this.orientation.heading,
+      this.solarData.azimuth,
+      this.solarData.altitude,
+      this.orientation.pitch
+    );
+  });
+
+  // Derived: Optical Depth of Field (DoF)
+  dofData = $derived.by(() => {
+    const cam = this.activeCamera;
+    const crop = cam.cropFactor || 1.0;
+    const coc = 0.029 / crop;
+    const focalMm = this.activeGearConfig.focalLengthMm || 50;
+    const aperture = APERTURES[this.exposure.apertureIdx] || 8.0;
+    const s = Math.max(0.3, this.dofSubjectDistance || 3.0);
+
+    const H = computeHyperfocal(focalMm, aperture, coc);
+    const dof = computeDof(s, H);
+
+    const leftPct = distanceToBarPercent(dof.Dn);
+    const rightPct = dof.isHyperfocalOrBeyond ? 100 : distanceToBarPercent(dof.Df);
+    const pinPct = distanceToBarPercent(s);
+    const widthPct = Math.max(2, Math.min(100 - leftPct, rightPct - leftPct));
+
+    return {
+      H,
+      s,
+      ...dof,
+      leftPct,
+      rightPct,
+      pinPct,
+      widthPct
+    };
+  });
+
+  // Derived: Exposure Meter
+  exposureMeter = $derived.by(() => {
+    const actualEV = computeSettingsEV100(
+      this.exposure.apertureIdx,
+      this.exposure.shutterIdx,
+      this.exposure.isoIdx
+    );
+    const evDiff = this.exposure.targetEV - actualEV;
+    const clampedDiff = Math.max(-3, Math.min(3, evDiff));
+    const pct = 50 + (clampedDiff / 3) * 46;
+
+    let status = 'balanced';
+    let statusText = `Balanced (${evDiff >= 0 ? '+' : ''}${evDiff.toFixed(1)} EV)`;
+    if (Math.abs(evDiff) > 0.45) {
+      if (evDiff > 0.45) {
+        status = 'over';
+        statusText = `Overexposed (+${evDiff.toFixed(1)} EV)`;
+      } else {
+        status = 'under';
+        statusText = `Underexposed (${evDiff.toFixed(1)} EV)`;
+      }
+    }
+
+    return {
+      actualEV,
+      evDiff,
+      clampedDiff,
+      pct,
+      status,
+      statusText
+    };
+  });
+
+  // Derived: Contextual Warnings
+  warnings = $derived.by(() => {
+    const list = [];
+    const gear = this.activeGearConfig;
+    const shutterObj = SHUTTERS[this.exposure.shutterIdx];
+    const safeHandheldSec = 1 / Math.max(55, gear.effectiveFocalLengthMm || 50);
+
+    if (this.style === 'astro') {
+      if (this.solarData.altitude >= -12) {
+        list.push(
+          `Sun is at ${(Number(this.solarData.altitude) || 0).toFixed(0)}° (${this.lightPhase.name}). Stars require Astronomical Night (sun below -12°) — tap +1h Time Shift or Tokyo Night to preview astro settings.`
+        );
+      }
+      if (this.support === 'handheld') {
+        list.push('Astrophotography requires a sturdy Tripod (plus a 2s self-timer) to keep stars sharp.');
+      }
+      if (this.weather.cloudCover > 40) {
+        list.push(`Cloud cover is ${this.weather.cloudCover}% — clear skies (<20%) are best for stars.`);
+      }
+    } else if (this.support === 'handheld' && shutterObj.sec > safeHandheldSec) {
+      const cropNote = gear.cropFactor !== 1.0 ? ` (${gear.effectiveFocalLengthMm}mm eq on ${gear.cameraName})` : '';
+      list.push(
+        `Shutter (${shutterObj.label}) is slow for handheld at ${gear.focalLengthMm}mm${cropNote}—brace your elbows, switch Hold to Tripod, or raise ISO.`
+      );
+    }
+
+    if (this.exposureMeter.evDiff > 1.2) {
+      list.push(`Too bright (+${this.exposureMeter.evDiff.toFixed(1)} EV). Attach an ND filter, use a faster shutter, or increase f-number.`);
+    }
+    if (this.exposureMeter.evDiff < -1.2) {
+      list.push(`Too dark (${this.exposureMeter.evDiff.toFixed(1)} EV). Lower f-number, use a slower shutter on a tripod, or raise ISO.`);
+    }
+
+    return list;
+  });
+
+  // =========================================================================
+  // ACTIONS / METHODS
+  // =========================================================================
+
+  applyTheme(theme) {
+    this.theme = theme;
+    saveRawLocal('luminary_theme', theme);
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.toggle('dark', theme === 'dark');
+      const metaTheme = document.querySelector('meta[name="theme-color"]');
+      if (metaTheme) {
+        metaTheme.setAttribute('content', theme === 'dark' ? '#090d14' : '#f5f7fa');
+      }
+    }
+  }
+
+  toggleTheme() {
+    this.triggerHaptic('click');
+    const next = this.theme === 'dark' ? 'light' : 'dark';
+    this.applyTheme(next);
+    this.showToast(next === 'dark' ? 'Dark Mode active' : 'Daylight Mode active');
+  }
+
+  triggerHaptic(type = 'click') {
+    if (typeof navigator === 'undefined' || typeof navigator.vibrate !== 'function') return;
+    try {
+      if (type === 'click') navigator.vibrate(12);
+      else if (type === 'tick') navigator.vibrate(8);
+      else if (type === 'lock') navigator.vibrate([15, 30, 15]);
+      else if (type === 'unlock') navigator.vibrate(20);
+      else if (type === 'snap') navigator.vibrate([12, 25, 20]);
+    } catch {}
+  }
+
+  showToast(message) {
+    const id = Date.now() + Math.random();
+    this.toasts.push({ id, message });
+    setTimeout(() => {
+      this.toasts = this.toasts.filter((t) => t.id !== id);
+    }, 3000);
+  }
+
+  recalculate() {
+    const solar = this.solarData;
+    const phase = this.lightPhase;
+
+    // Dark-sky astrophotography sits far darker (~EV -5) than urban night (~EV 2)
+    const effectiveEV = (this.style === 'astro' && solar.altitude < -12) ? -5.0 : phase.baseEV;
+    this.exposure.targetEV = effectiveEV;
+    this.exposure.wbKelvin = (this.style === 'astro' && solar.altitude < -12) ? 4000 : phase.wbKelvin;
+    this.exposure.wbLabel = (this.style === 'astro' && solar.altitude < -12) ? 'Astro Neutral' : phase.wbLabel;
+
+    const anyLocked = this.locked.aperture || this.locked.shutter || this.locked.iso;
+    if (!this.exposure.manualOverride || anyLocked) {
+      const rec = recommendExposure({
+        targetEV: effectiveEV,
+        gear: this.activeGearConfig,
+        style: this.style,
+        support: this.support,
+        locked: this.locked,
+        currentExposure: this.exposure
+      });
+      this.exposure.apertureIdx = rec.apertureIdx;
+      this.exposure.shutterIdx = rec.shutterIdx;
+      this.exposure.isoIdx = rec.isoIdx;
+      this.exposure.focusMode = rec.focusMode;
+      this.exposure.filter = rec.filter;
+      this.exposure.filterTip = rec.filterTip;
+    }
+
+    // Update metering string based on diagnosis
+    const diagnosis = this.lightDiagnosis;
+    const evCompStr = diagnosis.evComp === 0 ? '0.0 EV' : `${diagnosis.evComp > 0 ? '+' : ''}${diagnosis.evComp.toFixed(1)} EV`;
+    const meterMode = (this.style === 'portrait' && diagnosis.evComp > 0) ? 'Spot' : 'Matrix';
+    this.exposure.metering = `${evCompStr} • ${meterMode}`;
+  }
+
+  setStyle(style) {
+    this.triggerHaptic('click');
+    this.style = style;
+    this.exposure.manualOverride = false;
+
+    const styleTitles = {
+      landscape: 'Scenic / Landscape',
+      portrait: 'Portrait / Shallow Focus',
+      street: 'Street / Documentary',
+      action: 'Action / Fast Shutter',
+      night: 'Night / Low Light',
+      astro: 'Astro / Star Field',
+      longexp: 'Silk / Long Exposure'
+    };
+    this.showToast(`Scene: ${styleTitles[style] || style}`);
+    this.recalculate();
+  }
+
+  setShootingMode(modeId, skipToast = false) {
+    this.triggerHaptic('click');
+    this.shootingMode = modeId;
+    saveRawLocal('luminary_shooting_mode', modeId);
+
+    const modeObj = this.brandModes.modes.find((m) => m.id === modeId) || this.brandModes.modes[1];
+
+    if (modeId === 'M') {
+      this.locked = { aperture: true, shutter: true, iso: true };
+      this.exposure.manualOverride = true;
+      if (!skipToast) this.showToast(`Mode: Manual (${modeObj.label}) — Full manual control`);
+    } else if (modeId === 'A') {
+      this.locked = { aperture: true, shutter: false, iso: false };
+      if (!skipToast) this.showToast(`Mode: ${modeObj.fullName} — Aperture Manual, Shutter Auto`);
+    } else if (modeId === 'S') {
+      this.locked = { aperture: false, shutter: true, iso: false };
+      if (!skipToast) this.showToast(`Mode: ${modeObj.fullName} — Shutter Manual, Aperture Auto`);
+    } else if (modeId === 'P') {
+      this.locked = { aperture: false, shutter: false, iso: false };
+      if (!skipToast) this.showToast(`Mode: ${modeObj.fullName} — Smart reciprocal pairing`);
+    } else if (modeId === 'AUTO') {
+      this.locked = { aperture: false, shutter: false, iso: false };
+      this.exposure.manualOverride = false;
+      if (!skipToast) this.showToast(`Mode: ${modeObj.fullName} — Full auto-exposure`);
+    }
+
+    this.recalculate();
+  }
+
+  syncShootingModeFromLocks() {
+    const l = this.locked;
+    if (l.aperture && l.shutter) {
+      this.shootingMode = 'M';
+    } else if (l.aperture && !l.shutter) {
+      this.shootingMode = 'A';
+    } else if (!l.aperture && l.shutter) {
+      this.shootingMode = 'S';
+    } else {
+      if (this.shootingMode !== 'AUTO') {
+        this.shootingMode = 'P';
+      }
+    }
+    saveRawLocal('luminary_shooting_mode', this.shootingMode);
+  }
+
+  setParamMode(param, mode) {
+    const wantsManual = mode === 'manual';
+    const isCurrentlyManual = !!this.locked[param];
+    if (wantsManual === isCurrentlyManual) return;
+    this.toggleParamMode(param);
+  }
+
+  toggleParamMode(param) {
+    const wasManual = !!this.locked[param];
+    const nowManual = !wasManual;
+    this.locked[param] = nowManual;
+    this.triggerHaptic(nowManual ? 'lock' : 'unlock');
+
+    const isCanon = this.brandKey === 'canon';
+    const labels = {
+      aperture: isCanon ? 'Aperture (Av)' : 'Aperture (A)',
+      shutter: isCanon ? 'Shutter (Tv)' : 'Shutter (S)',
+      iso: 'ISO'
+    };
+    this.showToast(`${labels[param] || param}: set to ${nowManual ? 'MANUAL' : 'AUTO'}`);
+
+    if (nowManual) {
+      this.exposure.manualOverride = true;
+    }
+    this.syncShootingModeFromLocks();
+    this.recalculate();
+  }
+
+  toggleLockAll() {
+    const allManual = this.locked.aperture && this.locked.shutter && this.locked.iso;
+    const newManual = !allManual;
+    this.locked.aperture = newManual;
+    this.locked.shutter = newManual;
+    this.locked.iso = newManual;
+    this.triggerHaptic(newManual ? 'lock' : 'unlock');
+
+    if (newManual) {
+      this.exposure.manualOverride = true;
+      this.shootingMode = 'M';
+      this.showToast('All dials switched to MANUAL (Manual M)');
+    } else {
+      this.shootingMode = 'P';
+      this.showToast('All dials switched to AUTO (Program P)');
+    }
+    saveRawLocal('luminary_shooting_mode', this.shootingMode);
+    this.syncShootingModeFromLocks();
+    this.recalculate();
+  }
+
+  stepExposure(param, delta) {
+    this.triggerHaptic('click');
+    const gear = this.activeGearConfig;
+    if (param === 'aperture') {
+      if (gear.fixedAperture) return;
+      const next = Math.max(gear.minApertureIdx, Math.min(gear.maxApertureIdx, this.exposure.apertureIdx + delta));
+      this.onManualExposureChange('aperture', next);
+    } else if (param === 'shutter') {
+      const next = Math.max(0, Math.min(SHUTTERS.length - 1, this.exposure.shutterIdx + delta));
+      this.onManualExposureChange('shutter', next);
+    } else if (param === 'iso') {
+      const next = Math.max(0, Math.min(ISOS.length - 1, this.exposure.isoIdx + delta));
+      this.onManualExposureChange('iso', next);
+    }
+  }
+
+  onManualExposureChange(changedParam, rawVal) {
+    this.triggerHaptic('tick');
+    const val = parseInt(rawVal, 10);
+    const gear = this.activeGearConfig;
+    this.exposure.manualOverride = true;
+
+    // Intelligent Mode Shift on manual dial adjustments
+    if (this.shootingMode === 'AUTO') {
+      const targetMode = changedParam === 'aperture' ? 'A' : (changedParam === 'shutter' ? 'S' : 'M');
+      const modeObj = this.brandModes.modes.find((m) => m.id === targetMode);
+      this.shootingMode = targetMode;
+      if (targetMode === 'A') this.locked = { aperture: true, shutter: false, iso: false };
+      else if (targetMode === 'S') this.locked = { aperture: false, shutter: true, iso: false };
+      else if (targetMode === 'M') this.locked = { aperture: true, shutter: true, iso: true };
+      this.showToast(`Auto shifted: ${modeObj ? modeObj.fullName : targetMode}`);
+    } else if (this.shootingMode === 'P') {
+      const targetMode = changedParam === 'shutter' ? 'S' : (changedParam === 'iso' ? 'M' : 'A');
+      const modeObj = this.brandModes.modes.find((m) => m.id === targetMode);
+      this.shootingMode = targetMode;
+      if (targetMode === 'A') this.locked = { aperture: true, shutter: false, iso: false };
+      else if (targetMode === 'S') this.locked = { aperture: false, shutter: true, iso: false };
+      else if (targetMode === 'M') this.locked = { aperture: true, shutter: true, iso: true };
+      this.showToast(`Program Shift: ${modeObj ? modeObj.fullName : targetMode}`);
+    } else if (this.shootingMode === 'A' && changedParam === 'shutter') {
+      const sMode = this.brandModes.modes.find((m) => m.id === 'S');
+      this.shootingMode = 'S';
+      this.locked = { aperture: false, shutter: true, iso: false };
+      this.showToast(`Shifted to ${sMode ? sMode.fullName : 'Shutter Priority'}`);
+    } else if (this.shootingMode === 'S' && changedParam === 'aperture') {
+      const aMode = this.brandModes.modes.find((m) => m.id === 'A');
+      this.shootingMode = 'A';
+      this.locked = { aperture: true, shutter: false, iso: false };
+      this.showToast(`Shifted to ${aMode ? aMode.fullName : 'Aperture Priority'}`);
+    } else if (changedParam === 'iso' && !this.locked.iso) {
+      this.locked.iso = true;
+    }
+
+    const locks = this.locked;
+
+    if (changedParam === 'aperture') {
+      this.exposure.apertureIdx = Math.max(gear.minApertureIdx, Math.min(gear.maxApertureIdx, val));
+      const N = APERTURES[this.exposure.apertureIdx];
+      if (!locks.shutter) {
+        const iso = ISOS[this.exposure.isoIdx];
+        const neededSec = (N * N) / (Math.pow(2, this.exposure.targetEV) * (iso / 100));
+        let bestS = 0, minDiff = Infinity;
+        SHUTTERS.forEach((s, idx) => {
+          const d = Math.abs(Math.log2(s.sec) - Math.log2(neededSec));
+          if (d < minDiff) { minDiff = d; bestS = idx; }
+        });
+        this.exposure.shutterIdx = bestS;
+      } else if (!locks.iso) {
+        const t = SHUTTERS[this.exposure.shutterIdx].sec;
+        const neededIsoStops = Math.log2((N * N) / t) - this.exposure.targetEV;
+        this.exposure.isoIdx = Math.max(0, Math.min(ISOS.length - 1, Math.round(neededIsoStops)));
+      }
+    } else if (changedParam === 'shutter') {
+      this.exposure.shutterIdx = val;
+      const N = APERTURES[this.exposure.apertureIdx];
+      const t = SHUTTERS[this.exposure.shutterIdx].sec;
+      if (!locks.iso) {
+        const neededIsoStops = Math.log2((N * N) / t) - this.exposure.targetEV;
+        this.exposure.isoIdx = Math.max(0, Math.min(ISOS.length - 1, Math.round(neededIsoStops)));
+      } else if (!locks.aperture) {
+        const iso = ISOS[this.exposure.isoIdx];
+        const neededN2 = t * Math.pow(2, this.exposure.targetEV) * (iso / 100);
+        const neededN = Math.sqrt(Math.max(0.5, neededN2));
+        let closestAp = gear.minApertureIdx, minDiff = Infinity;
+        for (let i = gear.minApertureIdx; i <= gear.maxApertureIdx; i++) {
+          const d = Math.abs(APERTURES[i] - neededN);
+          if (d < minDiff) { minDiff = d; closestAp = i; }
+        }
+        this.exposure.apertureIdx = closestAp;
+      }
+    } else if (changedParam === 'iso') {
+      this.exposure.isoIdx = val;
+      const N = APERTURES[this.exposure.apertureIdx];
+      const iso = ISOS[this.exposure.isoIdx];
+      if (!locks.shutter) {
+        const neededSec = (N * N) / (Math.pow(2, this.exposure.targetEV) * (iso / 100));
+        let bestS = 0, minDiff = Infinity;
+        SHUTTERS.forEach((s, idx) => {
+          const d = Math.abs(Math.log2(s.sec) - Math.log2(neededSec));
+          if (d < minDiff) { minDiff = d; bestS = idx; }
+        });
+        this.exposure.shutterIdx = bestS;
+      } else if (!locks.aperture) {
+        const t = SHUTTERS[this.exposure.shutterIdx].sec;
+        const neededN2 = t * Math.pow(2, this.exposure.targetEV) * (iso / 100);
+        const neededN = Math.sqrt(Math.max(0.5, neededN2));
+        let closestAp = gear.minApertureIdx, minDiff = Infinity;
+        for (let i = gear.minApertureIdx; i <= gear.maxApertureIdx; i++) {
+          const d = Math.abs(APERTURES[i] - neededN);
+          if (d < minDiff) { minDiff = d; closestAp = i; }
+        }
+        this.exposure.apertureIdx = closestAp;
+      }
+    }
+
+    saveRawLocal('luminary_shooting_mode', this.shootingMode);
+    this.recalculate();
+  }
+
+  resetExposureOverrides() {
+    this.triggerHaptic('click');
+    this.exposure.manualOverride = false;
+    this.setShootingMode('A', true);
+    this.showToast('Exposure reset to Aperture Priority auto-balance.');
+  }
+
+  setCamera(val) {
+    this.camera = val;
+    saveRawLocal('luminary_active_camera', val);
+    this.recalculate();
+    this.showToast(`Selected Camera: ${this.activeCamera.name} (${this.activeCamera.brand})`);
+  }
+
+  setGear(val) {
+    this.triggerHaptic('click');
+    this.gear = val;
+    if (val !== 'custom') {
+      saveRawLocal('luminary_active_lens', val);
+    }
+    this.exposure.manualOverride = false;
+    this.recalculate();
+  }
+
+  setSupport(val) {
+    this.support = val;
+    this.exposure.manualOverride = false;
+    this.recalculate();
+  }
+
+  setSubjectDistance(dist) {
+    this.dofSubjectDistance = Math.max(0.3, Math.min(30, parseFloat(dist) || 3.0));
+    this.triggerHaptic('tick');
+  }
+
+  stepSubjectDistance(delta) {
+    const current = this.dofSubjectDistance || 3.0;
+    const next = Math.max(0.3, Math.min(30, Math.round((current + delta) * 10) / 10));
+    this.setSubjectDistance(next);
+    this.triggerHaptic('click');
+  }
+
+  snapToHyperfocal() {
+    const H = this.dofData.H;
+    this.dofSubjectDistance = Math.max(0.3, Math.min(30, Math.round(H * 10) / 10));
+    this.triggerHaptic('snap');
+    this.showToast(`Snapped to Hyperfocal distance: ${H.toFixed(1)}m`);
+  }
+
+  shiftTime(hours) {
+    this.triggerHaptic('click');
+    this.forcedSunAlt = null;
+    this.timeOffsetHours = Math.max(-12, Math.min(12, this.timeOffsetHours + hours));
+    this.exposure.manualOverride = false;
+    this.recalculate();
+  }
+
+  resetTime() {
+    this.triggerHaptic('click');
+    this.forcedSunAlt = null;
+    this.timeOffsetHours = 0;
+    this.exposure.manualOverride = false;
+    this.recalculate();
+  }
+
+  setManualHeading(val) {
+    this.orientation.heading = parseInt(val, 10) || 0;
+  }
+
+  setManualPitch(val) {
+    this.orientation.pitch = parseInt(val, 10) || 0;
+  }
+
+  async enablePhoneOrientation() {
+    if (typeof window === 'undefined' || typeof window.DeviceOrientationEvent === 'undefined') {
+      this.showToast('Compass sensors not found. Use the manual aim slider below.');
+      return;
+    }
+
+    if (typeof window.DeviceOrientationEvent.requestPermission === 'function') {
+      try {
+        const response = await window.DeviceOrientationEvent.requestPermission();
+        if (response === 'granted') {
+          this.startOrientationListeners();
+          this.showToast('Phone compass & tilt sensors linked!');
+        } else {
+          this.showToast('Compass permission denied. Use the manual slider.');
+        }
+      } catch {
+        this.showToast('Sensor permission blocked. Use the manual slider.');
+      }
+    } else {
+      this.startOrientationListeners();
+      this.showToast('Listening to device compass & tilt sensors...');
+    }
+  }
+
+  startOrientationListeners() {
+    if (this.orientation.sensorActive) return;
+    this.orientation.sensorActive = true;
+
+    const handleEvent = (event) => {
+      let heading = null;
+      if (typeof event.webkitCompassHeading === 'number') {
+        heading = event.webkitCompassHeading;
+      } else if (typeof event.alpha === 'number') {
+        heading = (360 - event.alpha) % 360;
+      }
+      if (heading !== null && !Number.isNaN(heading)) {
+        this.orientation.heading = Math.round(heading);
+      }
+      if (typeof event.beta === 'number' && !Number.isNaN(event.beta)) {
+        this.orientation.pitch = Math.max(-60, Math.min(75, Math.round(event.beta - 90)));
+      }
+    };
+
+    window.addEventListener('deviceorientationabsolute', handleEvent, true);
+    window.addEventListener('deviceorientation', handleEvent, true);
+  }
+
+  async fetchWeatherForCoords(lat, lon) {
+    try {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}&current=temperature_2m,cloud_cover,weather_code&daily=uv_index_max&timezone=auto`;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4500);
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeoutId);
+
+      if (!res.ok) throw new Error('Weather API error');
+      const data = await res.json();
+
+      if (data.timezone) {
+        this.location.timezone = data.timezone;
+      }
+
+      this.weather = {
+        cloudCover: data.current?.cloud_cover ?? 20,
+        tempC: Math.round(data.current?.temperature_2m ?? 22),
+        uvIndex: Math.round(data.daily?.uv_index_max?.[0] ?? 3),
+        description: decodeWMOWeather(data.current?.weather_code ?? 1),
+        isFallback: false
+      };
+    } catch {
+      this.weather = {
+        cloudCover: 22,
+        tempC: 21,
+        uvIndex: 3,
+        description: 'Simulated',
+        isFallback: true
+      };
+    }
+    this.recalculate();
+  }
+
+  async reverseGeocode(lat, lon) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      const url = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}&localityLanguage=en`;
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const data = await res.json();
+        const city = data.city || data.locality || data.principalSubdivision || '';
+        const country = data.countryName || '';
+        if (city && country && city !== country) return `${city}, ${country}`;
+        if (city || country) return city || country;
+      }
+    } catch {}
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}&zoom=10`;
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const data = await res.json();
+        const addr = data.address || {};
+        const city = addr.city || addr.town || addr.village || addr.county || '';
+        const country = addr.country || '';
+        if (city && country) return `${city}, ${country}`;
+        if (data.display_name) return data.display_name.split(',').slice(0, 2).join(',').trim();
+      }
+    } catch {}
+
+    return `${lat.toFixed(2)}°, ${lon.toFixed(2)}°`;
+  }
+
+  useMyLocation() {
+    this.triggerHaptic('click');
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      this.showToast('Geolocation is not supported by your browser.');
+      return;
+    }
+
+    this.showToast('Acquiring precision GPS coordinates...');
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        this.location.lat = lat;
+        this.location.lon = lon;
+        this.timeOffsetHours = 0;
+
+        const resolvedName = await this.reverseGeocode(lat, lon);
+        this.location.name = resolvedName;
+        this.showToast(`Location set: ${resolvedName}`);
+        this.fetchWeatherForCoords(lat, lon);
+      },
+      (err) => {
+        let msg = 'Could not acquire GPS position.';
+        if (err.code === 1) msg = 'Location access denied. Using current coordinates.';
+        else if (err.code === 2) msg = 'GPS signal unavailable. Try again.';
+        else if (err.code === 3) msg = 'GPS request timed out.';
+        this.showToast(msg);
+      },
+      { timeout: 8000, enableHighAccuracy: true, maximumAge: 60000 }
+    );
+  }
+
+  applyPresetLocation(key) {
+    this.triggerHaptic('click');
+    const p = PRESET_LOCATIONS[key];
+    if (!p) return;
+
+    this.location = {
+      name: p.name,
+      lat: p.lat,
+      lon: p.lon,
+      timezone: p.timezone
+    };
+    this.timeOffsetHours = 0;
+    this.forcedSunAlt = typeof p.forceSunAlt === 'number' ? p.forceSunAlt : null;
+    this.weather = {
+      cloudCover: p.clouds,
+      tempC: p.temp,
+      uvIndex: p.uv,
+      description: p.weather,
+      isFallback: false
+    };
+    this.showToast(`Loaded ${p.name}`);
+    this.recalculate();
+  }
+
+  async searchCity(query) {
+    const q = (query || '').trim();
+    if (q.length < 2) {
+      this.citySearchResults = [];
+      return;
+    }
+    this.isCitySearching = true;
+    try {
+      const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=5&language=en&format=json`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Search failed');
+      const data = await res.json();
+      this.citySearchResults = (data.results || []).map((r) => ({
+        id: r.id,
+        name: `${r.name}${r.admin1 ? ', ' + r.admin1 : ''}, ${r.country || ''}`,
+        lat: r.latitude,
+        lon: r.longitude,
+        timezone: r.timezone || 'UTC'
+      }));
+    } catch {
+      this.citySearchResults = [];
+    } finally {
+      this.isCitySearching = false;
+    }
+  }
+
+  selectCity(city) {
+    this.location = {
+      name: city.name,
+      lat: city.lat,
+      lon: city.lon,
+      timezone: city.timezone
+    };
+    this.timeOffsetHours = 0;
+    this.citySearchResults = [];
+    this.showToast(`Location set: ${city.name}`);
+    this.fetchWeatherForCoords(city.lat, city.lon);
+  }
+
+  // Custom Camera Management
+  saveCustomCamera(name, sensorType, cropFactor) {
+    const n = (name || '').trim();
+    const crop = parseFloat(cropFactor);
+    if (!n) {
+      this.showToast('Please enter a camera body name.');
+      return;
+    }
+    if (Number.isNaN(crop) || crop <= 0) {
+      this.showToast('Please enter a valid positive crop factor.');
+      return;
+    }
+
+    const id = 'custom_cam_' + Date.now();
+    this.customCameras[id] = {
+      id,
+      name: n,
+      brand: 'Custom',
+      sensorType: sensorType || `Custom (${crop.toFixed(2)}×)`,
+      cropFactor: crop,
+      isCustom: true
+    };
+    saveLocal('luminary_custom_cameras', this.customCameras);
+    this.camera = id;
+    saveRawLocal('luminary_active_camera', id);
+    this.isCameraModalOpen = false;
+    this.recalculate();
+    this.showToast(`Camera "${n}" saved to your gear bag!`);
+  }
+
+  deleteCustomCamera(id) {
+    if (!this.customCameras[id]) return;
+    const name = this.customCameras[id].name;
+    delete this.customCameras[id];
+    saveLocal('luminary_custom_cameras', this.customCameras);
+    if (this.camera === id) {
+      this.camera = 'sony_a7iv';
+      saveRawLocal('luminary_active_camera', 'sony_a7iv');
+    }
+    this.recalculate();
+    this.showToast(`Deleted "${name}" from gear bag.`);
+  }
+
+  // Custom Lens Management
+  saveCustomLensToBag(rawName) {
+    const c = this.customLens;
+    const minF = APERTURES[c.minApertureIdx];
+    const maxF = APERTURES[c.maxApertureIdx];
+    const apStr = minF === maxF ? `f/${minF}` : `f/${minF}–f/${maxF}`;
+    const rangeStr = c.type === 'prime' ? `${c.minMm}mm` : `${c.minMm}–${c.maxMm}mm`;
+    const name = (rawName || '').trim() || `Custom ${c.type === 'prime' ? 'Prime' : 'Zoom'} (${rangeStr} ${apStr})`;
+
+    const id = 'custom_lens_' + Date.now();
+    this.customLenses[id] = {
+      id,
+      minApertureIdx: c.minApertureIdx,
+      maxApertureIdx: c.maxApertureIdx,
+      fixedAperture: c.minApertureIdx === c.maxApertureIdx,
+      focalLengthMm: c.type === 'prime' ? c.minMm : c.currentMm,
+      minMm: c.minMm,
+      maxMm: c.maxMm,
+      label: name,
+      isCustom: true
+    };
+    saveLocal('luminary_custom_lenses', this.customLenses);
+    this.gear = id;
+    saveRawLocal('luminary_active_lens', id);
+    this.recalculate();
+    this.showToast(`Lens "${name}" saved to your gear bag!`);
+  }
+
+  deleteCurrentSavedLens() {
+    const activeId = this.gear;
+    if (!this.customLenses[activeId]) return;
+    const name = this.customLenses[activeId].label;
+    delete this.customLenses[activeId];
+    saveLocal('luminary_custom_lenses', this.customLenses);
+    this.gear = 'kit';
+    saveRawLocal('luminary_active_lens', 'kit');
+    this.recalculate();
+    this.showToast(`Deleted "${name}" from gear bag.`);
+  }
+
+  updateCustomLensConfig(field, rawVal) {
+    const c = this.customLens;
+    const num = parseInt(rawVal, 10);
+    if (Number.isNaN(num)) return;
+
+    if (field === 'minApertureIdx') {
+      c.minApertureIdx = Math.max(0, Math.min(APERTURES.length - 1, num));
+      if (c.minApertureIdx > c.maxApertureIdx) c.maxApertureIdx = c.minApertureIdx;
+    } else if (field === 'maxApertureIdx') {
+      c.maxApertureIdx = Math.max(0, Math.min(APERTURES.length - 1, num));
+      if (c.maxApertureIdx < c.minApertureIdx) c.minApertureIdx = c.maxApertureIdx;
+    } else if (field === 'minMm') {
+      c.minMm = Math.max(8, Math.min(1200, num));
+      if (c.type === 'prime') {
+        c.maxMm = c.minMm;
+        c.currentMm = c.minMm;
+      } else {
+        if (c.minMm > c.maxMm) c.maxMm = c.minMm;
+        c.currentMm = Math.max(c.minMm, Math.min(c.maxMm, c.currentMm));
+      }
+    } else if (field === 'maxMm') {
+      c.maxMm = Math.max(8, Math.min(1200, num));
+      if (c.maxMm < c.minMm) c.minMm = c.maxMm;
+      c.currentMm = Math.max(c.minMm, Math.min(c.maxMm, c.currentMm));
+    } else if (field === 'currentMm') {
+      c.currentMm = Math.max(c.minMm, Math.min(c.maxMm, num));
+    }
+
+    this.exposure.manualOverride = false;
+    this.recalculate();
+  }
+
+  setCustomLensType(type) {
+    this.customLens.type = type === 'prime' ? 'prime' : 'zoom';
+    if (this.customLens.type === 'prime') {
+      this.customLens.maxMm = this.customLens.minMm;
+      this.customLens.currentMm = this.customLens.minMm;
+    } else {
+      if (this.customLens.maxMm <= this.customLens.minMm) {
+        this.customLens.maxMm = Math.min(1200, this.customLens.minMm + 46);
+      }
+      this.customLens.currentMm = Math.max(
+        this.customLens.minMm,
+        Math.min(this.customLens.maxMm, this.customLens.currentMm)
+      );
+    }
+    this.exposure.manualOverride = false;
+    this.recalculate();
+  }
+
+  // Shot Journal Logging
+  logCurrentShot() {
+    this.triggerHaptic('click');
+    const exp = this.exposure;
+    const gear = this.activeGearConfig;
+    const cam = this.activeCamera;
+    const solar = this.solarData;
+    const diagnosis = this.lightDiagnosis;
+
+    const entry = {
+      id: 'shot_' + Date.now(),
+      timestamp: new Date().toISOString(),
+      formattedDate: new Date().toLocaleString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+      }),
+      title: `${this.style.charAt(0).toUpperCase() + this.style.slice(1)} @ ${this.location.name.split(',')[0]}`,
+      style: this.style,
+      camera: {
+        id: this.camera,
+        name: cam.name,
+        cropFactor: cam.cropFactor,
+        sensorType: cam.sensorType || (cam.cropFactor + '×')
+      },
+      lens: {
+        id: this.gear,
+        label: gear.label,
+        focalLengthMm: gear.focalLengthMm,
+        effectiveFocalLengthMm: gear.effectiveFocalLengthMm
+      },
+      support: this.support,
+      exposure: {
+        aperture: `f/${APERTURES[exp.apertureIdx]}`,
+        shutter: SHUTTERS[exp.shutterIdx].label,
+        iso: `ISO ${ISOS[exp.isoIdx]}`,
+        ev: `${exp.targetEV.toFixed(1)} EV`,
+        wb: `${exp.wbKelvin}K (${exp.wbLabel})`,
+        focusMode: exp.focusMode,
+        metering: exp.metering,
+        filter: exp.filter || 'None'
+      },
+      environment: {
+        locationName: this.location.name,
+        lat: this.location.lat,
+        lon: this.location.lon,
+        weather: this.weather.description,
+        tempC: this.weather.tempC,
+        cloudCover: this.weather.cloudCover,
+        sunAltitude: Math.round(solar.altitude),
+        sunAzimuth: Math.round(solar.azimuth),
+        lightingBadge: diagnosis.badge,
+        lightingSummary: diagnosis.summary
+      },
+      notes: ''
+    };
+
+    this.journal.unshift(entry);
+    saveLocal('luminary_shot_journal', this.journal);
+    this.showToast(`Shot logged to Journal (${this.journal.length} saved)`);
+  }
+
+  loadJournalRecipe(id) {
+    const item = this.journal.find((x) => x.id === id);
+    if (!item) return;
+
+    if (item.camera && item.camera.id) {
+      this.camera = item.camera.id;
+      saveRawLocal('luminary_active_camera', item.camera.id);
+    }
+    if (item.lens && item.lens.id) {
+      this.gear = item.lens.id;
+      saveRawLocal('luminary_active_lens', item.lens.id);
+    }
+    if (item.style) {
+      this.style = item.style;
+    }
+    if (item.support) {
+      this.support = item.support;
+    }
+
+    const apVal = parseFloat(item.exposure.aperture.replace('f/', ''));
+    const apIdx = APERTURES.indexOf(apVal);
+    if (apIdx >= 0) this.exposure.apertureIdx = apIdx;
+
+    const shIdx = SHUTTERS.findIndex((s) => s.label === item.exposure.shutter);
+    if (shIdx >= 0) this.exposure.shutterIdx = shIdx;
+
+    const isoVal = parseInt(item.exposure.iso.replace('ISO ', ''), 10);
+    const isoIdx = ISOS.indexOf(isoVal);
+    if (isoIdx >= 0) this.exposure.isoIdx = isoIdx;
+
+    this.exposure.manualOverride = true;
+    this.isShotJournalModalOpen = false;
+    this.recalculate();
+    this.showToast(`Loaded "${item.title}" into camera dials`);
+  }
+
+  copyJournalRecipe(id) {
+    const item = this.journal.find((x) => x.id === id);
+    if (!item) return;
+
+    const text = [
+      `${item.title} (${item.formattedDate})`,
+      `Style: ${item.style.toUpperCase()} | Support: ${item.support}`,
+      `Gear: ${item.camera.name} + ${item.lens.label}`,
+      `Settings: ${item.exposure.aperture} | ${item.exposure.shutter} | ${item.exposure.iso} | ${item.exposure.ev}`,
+      `Light: ${item.environment.lightingBadge} | WB: ${item.exposure.wb} | Weather: ${item.environment.weather}`,
+      item.notes ? `Notes: ${item.notes}` : ''
+    ].filter(Boolean).join('\n');
+
+    this.copyTextToClipboard(text, 'Shot recipe copied to clipboard!');
+  }
+
+  deleteJournalRecipe(id) {
+    this.journal = this.journal.filter((x) => x.id !== id);
+    saveLocal('luminary_shot_journal', this.journal);
+    this.showToast('Recipe deleted from Journal.');
+  }
+
+  clearShotJournal() {
+    if (typeof window !== 'undefined' && !window.confirm('Are you sure you want to clear all saved shot recipes?')) return;
+    this.journal = [];
+    saveLocal('luminary_shot_journal', this.journal);
+    this.showToast('Shot Journal cleared.');
+  }
+
+  exportJournalJSON() {
+    if (this.journal.length === 0) {
+      this.showToast('No recipes to export.');
+      return;
+    }
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(this.journal, null, 2));
+    const a = document.createElement('a');
+    a.setAttribute('href', dataStr);
+    a.setAttribute('download', `luminary-journal-${new Date().toISOString().split('T')[0]}.json`);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    this.showToast('Exported Shot Journal to JSON file!');
+  }
+
+  updateJournalNote(id, note) {
+    const item = this.journal.find((x) => x.id === id);
+    if (!item) return;
+    item.notes = (note || '').trim();
+    saveLocal('luminary_shot_journal', this.journal);
+    this.showToast('Note updated!');
+  }
+
+  copyRecipeToClipboard() {
+    const exp = this.exposure;
+    const gear = this.activeGearConfig;
+    const cam = this.activeCamera;
+    const filterLine = exp.filter && exp.filter !== 'None' ? ` | Optional Filter: ${exp.filter}` : '';
+    const text = [
+      `Luminary Shot Recipe — ${this.location.name}`,
+      `Camera: ${cam.name} (${cam.sensorType || cam.cropFactor + '×'}) | Lens: ${gear.label} (${this.support})`,
+      `Settings: f/${APERTURES[exp.apertureIdx]} | ${SHUTTERS[exp.shutterIdx].label} | ISO ${ISOS[exp.isoIdx]}`,
+      `WB: ${exp.wbKelvin}K (${exp.wbLabel}) | Focus: ${exp.focusMode} | Meter: ${exp.metering}${filterLine}`
+    ].join('\n');
+
+    this.copyTextToClipboard(text, 'Camera settings copied to clipboard!');
+  }
+
+  copyTextToClipboard(text, successMsg) {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          this.showToast(successMsg);
+        }).catch(() => {
+          this.fallbackCopy(text, successMsg);
+        });
+      } else {
+        this.fallbackCopy(text, successMsg);
+      }
+    } catch {
+      this.fallbackCopy(text, successMsg);
+    }
+  }
+
+  fallbackCopy(text, successMsg) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      this.showToast(successMsg);
+    } catch {
+      this.showToast('Could not copy automatically.');
+    }
+  }
+
+  updateLiveClock() {
+    try {
+      const now = new Date();
+      this.liveWallClock = now.toLocaleTimeString('en-US', {
+        timeZone: this.location.timezone,
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    } catch {
+      const d = new Date();
+      this.liveWallClock = d.toTimeString().split(' ')[0];
+    }
+  }
+}
+
+export const appState = new AppState();
