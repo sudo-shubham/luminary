@@ -1,5 +1,6 @@
 <script>
   import { appState } from '../lib/state.svelte.js';
+  import { formatDecimalHour } from '../lib/solar.js';
   import { MapPin, Search, RotateCcw } from '@lucide/svelte';
 
   let searchQuery = $state('');
@@ -98,16 +99,107 @@
           class="w-6 h-6 rounded-lg bg-dial hover:bg-slate-700 text-slate-300 font-mono text-xs flex items-center justify-center transition active:scale-95"
           title="Shift time forward 1 hour">+1h</button>
 
-        {#if appState.timeOffsetHours !== 0}
+        {#if appState.timeOffsetHours !== 0 || appState.dayOffset !== 0}
           <button
             type="button"
             onclick={() => appState.resetTime()}
-            class="text-[10px] font-mono text-sky-400 hover:underline px-1 flex items-center gap-0.5">
+            class="text-[10px] font-mono text-sky-400 hover:underline px-1 flex items-center gap-0.5"
+            title="Reset to current live time">
             <RotateCcw class="w-2.5 h-2.5" />
             <span>Reset</span>
           </button>
         {/if}
       </div>
+    </div>
+  </div>
+
+  <!-- Day Selection & Solar Phase Quick Snap Bar -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-2 border-t border-borderline/60">
+    <!-- Day Selection Segmented Control & Rain Alert Badge -->
+    <div class="flex items-center gap-2 flex-wrap">
+      <div class="inline-flex p-0.5 bg-obsidian border border-borderline rounded-xl text-xs font-mono shrink-0 shadow-inner">
+        <button
+          type="button"
+          onclick={() => appState.setDayOffset(0)}
+          class={`px-3 py-1 rounded-lg font-semibold transition active:scale-95 ${appState.dayOffset === 0 ? 'bg-amber-500 text-slate-950 shadow-sm font-bold' : 'text-slate-400 hover:text-white'}`}>
+          Today
+        </button>
+        <button
+          type="button"
+          onclick={() => appState.setDayOffset(1)}
+          class={`px-3 py-1 rounded-lg font-semibold transition active:scale-95 flex items-center gap-1.5 ${appState.dayOffset === 1 ? 'bg-amber-500 text-slate-950 shadow-sm font-bold' : 'text-slate-400 hover:text-white'}`}>
+          <span>Tomorrow</span>
+          <span class="text-[9px] px-1 py-0.2 rounded bg-black/20 font-mono font-bold">+1d</span>
+        </button>
+      </div>
+
+      <!-- Rain Alert Badge if Rain Expected -->
+      {#if appState.weather.isRain || appState.weather.precipitationProb >= 35}
+        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-rose-500/15 border border-rose-500/40 text-rose-300 text-xs font-mono font-semibold animate-pulse">
+          <span>🌧️</span>
+          <span>Rain {appState.weather.precipitationProb}%</span>
+          {#if appState.weather.precipitationMm > 0}
+            <span class="text-rose-400 text-[10px]">({appState.weather.precipitationMm.toFixed(1)}mm)</span>
+          {/if}
+        </div>
+      {/if}
+    </div>
+
+    <!-- Solar Phase Quick Snap Buttons for Current Location -->
+    <div class="flex items-center gap-1.5 overflow-x-auto text-[11px] font-mono scrollbar-none flex-1 justify-start sm:justify-end">
+      <!-- Sunrise Button -->
+      <button
+        type="button"
+        onclick={() => appState.jumpToSolarPhase('sunrise')}
+        class="shrink-0 px-2 sm:px-2.5 py-1 rounded-xl bg-dial hover:bg-slate-700/80 border border-borderline hover:border-amber-400/40 text-slate-300 hover:text-white transition active:scale-95 flex items-center gap-1 shadow-sm"
+        title="Snap camera settings to Sunrise">
+        <span>🌅</span>
+        <span class="font-medium">Sunrise</span>
+        <span class="text-[10px] text-amber-300 font-semibold tabular-nums">{formatDecimalHour(appState.solarData.sunriseLocal)}</span>
+      </button>
+
+      <!-- Golden Hour Button -->
+      <button
+        type="button"
+        onclick={() => appState.jumpToSolarPhase('golden')}
+        class="shrink-0 px-2 sm:px-2.5 py-1 rounded-xl bg-dial hover:bg-slate-700/80 border border-borderline hover:border-amber-400/40 text-slate-300 hover:text-white transition active:scale-95 flex items-center gap-1 shadow-sm"
+        title="Snap camera settings to Golden Hour (warm rim light, sun at +4°)">
+        <span>✨</span>
+        <span class="font-medium">Golden</span>
+        <span class="text-[10px] text-amber-300 font-semibold tabular-nums">{formatDecimalHour((appState.solarData.sunsetLocal - 0.75 + 24) % 24)}</span>
+      </button>
+
+      <!-- Sunset Button -->
+      <button
+        type="button"
+        onclick={() => appState.jumpToSolarPhase('sunset')}
+        class="shrink-0 px-2 sm:px-2.5 py-1 rounded-xl bg-dial hover:bg-slate-700/80 border border-borderline hover:border-amber-400/40 text-slate-300 hover:text-white transition active:scale-95 flex items-center gap-1 shadow-sm"
+        title="Snap camera settings to Sunset">
+        <span>🌇</span>
+        <span class="font-medium">Sunset</span>
+        <span class="text-[10px] text-amber-400 font-semibold tabular-nums">{formatDecimalHour(appState.solarData.sunsetLocal)}</span>
+      </button>
+
+      <!-- Blue Hour Button -->
+      <button
+        type="button"
+        onclick={() => appState.jumpToSolarPhase('blue')}
+        class="shrink-0 px-2 sm:px-2.5 py-1 rounded-xl bg-dial hover:bg-slate-700/80 border border-borderline hover:border-sky-400/40 text-slate-300 hover:text-white transition active:scale-95 flex items-center gap-1 shadow-sm"
+        title="Snap camera settings to Blue Hour (deep twilight, sun at -5°)">
+        <span>🌌</span>
+        <span class="font-medium">Blue</span>
+        <span class="text-[10px] text-sky-400 font-semibold tabular-nums">{formatDecimalHour(appState.solarData.bluePM)}</span>
+      </button>
+
+      <!-- Solar Arc Button -->
+      <button
+        type="button"
+        onclick={() => appState.jumpToSolarPhase('arc')}
+        class="shrink-0 px-2 sm:px-2.5 py-1 rounded-xl bg-dial hover:bg-slate-700/80 border border-borderline hover:border-amber-400/40 text-slate-300 hover:text-white transition active:scale-95 flex items-center gap-1 shadow-sm"
+        title="View live Solar Arc curve and ephemeris">
+        <span>☀️</span>
+        <span class="font-medium">Solar Arc</span>
+      </button>
     </div>
   </div>
 

@@ -107,12 +107,17 @@
   });
 </script>
 
-<section class="bg-camera border border-borderline rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
-  <div class="flex items-center justify-between">
-    <h2 class="text-xs font-mono uppercase tracking-wider text-slate-400 flex items-center gap-2">
-      <span class="w-2 h-2 rounded-full bg-amber-400"></span>
-      Solar Ephemeris &amp; Sky Telemetry
-    </h2>
+<section id="solar-ephemeris-card" class="bg-camera border border-borderline rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
+  <div class="flex items-center justify-between gap-2 flex-wrap">
+    <div class="flex items-center gap-2">
+      <h2 class="text-xs font-mono uppercase tracking-wider text-slate-400 flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+        Solar Ephemeris &amp; Sky Telemetry
+      </h2>
+      <span class="text-[10px] font-mono px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-300 border border-amber-500/20 font-semibold">
+        {appState.formattedDate}
+      </span>
+    </div>
     <span class="text-[10px] font-mono text-slate-500 tabular-nums">
       {appState.location.lat.toFixed(2)}°, {appState.location.lon.toFixed(2)}°
     </span>
@@ -151,10 +156,12 @@
           {appState.weather.cloudCover}%
         </div>
       </div>
-      <div class="bg-obsidian/60 rounded-lg p-1.5 shadow-sm">
-        <div class="text-[9px] text-slate-400">Weather</div>
-        <div class="text-[11px] font-mono font-semibold text-white truncate">
-          {appState.weather.description}
+      <div class={`rounded-lg p-1.5 shadow-sm ${appState.weather.isRain ? 'bg-rose-500/20 border border-rose-500/40' : 'bg-obsidian/60'}`}>
+        <div class="text-[9px] text-slate-400">
+          {appState.weather.precipitationProb > 0 ? `Rain ${appState.weather.precipitationProb}%` : 'Weather'}
+        </div>
+        <div class={`text-[11px] font-mono font-semibold truncate ${appState.weather.isRain ? 'text-rose-300' : 'text-white'}`}>
+          {appState.weather.isRain ? `🌧️ ${appState.weather.description}` : appState.weather.description}
         </div>
       </div>
       <div class="bg-obsidian/60 rounded-lg p-1.5 shadow-sm">
@@ -169,17 +176,55 @@
   <!-- Solar Arc Visualization Box -->
   <div class="bg-dial/70 border border-borderline rounded-xl p-3 shadow-inner">
     <div class="flex items-center justify-between text-[11px] font-mono text-slate-400 mb-1">
-      <span class="font-bold">SOLAR ARC</span>
+      <div class="flex items-center gap-2">
+        <span class="font-bold">SOLAR ARC</span>
+        <button
+          type="button"
+          onclick={() => appState.jumpToSolarPhase('golden')}
+          class="text-[9px] font-semibold text-amber-300 hover:text-amber-200 underline decoration-amber-400/50"
+          title="Snap to Golden Hour">
+          ✨ Golden Hour
+        </button>
+      </div>
       <span class="text-amber-400 font-semibold">{countdownText}</span>
     </div>
     <div class="w-full h-24 relative">
       <canvas bind:this={canvasEl} class="w-full h-full block"></canvas>
     </div>
-    <div class="grid grid-cols-4 gap-1 mt-2 text-[10px] font-mono text-center text-slate-400">
-      <div>Blue AM<br><span class="text-sky-400 font-semibold tabular-nums">{formatDecimalHour(solar.blueAM)}</span></div>
-      <div>Sunrise<br><span class="text-amber-300 font-semibold tabular-nums">{formatDecimalHour(solar.sunriseLocal)}</span></div>
-      <div>Sunset<br><span class="text-amber-400 font-semibold tabular-nums">{formatDecimalHour(solar.sunsetLocal)}</span></div>
-      <div>Blue PM<br><span class="text-sky-400 font-semibold tabular-nums">{formatDecimalHour(solar.bluePM)}</span></div>
+    <!-- Interactive Solar Phase Snap Buttons -->
+    <div class="grid grid-cols-4 gap-1.5 mt-2 text-[10px] font-mono text-center">
+      <button
+        type="button"
+        onclick={() => appState.jumpToSolarPhase('blue_am')}
+        class="p-1 rounded-lg bg-obsidian/50 hover:bg-dial border border-borderline/50 hover:border-sky-400/50 transition active:scale-95 cursor-pointer text-slate-400 hover:text-white"
+        title="Snap to Dawn Blue Hour">
+        <div>Blue AM</div>
+        <span class="text-sky-400 font-semibold tabular-nums">{formatDecimalHour(solar.blueAM)}</span>
+      </button>
+      <button
+        type="button"
+        onclick={() => appState.jumpToSolarPhase('sunrise')}
+        class="p-1 rounded-lg bg-obsidian/50 hover:bg-dial border border-borderline/50 hover:border-amber-400/50 transition active:scale-95 cursor-pointer text-slate-400 hover:text-white"
+        title="Snap to Sunrise">
+        <div>Sunrise</div>
+        <span class="text-amber-300 font-semibold tabular-nums">{formatDecimalHour(solar.sunriseLocal)}</span>
+      </button>
+      <button
+        type="button"
+        onclick={() => appState.jumpToSolarPhase('sunset')}
+        class="p-1 rounded-lg bg-obsidian/50 hover:bg-dial border border-borderline/50 hover:border-amber-400/50 transition active:scale-95 cursor-pointer text-slate-400 hover:text-white"
+        title="Snap to Sunset">
+        <div>Sunset</div>
+        <span class="text-amber-400 font-semibold tabular-nums">{formatDecimalHour(solar.sunsetLocal)}</span>
+      </button>
+      <button
+        type="button"
+        onclick={() => appState.jumpToSolarPhase('blue_pm')}
+        class="p-1 rounded-lg bg-obsidian/50 hover:bg-dial border border-borderline/50 hover:border-sky-400/50 transition active:scale-95 cursor-pointer text-slate-400 hover:text-white"
+        title="Snap to Dusk Blue Hour">
+        <div>Blue PM</div>
+        <span class="text-sky-400 font-semibold tabular-nums">{formatDecimalHour(solar.bluePM)}</span>
+      </button>
     </div>
   </div>
 </section>

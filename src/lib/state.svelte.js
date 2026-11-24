@@ -14,7 +14,8 @@ import {
   getLightPhase,
   classifyLightDirection,
   decodeWMOWeather,
-  getTimezoneOffsetHours
+  getTimezoneOffsetHours,
+  formatDecimalHour
 } from './solar.js';
 import {
   getHandheldMinShutterIdx,
@@ -71,15 +72,20 @@ class AppState {
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Kolkata'
   });
   timeOffsetHours = $state(0);
+  dayOffset = $state(0);
   forcedSunAlt = $state(null);
   liveWallClock = $state('--:--:--');
 
-  // Weather
+  // Weather & Rain Telemetry
+  rawWeatherData = $state(null);
   weather = $state({
     cloudCover: 18,
     tempC: 24,
     uvIndex: 2,
     description: 'Mostly Clear',
+    precipitationMm: 0,
+    precipitationProb: 0,
+    isRain: false,
     isFallback: false
   });
 
@@ -225,8 +231,21 @@ class AppState {
   // Derived: Effective Date & Solar Data
   effectiveDate = $derived.by(() => {
     const d = new Date();
+    if (this.dayOffset) {
+      d.setDate(d.getDate() + this.dayOffset);
+    }
     d.setMinutes(d.getMinutes() + Math.round(this.timeOffsetHours * 60));
     return d;
+  });
+
+  isTomorrow = $derived(this.dayOffset === 1);
+
+  formattedDate = $derived.by(() => {
+    const d = this.effectiveDate;
+    const dateStr = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    if (this.dayOffset === 0) return `Today • ${dateStr}`;
+    if (this.dayOffset === 1) return `Tomorrow (+1d) • ${dateStr}`;
+    return dateStr;
   });
 
   solarData = $derived.by(() => {
@@ -346,6 +365,15 @@ class AppState {
     }
     if (this.exposureMeter.evDiff < -1.2) {
       list.push(`Too dark (${this.exposureMeter.evDiff.toFixed(1)} EV). Lower f-number, use a slower shutter on a tripod, or raise ISO.`);
+    }
+
+    // Rain & Weather-Sealing Alert
+    if (this.weather.isRain || (this.weather.precipitationProb && this.weather.precipitationProb >= 35) || (this.weather.precipitationMm && this.weather.precipitationMm > 0.4)) {
+      const probStr = this.weather.precipitationProb ? ` (${this.weather.precipitationProb}% rain probability${this.weather.precipitationMm ? ', ~' + this.weather.precipitationMm.toFixed(1) + 'mm' : ''})` : '';
+      const dayPrefix = this.dayOffset === 1 ? 'Tomorrow: ' : '';
+      list.push(
+        `🌧️ ${dayPrefix}Rain / Precipitation Expected${probStr}. Ensure camera & lens have environmental weather-sealing gaskets or use a protective rain cover. Equip a clear/UV filter to shield front lens glass from moisture. Shutter tips: use ≥1/500s to freeze raindrops, or 1/60s–1/125s for soft streaks.`
+      );
     }
 
     return list;
@@ -720,8 +748,83 @@ class AppState {
     this.triggerHaptic('click');
     this.forcedSunAlt = null;
     this.timeOffsetHours = 0;
+    this.dayOffset = 0;
+    this.applyWeatherForDayOffset();
     this.exposure.manualOverride = false;
     this.recalculate();
+  }
+
+  setDayOffset(days) {
+    this.triggerHaptic('click');
+    this.dayOffset = days;
+    this.applyWeatherForDayOffset();
+    this.recalculate();
+    this.showToast(days === 1 ? '📅 Switched to Tomorrow (+1 Day Planning)' : '📅 Switched to Today');
+  }
+
+  toggleDayOffset() {
+    this.setDayOffset(this.dayOffset === 0 ? 1 : 0);
+  }
+
+  getCurrentLocalHour() {
+    const now = new Date();
+    const tzOffset = getTimezoneOffsetHours(now, this.location.timezone, this.location.lon);
+    return ((now.getUTCHours() + now.getUTCMinutes() / 60 + now.getUTCSeconds() / 3600 + tzOffset) % 24 + 24) % 24;
+  }
+
+  jumpToSolarPhase(phase) {
+    this.triggerHaptic('click');
+    const curHour = this.getCurrentLocalHour();
+    const solar = this.solarData;
+    let targetHour = 12;
+    let label = 'Midday';
+
+    switch (phase) {
+      case 'sunrise':
+        targetHour = solar.sunriseLocal;
+        label = `Sunrise (${formatDecimalHour(solar.sunriseLocal)})`;
+        break;
+      case 'sunset':
+        targetHour = solar.sunsetLocal;
+        label = `Sunset (${formatDecimalHour(solar.sunsetLocal)})`;
+        break;
+      case 'golden':
+      case 'golden_pm':
+        targetHour = (solar.sunsetLocal - 0.75 + 24) % 24;
+        label = `Golden Hour (${formatDecimalHour(targetHour)})`;
+        break;
+      case 'golden_am':
+        targetHour = (solar.sunriseLocal + 0.35) % 24;
+        label = `Dawn Golden Hour (${formatDecimalHour(targetHour)})`;
+        break;
+      case 'blue':
+      case 'blue_pm':
+        targetHour = solar.bluePM;
+        label = `Blue Hour (${formatDecimalHour(solar.bluePM)})`;
+        break;
+      case 'blue_am':
+        targetHour = solar.blueAM;
+        label = `Dawn Blue Hour (${formatDecimalHour(solar.blueAM)})`;
+        break;
+      case 'arc':
+      case 'now':
+        this.resetTime();
+        this.showToast('☀️ Realigned with Live Solar Arc & Clock');
+        const arcEl = document.getElementById('solar-ephemeris-card');
+        if (arcEl) arcEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        return;
+      default:
+        targetHour = 12;
+        label = 'Noon';
+    }
+
+    const diff = targetHour - curHour;
+    this.timeOffsetHours = Math.round(diff * 100) / 100;
+    this.forcedSunAlt = null;
+    this.exposure.manualOverride = false;
+    this.recalculate();
+    const dayLabel = this.dayOffset === 1 ? 'Tomorrow ' : '';
+    this.showToast(`✨ Snapped to ${dayLabel}${label}`);
   }
 
   setManualHeading(val) {
@@ -781,7 +884,7 @@ class AppState {
 
   async fetchWeatherForCoords(lat, lon) {
     try {
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}&current=temperature_2m,cloud_cover,weather_code&daily=uv_index_max&timezone=auto`;
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}&current=temperature_2m,cloud_cover,weather_code,precipitation,rain&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,uv_index_max&timezone=auto`;
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 4500);
       const res = await fetch(url, { signal: controller.signal });
@@ -794,23 +897,71 @@ class AppState {
         this.location.timezone = data.timezone;
       }
 
-      this.weather = {
-        cloudCover: data.current?.cloud_cover ?? 20,
-        tempC: Math.round(data.current?.temperature_2m ?? 22),
-        uvIndex: Math.round(data.daily?.uv_index_max?.[0] ?? 3),
-        description: decodeWMOWeather(data.current?.weather_code ?? 1),
-        isFallback: false
-      };
+      this.rawWeatherData = data;
+      this.applyWeatherForDayOffset();
     } catch {
+      this.rawWeatherData = null;
       this.weather = {
         cloudCover: 22,
         tempC: 21,
         uvIndex: 3,
         description: 'Simulated',
+        precipitationMm: 0,
+        precipitationProb: 0,
+        isRain: false,
         isFallback: true
       };
     }
     this.recalculate();
+  }
+
+  applyWeatherForDayOffset() {
+    if (!this.rawWeatherData) return;
+    const data = this.rawWeatherData;
+
+    if (this.dayOffset === 1 && data.daily) {
+      // Tomorrow's forecast (+1 Day Planning)
+      const wCode = data.daily.weather_code?.[1] ?? 1;
+      const precipMm = Number(data.daily.precipitation_sum?.[1] ?? 0);
+      const precipProb = Number(data.daily.precipitation_probability_max?.[1] ?? 0);
+      const isRain = precipMm > 0.1 || precipProb >= 35 || (wCode >= 51 && wCode <= 67) || (wCode >= 80 && wCode <= 99);
+
+      let estClouds = 25;
+      if (wCode === 0) estClouds = 5;
+      else if (wCode <= 2) estClouds = 35;
+      else if (wCode === 3) estClouds = 75;
+      else if (wCode >= 51) estClouds = 85;
+
+      this.weather = {
+        cloudCover: estClouds,
+        tempC: Math.round(data.daily.temperature_2m_max?.[1] ?? 22),
+        uvIndex: Math.round(data.daily.uv_index_max?.[1] ?? 3),
+        description: decodeWMOWeather(wCode),
+        precipitationMm: precipMm,
+        precipitationProb: precipProb,
+        isRain,
+        isFallback: false
+      };
+    } else {
+      // Today's forecast (Current / Day 0)
+      const cur = data.current;
+      const d0 = data.daily;
+      const wCode = cur?.weather_code ?? d0?.weather_code?.[0] ?? 1;
+      const precipMm = Number(cur?.precipitation ?? cur?.rain ?? d0?.precipitation_sum?.[0] ?? 0);
+      const precipProb = Number(d0?.precipitation_probability_max?.[0] ?? (precipMm > 0 ? 80 : 0));
+      const isRain = precipMm > 0.1 || precipProb >= 35 || (wCode >= 51 && wCode <= 67) || (wCode >= 80 && wCode <= 99);
+
+      this.weather = {
+        cloudCover: cur?.cloud_cover ?? 20,
+        tempC: Math.round(cur?.temperature_2m ?? d0?.temperature_2m_max?.[0] ?? 22),
+        uvIndex: Math.round(d0?.uv_index_max?.[0] ?? 3),
+        description: decodeWMOWeather(wCode),
+        precipitationMm: precipMm,
+        precipitationProb: precipProb,
+        isRain,
+        isFallback: false
+      };
+    }
   }
 
   async reverseGeocode(lat, lon) {

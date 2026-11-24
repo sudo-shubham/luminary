@@ -1,13 +1,46 @@
 <script>
   import { appState } from '../lib/state.svelte.js';
 
-  const filterName = $derived(appState.exposure.filter || 'None');
-  const tip = $derived(
+  const isRainForecast = $derived(
+    Boolean(
+      appState.weather.isRain ||
+      (appState.weather.precipitationProb && appState.weather.precipitationProb >= 35) ||
+      (appState.weather.precipitationMm && appState.weather.precipitationMm > 0.4)
+    )
+  );
+
+  const baseFilter = $derived(appState.exposure.filter || 'None');
+  const baseTip = $derived(
     appState.exposure.filterTip || {
       recommended: false,
       text: 'No optical filter required for this EV/subject combination; keep bare glass for maximum light transmission.'
     }
   );
+
+  const filterName = $derived.by(() => {
+    if (isRainForecast && (baseFilter === 'None' || !baseFilter)) {
+      return 'Clear UV / Protector';
+    }
+    return baseFilter;
+  });
+
+  const tip = $derived.by(() => {
+    const probStr = appState.weather.precipitationProb ? ` (${appState.weather.precipitationProb}% chance)` : '';
+    if (isRainForecast) {
+      if (!baseTip.recommended || baseFilter === 'None') {
+        return {
+          recommended: true,
+          text: `🌧️ Rain / Moisture Expected${probStr}: Screw on a Clear UV or Protector filter to shield your delicate front coating from raindrops. Keep your lens hood attached to deflect spray.`
+        };
+      } else {
+        return {
+          recommended: true,
+          text: `${baseTip.text || baseTip.pro || baseTip.beginner} 🌧️ Note: Rain expected${probStr}—keep lens hood on and protect filter threads from grit and water.`
+        };
+      }
+    }
+    return baseTip;
+  });
 </script>
 
 <div class="bg-camera border border-borderline rounded-2xl p-3.5 sm:p-4 shadow-lg flex items-start gap-3">
