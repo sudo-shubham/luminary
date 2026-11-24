@@ -29,18 +29,23 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+const BYPASS_HOSTS = [
+  'api.open-meteo.com',
+  'geocoding-api.open-meteo.com',
+  'api.bigdatacloud.net',
+  'nominatim.openstreetmap.org',
+  'overpass-api.de',
+  'en.wikipedia.org'
+];
+
 // Fetch: network-first for local assets, falling back to cache when offline
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   const url = new URL(event.request.url);
 
-  // Bypass live weather and reverse-geocoding APIs from caching
-  if (
-    url.hostname.includes('open-meteo.com') ||
-    url.hostname.includes('bigdatacloud.net') ||
-    url.hostname.includes('openstreetmap.org')
-  ) {
+  // Bypass live weather, geocoding, and scenic spots APIs from caching
+  if (BYPASS_HOSTS.includes(url.hostname)) {
     return;
   }
 
