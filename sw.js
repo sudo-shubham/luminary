@@ -1,5 +1,5 @@
 // Luminary Service Worker — Enables Android PWA installation & offline app-shell caching
-const CACHE_NAME = 'luminary-v2';
+const CACHE_NAME = 'luminary-v3';
 const APP_SHELL = [
   './',
   './index.html',
