@@ -130,6 +130,7 @@ html:not(.dark) .text-slate-500 {
 html:not(.dark) .text-slate-600 {
   color: #94a3b8 !important;
 }
+html:not(.dark) .text-amber-200,
 html:not(.dark) .text-amber-300,
 html:not(.dark) .text-amber-400,
 html:not(.dark) .text-amber-500,
@@ -143,6 +144,7 @@ html:not(.dark) .text-yellow-500,
 html:not(.dark) [class*="text-yellow-"] {
   color: #a16207 !important;
 }
+html:not(.dark) .text-sky-200,
 html:not(.dark) .text-sky-300,
 html:not(.dark) .text-sky-400 {
   color: #0369a1 !important;
@@ -155,6 +157,7 @@ html:not(.dark) .text-emerald-300,
 html:not(.dark) .text-emerald-400 {
   color: #047857 !important;
 }
+html:not(.dark) .text-rose-200,
 html:not(.dark) .text-rose-300,
 html:not(.dark) .text-rose-400 {
   color: #be123c !important;

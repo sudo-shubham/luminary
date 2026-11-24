@@ -415,7 +415,7 @@ class AppState {
 
   showToast(message) {
     const id = Date.now() + Math.random();
-    this.toasts.push({ id, message });
+    this.toasts = [...this.toasts, { id, message }];
     setTimeout(() => {
       this.toasts = this.toasts.filter((t) => t.id !== id);
     }, 3000);
