@@ -118,10 +118,34 @@ test.describe('Luminary Photography Assistant', () => {
       });
     });
 
+    await page.route('https://en.wikipedia.org/w/api.php*', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          query: {
+            pages: {
+              '999': {
+                thumbnail: {
+                  source: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
+                }
+              }
+            }
+          }
+        })
+      });
+    });
+
     await page.getByRole('button', { name: /Spots/i }).click();
     await expect(page.locator('h3:has-text("Nearby Scenic Spots")')).toBeVisible();
     await expect(page.locator('text=Ridge Sunset Overlook')).toBeVisible({ timeout: 5000 });
     await expect(page.locator('text=Yamuna Riverfront')).toBeVisible();
+    await expect(page.locator('text=Nearest Featured Spot')).toBeVisible({ timeout: 5000 });
+
+    // Switch to interactive Leaflet Scouting Map and verify container renders
+    await page.getByRole('button', { name: /^Map$/i }).click();
+    await expect(page.locator('.leaflet-container')).toBeVisible({ timeout: 5000 });
+    await page.getByRole('button', { name: /^List$/i }).click();
 
     // Verify Maps link searches by actual place name centered at coordinates
     const mapsHref = await page.getByRole('link', { name: /Maps/i }).first().getAttribute('href');

@@ -28,7 +28,7 @@ import {
   computeDof,
   distanceToBarPercent
 } from './dof.js';
-import { fetchNearbyScenicSpots } from './spots.js';
+import { fetchNearbyScenicSpots, fetchSpotPhoto } from './spots.js';
 
 // Local storage helpers
 function getSaved(key, fallback) {
@@ -172,6 +172,8 @@ class AppState {
   nearbySpotsSource = $state('');
   nearbySpotsRadiusKm = $state(20);
   nearbySpotsFilter = $state('all');
+  topSpotPhoto = $state(null);
+  topSpotPhotoLoading = $state(false);
   lastSpotsKey = '';
 
   // Derived: Active Camera Object
@@ -1641,11 +1643,40 @@ class AppState {
       this.nearbySpots = result.spots;
       this.nearbySpotsSource = result.source;
       this.lastSpotsKey = key;
+
+      // Fetch photo for the top featured spot asynchronously
+      this.topSpotPhoto = null;
+      if (result.spots.length > 0) {
+        this.topSpotPhotoLoading = true;
+        fetchSpotPhoto(result.spots[0])
+          .then((photoUrl) => {
+            this.topSpotPhoto = photoUrl;
+          })
+          .catch(() => {})
+          .finally(() => {
+            this.topSpotPhotoLoading = false;
+          });
+      }
     } catch {
       this.nearbySpotsError = 'Could not load nearby scenic spots. Check connection and try again.';
     } finally {
       this.nearbySpotsLoading = false;
     }
+  }
+
+  scoutCoordinates(lat, lon, customLabel = null) {
+    this.triggerHaptic('snap');
+    const name = customLabel || `Pinned Spot (${lat.toFixed(3)}°, ${lon.toFixed(3)}°)`;
+    this.location = {
+      ...this.location,
+      name,
+      lat,
+      lon
+    };
+    this.isSpotsModalOpen = false;
+    this.fetchWeatherForCoords(lat, lon);
+    this.recalculate();
+    this.showToast(`📍 Scouting ${name} — Solar & weather updated!`);
   }
 
   scoutSpot(spot) {

@@ -35,7 +35,10 @@ const BYPASS_HOSTS = [
   'api.bigdatacloud.net',
   'nominatim.openstreetmap.org',
   'overpass-api.de',
-  'en.wikipedia.org'
+  'en.wikipedia.org',
+  'commons.wikimedia.org',
+  'upload.wikimedia.org',
+  'tile.openstreetmap.org'
 ];
 
 // Fetch: network-first for local assets, falling back to cache when offline

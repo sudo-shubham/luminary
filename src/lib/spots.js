@@ -191,3 +191,77 @@ export async function fetchNearbyScenicSpots(lat, lon, radiusKm = 20) {
   spots.sort((a, b) => a.distanceKm - b.distanceKm);
   return { spots, source: 'Wikipedia' };
 }
+
+/**
+ * Computes destination (lat, lon) given start point, bearing (deg), and distance (km).
+ * Used to draw Sunrise/Sunset azimuth rays on the interactive scouting map.
+ */
+export function destinationPoint(lat, lon, bearingDeg, distanceKm = 8) {
+  const R = 6371;
+  const brng = (bearingDeg * Math.PI) / 180;
+  const dR = distanceKm / R;
+  const lat1 = (lat * Math.PI) / 180;
+  const lon1 = (lon * Math.PI) / 180;
+
+  const lat2 = Math.asin(
+    Math.sin(lat1) * Math.cos(dR) + Math.cos(lat1) * Math.sin(dR) * Math.cos(brng)
+  );
+  const lon2 =
+    lon1 +
+    Math.atan2(
+      Math.sin(brng) * Math.sin(dR) * Math.cos(lat1),
+      Math.cos(dR) - Math.sin(lat1) * Math.sin(lat2)
+    );
+
+  return [
+    (lat2 * 180) / Math.PI,
+    (((lon2 * 180) / Math.PI + 540) % 360) - 180
+  ];
+}
+
+/**
+ * Fetches a real photo thumbnail for a scenic spot using Wikipedia PageImages
+ * and falls back to Wikimedia Commons Geosearch (zero API keys, CORS-enabled).
+ */
+export async function fetchSpotPhoto(spot) {
+  if (!spot) return null;
+
+  // 1. Try Wikipedia PageImages by title
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4500);
+    const wpUrl = `https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&pithumbsize=640&redirects=1&titles=${encodeURIComponent(spot.name)}&format=json&origin=*`;
+    const res = await fetch(wpUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const data = await res.json();
+      const pages = Object.values(data?.query?.pages || {});
+      const thumb = pages.find((p) => p?.thumbnail?.source)?.thumbnail?.source;
+      if (thumb) return thumb;
+    }
+  } catch {}
+
+  // 2. Fallback: Wikimedia Commons Geosearch around spot coordinates
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const cmUrl = `https://commons.wikimedia.org/w/api.php?action=query&generator=geosearch&ggscoord=${spot.lat.toFixed(5)}|${spot.lon.toFixed(5)}&ggsradius=1500&ggsnamespace=6&ggslimit=5&prop=imageinfo&iiprop=url&iiurlwidth=640&format=json&origin=*`;
+    const res = await fetch(cmUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const data = await res.json();
+      const pages = Object.values(data?.query?.pages || {});
+      for (const p of pages) {
+        const info = p?.imageinfo?.[0];
+        const url = info?.thumburl || info?.url;
+        if (url && /\.(jpe?g|png|webp)(\?|$)/i.test(url)) {
+          return url;
+        }
+      }
+    }
+  } catch {}
+
+  return null;
+}
