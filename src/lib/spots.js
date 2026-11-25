@@ -68,7 +68,7 @@ export function getLightAlignment(bearingDeg, sunriseAz, sunsetAz) {
 }
 
 const NON_PHOTO_SPOT_REGEX =
-  /\b(metro|subway|railway|train station|rail station|bus stop|bus stand|bus terminal|station|airport|helipad|hospital|clinic|medical|pharmacy|school|college|university|bank|atm|police|post office|mall|supermarket|hypermarket|hotel|hostel|motel|petrol|gas station|fuel|parking|office|apartment|flyover|junction|interchange|roundabout|chowk)\b/i;
+  /\b(metro|subway|railway|train station|rail station|bus stop|bus stand|bus terminal|station|airport|helipad|hospital|clinic|medical|pharmacy|school|college|university|bank|atm|police|post office|mall|supermarket|hypermarket|hotel|hostel|motel|petrol|gas station|fuel|parking|office|apartment|flyover|junction|interchange|roundabout|chowk|violence|riot|riots|clash|province|provinces|kingdom|empire|constituency|ward|peth)\b/i;
 
 const SCENIC_TITLE_REGEX =
   /\b(viewpoint|overlook|lookout|scenic|observatory|mountain|peak|hill|ridge|summit|valley|cliff|pass|mount|waterfall|falls|river|lake|pond|reservoir|dam|lagoon|beach|coast|island|park|garden|forest|sanctuary|reserve|fort|palace|castle|temple|mosque|cathedral|church|monument|memorial|tomb|ruins|gate|tower|bridge|ghat)\b/i;

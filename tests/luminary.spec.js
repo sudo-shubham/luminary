@@ -202,4 +202,51 @@ test.describe('Luminary Photography Assistant', () => {
     await expect(page.locator('h3:has-text("Nearby Scenic Spots")')).toBeHidden();
     await expect(page.locator('text=Yamuna Riverfront').first()).toBeVisible();
   });
+
+  test('should strictly filter Wikipedia fallback to only scenic photo spots', async ({ page }) => {
+    await page.route('https://overpass-api.de/api/interpreter', async (route) => {
+      await route.fulfill({ status: 504, body: 'Gateway Timeout' });
+    });
+
+    await page.route('https://en.wikipedia.org/w/api.php*', async (route) => {
+      const url = route.request().url();
+      if (url.includes('list=geosearch')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            query: {
+              geosearch: [
+                { pageid: 1, title: '2025 Nagpur violence', lat: 21.14, lon: 79.08, dist: 500 },
+                { pageid: 2, title: 'Ganesh Peth', lat: 21.141, lon: 79.09, dist: 600 },
+                { pageid: 3, title: 'Nagpur Metro Station', lat: 21.142, lon: 79.085, dist: 700 },
+                { pageid: 4, title: 'Dhantoli', lat: 21.135, lon: 79.082, dist: 800 },
+                { pageid: 5, title: 'Central Provinces', lat: 21.145, lon: 79.088, dist: 900 },
+                { pageid: 6, title: 'Kingdom of Nagpur', lat: 21.146, lon: 79.089, dist: 1000 },
+                { pageid: 7, title: 'Ambazari Lake', lat: 21.128, lon: 79.043, dist: 4500 },
+                { pageid: 8, title: 'Sitabuldi Fort', lat: 21.147, lon: 79.083, dist: 1200 }
+              ]
+            }
+          })
+        });
+      } else {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ query: { pages: {} } })
+        });
+      }
+    });
+
+    await page.getByRole('button', { name: /Spots/i }).click();
+    await expect(page.locator('h3:has-text("Nearby Scenic Spots")')).toBeVisible();
+    await expect(page.locator('text=Sitabuldi Fort')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('text=Ambazari Lake')).toBeVisible();
+    await expect(page.locator('text=2025 Nagpur violence')).toHaveCount(0);
+    await expect(page.locator('text=Ganesh Peth')).toHaveCount(0);
+    await expect(page.locator('text=Nagpur Metro Station')).toHaveCount(0);
+    await expect(page.locator('text=Dhantoli')).toHaveCount(0);
+    await expect(page.locator('text=Central Provinces')).toHaveCount(0);
+    await expect(page.locator('text=Kingdom of Nagpur')).toHaveCount(0);
+  });
 });
