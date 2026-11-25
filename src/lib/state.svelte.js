@@ -558,20 +558,56 @@ class AppState {
 
     const anyLocked = this.locked.aperture || this.locked.shutter || this.locked.iso;
     if (!this.exposure.manualOverride || anyLocked) {
-      const rec = recommendExposure({
-        targetEV: effectiveEV,
-        gear: this.activeGearConfig,
-        style: this.style,
-        support: this.support,
-        locked: this.locked,
-        currentExposure: this.exposure
-      });
+      const rec = recommendExposure(
+        effectiveEV,
+        this.activeGearConfig,
+        this.style,
+        this.support,
+        this.locked,
+        this.exposure
+      );
       this.exposure.apertureIdx = rec.apertureIdx;
       this.exposure.shutterIdx = rec.shutterIdx;
       this.exposure.isoIdx = rec.isoIdx;
-      this.exposure.focusMode = rec.focusMode;
-      this.exposure.filter = rec.filter;
-      this.exposure.filterTip = rec.filterTip;
+
+      // Update focus mode & optional filter recommendation for the active scene/EV
+      if (this.style === 'action' || this.style === 'street') {
+        this.exposure.focusMode = 'AF-C / Continuous';
+      } else if (this.style === 'portrait') {
+        this.exposure.focusMode = 'AF-S / Eye-AF';
+      } else if (this.style === 'astro') {
+        this.exposure.focusMode = 'MF (Infinity)';
+      } else if (this.style === 'longexp' || this.style === 'landscape') {
+        this.exposure.focusMode = 'AF-S / Hyperfocal';
+      } else {
+        this.exposure.focusMode = 'AF-S / Single';
+      }
+
+      if (this.style === 'longexp' && effectiveEV >= 9) {
+        this.exposure.filter = 'ND64 / ND1000';
+        this.exposure.filterTip = {
+          recommended: true,
+          text: 'Use a 6-stop to 10-stop ND filter in daylight to achieve smooth, silky water or cloud motion.'
+        };
+      } else if (this.style === 'landscape' && effectiveEV >= 11) {
+        this.exposure.filter = 'CPL (Polarizer)';
+        this.exposure.filterTip = {
+          recommended: true,
+          text: 'A Circular Polarizer cuts glare on water and foliage while deepening sky contrast.'
+        };
+      } else if (this.style === 'portrait' && effectiveEV >= 13) {
+        this.exposure.filter = 'ND8 (3-Stop)';
+        this.exposure.filterTip = {
+          recommended: true,
+          text: 'Bright sun: a 3-stop ND filter lets you shoot wide open without hitting max shutter limits.'
+        };
+      } else {
+        this.exposure.filter = 'None';
+        this.exposure.filterTip = {
+          recommended: false,
+          text: 'No optical filter required for this EV/subject combination; keep bare glass for maximum light transmission.'
+        };
+      }
     }
 
     // Update metering string based on diagnosis

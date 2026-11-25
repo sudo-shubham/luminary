@@ -268,4 +268,19 @@ test.describe('Luminary Photography Assistant', () => {
     await hourButtons.nth(6).click();
     await expect(page.locator('#solar-ephemeris-card')).toContainText('06:00');
   });
+
+  test('should update exposure and focus settings when changing Scene Priority', async ({ page }) => {
+    // Default Landscape starts at f/8
+    await expect(page.locator('text=f/8').first()).toBeVisible();
+
+    // Switch to Portrait -> opens up aperture to lens widest (f/3.5) and sets Eye-AF
+    await page.getByRole('button', { name: /Portrait/i }).click();
+    await expect(page.locator('text=f/3.5').first()).toBeVisible();
+    await expect(page.locator('text=AF-S / Eye-AF').first()).toBeVisible();
+
+    // Switch to Silk -> stops down to f/11
+    await page.getByRole('button', { name: /Silk/i }).click();
+    await expect(page.locator('text=f/11').first()).toBeVisible();
+    await expect(page.locator('text=AF-S / Hyperfocal').first()).toBeVisible();
+  });
 });
