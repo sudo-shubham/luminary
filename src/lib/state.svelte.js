@@ -1633,6 +1633,15 @@ class AppState {
   importFullBackup(jsonText) {
     try {
       const data = JSON.parse(jsonText);
+
+      // Also allow restoring a plain Shot Journal array exported via "Export JSON"
+      if (Array.isArray(data)) {
+        this.journal = data;
+        saveLocal('luminary_shot_journal', this.journal);
+        this.showToast(`✅ Restored ${this.journal.length} journal recipes!`);
+        return true;
+      }
+
       if (!data || typeof data !== 'object' || data.app !== 'Luminary' || !data.saved) {
         this.showToast('Invalid Luminary backup file.');
         return false;
@@ -1690,6 +1699,7 @@ class AppState {
 
       this.recalculate();
       this.fetchWeatherForCoords(this.location.lat, this.location.lon);
+      this.isShotJournalModalOpen = false;
       this.showToast(`✅ Restored backup (${this.journal.length} shots)!`);
       return true;
     } catch {

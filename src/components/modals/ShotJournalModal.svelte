@@ -15,10 +15,9 @@
     HardDriveDownload
   } from '@lucide/svelte';
 
-  let backupInputEl = $state(null);
-
   async function handleImportBackup(e) {
-    const file = e.currentTarget.files?.[0];
+    const input = e.currentTarget;
+    const file = input.files?.[0];
     if (!file) return;
     try {
       const text = await file.text();
@@ -26,7 +25,7 @@
     } catch {
       appState.showToast('Could not read backup file.');
     } finally {
-      e.currentTarget.value = '';
+      input.value = '';
     }
   }
 
@@ -121,21 +120,18 @@
             <HardDriveDownload class="w-3.5 h-3.5 text-amber-400" />
             <span>Backup</span>
           </button>
-          <button
-            type="button"
-            onclick={() => backupInputEl?.click()}
-            class="px-2.5 py-1.5 rounded-xl bg-dial hover:bg-slate-700 border border-borderline text-[11px] font-mono text-slate-200 transition flex items-center gap-1 active:scale-95 shadow-sm"
-            title="Import a previously exported Luminary backup JSON">
+          <label
+            class="cursor-pointer px-2.5 py-1.5 rounded-xl bg-dial hover:bg-slate-700 border border-borderline text-[11px] font-mono text-slate-200 transition flex items-center gap-1 active:scale-95 shadow-sm"
+            title="Import a previously exported Luminary backup or journal JSON">
             <Upload class="w-3.5 h-3.5 text-sky-400" />
             <span>Restore</span>
-          </button>
-          <input
-            bind:this={backupInputEl}
-            type="file"
-            accept=".json,application/json"
-            onchange={handleImportBackup}
-            aria-label="Import Luminary Backup JSON"
-            class="hidden" />
+            <input
+              type="file"
+              accept=".json,application/json,text/plain,*/*"
+              onchange={handleImportBackup}
+              aria-label="Import Luminary Backup JSON"
+              class="sr-only" />
+          </label>
           <button
             type="button"
             onclick={() => appState.exportJournalJSON()}

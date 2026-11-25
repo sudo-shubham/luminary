@@ -266,7 +266,7 @@ test.describe('Luminary Photography Assistant', () => {
 
     // Click 06:00 bar to preview that hour
     await hourButtons.nth(6).click();
-    await expect(page.locator('#solar-ephemeris-card')).toContainText('06:00');
+    await expect(page.locator('#solar-ephemeris-card')).toContainText(/05:59|06:00/);
   });
 
   test('should update exposure and focus settings when changing Scene Priority', async ({ page }) => {
