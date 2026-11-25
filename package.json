@@ -1,6 +1,6 @@
 {
   "name": "luminary",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "type": "module",
   "description": "Location-aware camera settings, solar ephemeris, and phone compass light-source radar for photographers.",
   "scripts": {

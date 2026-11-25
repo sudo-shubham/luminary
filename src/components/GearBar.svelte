@@ -1,7 +1,8 @@
 <script>
   import { appState } from '../lib/state.svelte.js';
-  import { APERTURES, DEFAULT_LENSES, SHUTTERS } from '../lib/constants.js';
-  import { Camera, Sliders, Trash2, Save, ChevronDown, ChevronUp } from '@lucide/svelte';
+  import { APERTURES, BRAND_LENS_IDS, DEFAULT_LENSES, SHUTTERS } from '../lib/constants.js';
+  import { Sliders, Trash2, Save, ChevronDown, ChevronUp } from '@lucide/svelte';
+  import BrandBadge from './BrandBadge.svelte';
 
   let customLensNameInput = $state('');
 
@@ -21,9 +22,7 @@
   <!-- Gear Setup Summary Header -->
   <div class="flex items-center justify-between gap-3">
     <div class="flex items-center gap-2.5 min-w-0">
-      <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-dial border border-borderline flex items-center justify-center text-amber-400 shrink-0 shadow-inner">
-        <Camera class="w-4 h-4 text-amber-400" />
-      </div>
+      <BrandBadge brand={appState.activeCamera.brand} />
       <div class="min-w-0">
         <div class="text-[9px] font-mono uppercase tracking-wider text-slate-400 font-semibold">Active Camera &amp; Lens Setup</div>
         <div class="flex items-center gap-1.5 flex-wrap">
@@ -57,13 +56,16 @@
   {#if appState.isCameraSetupOpen}
     <div class="border-t border-borderline/60 pt-3 space-y-3.5">
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-        <!-- Camera Body Selector -->
+        <!-- Camera Brand & Sensor Selector -->
         <div>
-          <span class="block text-[10px] font-mono text-slate-400 uppercase mb-1 font-semibold">Camera Body</span>
-          <div class="bg-obsidian border border-borderline hover:border-amber-500/50 rounded-xl px-2.5 py-1.5 flex items-center justify-between gap-1 shadow-inner">
-            <div class="min-w-0 pr-1">
-              <div class="text-xs sm:text-sm font-bold text-white truncate">{appState.activeCamera.name}</div>
-              <div class="text-[10px] font-mono text-amber-400">{appState.activeCamera.cropFactor}× {appState.activeCamera.sensorType || ''}</div>
+          <span class="block text-[10px] font-mono text-slate-400 uppercase mb-1 font-semibold">Camera Brand &amp; Sensor</span>
+          <div class="bg-obsidian border border-borderline hover:border-amber-500/50 rounded-xl px-2.5 py-1.5 flex items-center justify-between gap-2 shadow-inner">
+            <div class="flex items-center gap-2 min-w-0 pr-1">
+              <BrandBadge brand={appState.activeCamera.brand} size="sm" />
+              <div class="min-w-0">
+                <div class="text-xs sm:text-sm font-bold text-white truncate">{appState.activeCamera.name}</div>
+                <div class="text-[10px] font-mono text-amber-400">{appState.activeCamera.sensorType || `${appState.activeCamera.cropFactor}×`}</div>
+              </div>
             </div>
             <button
               type="button"
@@ -83,7 +85,16 @@
               value={appState.gear}
               onchange={(e) => appState.setGear(e.target.value)}
               class="w-full bg-transparent text-xs sm:text-sm font-semibold text-white focus:outline-none cursor-pointer">
-              <optgroup label="Preset Prime Lenses" class="bg-obsidian text-slate-400">
+              {#if (BRAND_LENS_IDS[appState.activeCamera.brand] || []).length > 0}
+                <optgroup label={`${appState.activeCamera.brand} Mount Lenses`} class="bg-obsidian text-amber-400">
+                  {#each BRAND_LENS_IDS[appState.activeCamera.brand] as id}
+                    {#if DEFAULT_LENSES[id]}
+                      <option value={id} class="bg-obsidian text-white">{DEFAULT_LENSES[id].label}</option>
+                    {/if}
+                  {/each}
+                </optgroup>
+              {/if}
+              <optgroup label="Universal Prime Lenses" class="bg-obsidian text-slate-400">
                 {#each ['prime_24', 'prime_35', 'prime_50', 'prime_85', 'prime_135', 'macro_100', 'astro_14', 'phone'] as id}
                   {#if DEFAULT_LENSES[id]}
                     <option value={id} class="bg-obsidian text-white">{DEFAULT_LENSES[id].label}</option>

@@ -18,7 +18,7 @@
       <div class="min-w-0">
         <div class="flex items-center gap-1.5">
           <span class="font-bold tracking-tight text-white text-base sm:text-lg leading-none">Luminary</span>
-          <span class="text-[9px] font-mono uppercase px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-semibold">v1.5.2</span>
+          <span class="text-[9px] font-mono uppercase px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-semibold">v1.5.3</span>
         </div>
         <div class="text-[9px] sm:text-[10px] font-mono tracking-widest text-slate-400 uppercase truncate">
           Photography Assistant &amp; Solar Ephemeris

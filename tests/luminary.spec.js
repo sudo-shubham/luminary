@@ -283,4 +283,15 @@ test.describe('Luminary Photography Assistant', () => {
     await expect(page.locator('text=f/11').first()).toBeVisible();
     await expect(page.locator('text=AF-S / Hyperfocal').first()).toBeVisible();
   });
+
+  test('should display Brand + Sensor profiles and brand-specific lenses', async ({ page }) => {
+    await expect(page.locator('text=Sony Full Frame').first()).toBeVisible();
+    await page.getByRole('button', { name: /Setup/i }).click();
+    await page.getByRole('button', { name: 'Change', exact: true }).click();
+    await expect(page.locator('#cameraModalTitle')).toBeVisible();
+
+    await page.getByRole('button', { name: /Canon Full Frame/i }).click();
+    await expect(page.locator('text=Canon Full Frame').first()).toBeVisible();
+    await expect(page.locator('#gearSelectInput optgroup[label="Canon Mount Lenses"]')).toBeAttached();
+  });
 });

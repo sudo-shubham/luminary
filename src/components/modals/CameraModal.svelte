@@ -2,6 +2,7 @@
   import { appState } from '../../lib/state.svelte.js';
   import { DEFAULT_CAMERAS } from '../../lib/constants.js';
   import { Camera, Trash2, Plus, ChevronDown, ChevronUp, Check, Save } from '@lucide/svelte';
+  import BrandBadge from '../BrandBadge.svelte';
 
   let customCamDrawerOpen = $state(false);
   let customCamName = $state('');
@@ -98,7 +99,7 @@
                   onclick={() => handleSelectCamera(id)}
                   class={`cursor-pointer p-3 rounded-xl border transition flex items-center justify-between active:scale-98 ${isActive ? 'bg-amber-500/15 border-amber-500/60 ring-1 ring-amber-500/40 text-white' : 'bg-obsidian/70 hover:bg-slate-800 border-borderline text-slate-200'}`}>
                   <div class="flex items-center gap-2.5 min-w-0 pr-2">
-                    <Camera class={`w-4 h-4 shrink-0 ${isActive ? 'text-amber-400' : 'text-slate-400'}`} />
+                    <BrandBadge brand={cam.brand || 'Custom'} size="sm" />
                     <div class="min-w-0">
                       <div class="text-xs sm:text-sm font-semibold truncate text-white">{cam.name}</div>
                       <div class="text-[10px] font-mono text-slate-400 truncate">{cam.sensorType || cam.cropFactor + '×'}</div>
@@ -136,10 +137,10 @@
                     onclick={() => handleSelectCamera(id)}
                     class={`w-full text-left p-3 rounded-xl border transition flex items-center justify-between active:scale-98 ${isActive ? 'bg-amber-500/15 border-amber-500/60 ring-1 ring-amber-500/40 text-white' : 'bg-obsidian/70 hover:bg-slate-800 border-borderline text-slate-200 hover:text-white'}`}>
                     <div class="flex items-center gap-2.5 min-w-0 pr-2">
-                      <Camera class={`w-4 h-4 shrink-0 ${isActive ? 'text-amber-400' : 'text-slate-400'}`} />
+                      <BrandBadge brand={cam.brand} size="sm" />
                       <div class="min-w-0">
                         <div class="text-xs sm:text-sm font-semibold truncate text-white">{cam.name}</div>
-                        <div class="text-[10px] font-mono text-slate-400 truncate">{cam.sensorType || cam.cropFactor + '×'} • {cam.brand}</div>
+                        <div class="text-[10px] font-mono text-slate-400 truncate">{cam.sensorType || cam.cropFactor + '×'}</div>
                       </div>
                     </div>
                     <div class="flex items-center gap-1.5 shrink-0">

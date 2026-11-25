@@ -29,17 +29,26 @@ export const SHUTTERS = [
 export const ISOS = [100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600];
 
 export const DEFAULT_CAMERAS = {
-  sony_a7iv:    { id: 'sony_a7iv', name: 'Sony A7 IV / A7R V', brand: 'Sony', sensorType: 'Full Frame', cropFactor: 1.0 },
-  canon_r5:     { id: 'canon_r5', name: 'Canon EOS R5 / R6', brand: 'Canon', sensorType: 'Full Frame', cropFactor: 1.0 },
-  nikon_z6:     { id: 'nikon_z6', name: 'Nikon Z6 III / Z8', brand: 'Nikon', sensorType: 'Full Frame', cropFactor: 1.0 },
-  panasonic_s5: { id: 'panasonic_s5', name: 'Panasonic Lumix S5 II', brand: 'Lumix', sensorType: 'Full Frame', cropFactor: 1.0 },
-  fuji_xt5:     { id: 'fuji_xt5', name: 'Fujifilm X-T5 / X100VI', brand: 'Fujifilm', sensorType: 'APS-C (1.5×)', cropFactor: 1.5 },
-  sony_a6700:   { id: 'sony_a6700', name: 'Sony A6700 / FX30', brand: 'Sony', sensorType: 'APS-C (1.5×)', cropFactor: 1.5 },
-  nikon_z50:    { id: 'nikon_z50', name: 'Nikon Z50 / Z fc', brand: 'Nikon', sensorType: 'APS-C (1.5×)', cropFactor: 1.5 },
-  canon_r7:     { id: 'canon_r7', name: 'Canon EOS R7 / R50', brand: 'Canon', sensorType: 'APS-C (1.6×)', cropFactor: 1.6 },
-  lumix_gh6:    { id: 'lumix_gh6', name: 'Panasonic Lumix GH6 / G9', brand: 'Lumix', sensorType: 'Micro 4/3 (2.0×)', cropFactor: 2.0 },
-  fuji_gfx:     { id: 'fuji_gfx', name: 'Fujifilm GFX 100 II', brand: 'Fujifilm', sensorType: 'Medium Format (0.79×)', cropFactor: 0.79 },
-  phone_pro:    { id: 'phone_pro', name: 'Smartphone Pro (1/1.3")', brand: 'Phone', sensorType: 'Mobile (3.6×)', cropFactor: 3.6 }
+  sony_a7iv:    { id: 'sony_a7iv', name: 'Sony Full Frame', brand: 'Sony', sensorType: 'Full Frame (1.0×)', cropFactor: 1.0 },
+  canon_r5:     { id: 'canon_r5', name: 'Canon Full Frame', brand: 'Canon', sensorType: 'Full Frame (1.0×)', cropFactor: 1.0 },
+  nikon_z6:     { id: 'nikon_z6', name: 'Nikon Full Frame', brand: 'Nikon', sensorType: 'Full Frame (1.0×)', cropFactor: 1.0 },
+  panasonic_s5: { id: 'panasonic_s5', name: 'Lumix Full Frame', brand: 'Lumix', sensorType: 'Full Frame (1.0×)', cropFactor: 1.0 },
+  fuji_xt5:     { id: 'fuji_xt5', name: 'Fujifilm APS-C', brand: 'Fujifilm', sensorType: 'APS-C (1.5×)', cropFactor: 1.5 },
+  sony_a6700:   { id: 'sony_a6700', name: 'Sony APS-C', brand: 'Sony', sensorType: 'APS-C (1.5×)', cropFactor: 1.5 },
+  nikon_z50:    { id: 'nikon_z50', name: 'Nikon APS-C', brand: 'Nikon', sensorType: 'APS-C (1.5×)', cropFactor: 1.5 },
+  canon_r7:     { id: 'canon_r7', name: 'Canon APS-C', brand: 'Canon', sensorType: 'APS-C (1.6×)', cropFactor: 1.6 },
+  lumix_gh6:    { id: 'lumix_gh6', name: 'Lumix Micro 4/3', brand: 'Lumix', sensorType: 'Micro 4/3 (2.0×)', cropFactor: 2.0 },
+  fuji_gfx:     { id: 'fuji_gfx', name: 'Fujifilm Medium Format', brand: 'Fujifilm', sensorType: 'Medium Format (0.79×)', cropFactor: 0.79 },
+  phone_pro:    { id: 'phone_pro', name: 'Smartphone Main', brand: 'Phone', sensorType: 'Mobile (3.6×)', cropFactor: 3.6 }
+};
+
+export const BRAND_LENS_IDS = {
+  Sony:     ['sony_24_70_gm', 'sony_35_gm', 'sony_85_gm', 'sony_14_gm', 'sony_24_gm', 'sony_70_200_gm', 'sony_200_600_g'],
+  Canon:    ['canon_24_70_l', 'canon_50_18', 'canon_85_12_l', 'canon_15_35_l', 'canon_70_200_l', 'canon_100_500_l'],
+  Nikon:    ['nikon_24_70_s', 'nikon_35_18_s', 'nikon_50_18_s', 'nikon_85_12_s', 'nikon_14_24_s', 'nikon_70_200_s'],
+  Fujifilm: ['fuji_16_55', 'fuji_23_14', 'fuji_35_14', 'fuji_56_12', 'fuji_gf_32_64'],
+  Lumix:    ['lumix_24_70_s', 'lumix_50_18_s', 'lumix_12_60', 'lumix_42_5'],
+  Phone:    ['phone', 'phone_13_uw', 'phone_77_tele', 'phone_120_tele']
 };
 
 export const DEFAULT_LENSES = {
@@ -55,7 +64,44 @@ export const DEFAULT_LENSES = {
   zoom_100_400: { minApertureIdx: 5, maxApertureIdx: 10, fixedAperture: false, focalLengthMm: 200, minMm: 100, maxMm: 400, label: 'Super-Tele (100–400mm f/4.5–5.6)' },
   macro_100:    { minApertureIdx: 3, maxApertureIdx: 10, fixedAperture: false, focalLengthMm: 100, minMm: 100, maxMm: 100, label: 'Macro Lens (100mm f/2.8–f/32)' },
   astro_14:     { minApertureIdx: 1, maxApertureIdx: 9,  fixedAperture: false, focalLengthMm: 14, minMm: 14, maxMm: 14, label: 'Astro Ultra-Wide (14mm f/1.8–f/16)' },
-  phone:        { minApertureIdx: 1, maxApertureIdx: 1,  fixedAperture: true,  focalLengthMm: 24, minMm: 24, maxMm: 24, label: 'Phone Pro (24mm Fixed f/1.8)' }
+  phone:        { minApertureIdx: 1, maxApertureIdx: 1,  fixedAperture: true,  focalLengthMm: 24, minMm: 24, maxMm: 24, label: 'Main Wide (24mm f/1.8)' },
+  // Sony E-Mount
+  sony_14_gm:     { brand: 'Sony', minApertureIdx: 1, maxApertureIdx: 9,  fixedAperture: false, focalLengthMm: 14,  minMm: 14,  maxMm: 14,  label: 'Sony FE 14mm f/1.8 GM' },
+  sony_24_gm:     { brand: 'Sony', minApertureIdx: 0, maxApertureIdx: 9,  fixedAperture: false, focalLengthMm: 24,  minMm: 24,  maxMm: 24,  label: 'Sony FE 24mm f/1.4 GM' },
+  sony_35_gm:     { brand: 'Sony', minApertureIdx: 0, maxApertureIdx: 9,  fixedAperture: false, focalLengthMm: 35,  minMm: 35,  maxMm: 35,  label: 'Sony FE 35mm f/1.4 GM' },
+  sony_85_gm:     { brand: 'Sony', minApertureIdx: 0, maxApertureIdx: 9,  fixedAperture: false, focalLengthMm: 85,  minMm: 85,  maxMm: 85,  label: 'Sony FE 85mm f/1.4 GM' },
+  sony_24_70_gm:  { brand: 'Sony', minApertureIdx: 3, maxApertureIdx: 10, fixedAperture: false, focalLengthMm: 50,  minMm: 24,  maxMm: 70,  label: 'Sony FE 24–70mm f/2.8 GM II' },
+  sony_70_200_gm: { brand: 'Sony', minApertureIdx: 3, maxApertureIdx: 10, fixedAperture: false, focalLengthMm: 135, minMm: 70,  maxMm: 200, label: 'Sony FE 70–200mm f/2.8 GM II' },
+  sony_200_600_g: { brand: 'Sony', minApertureIdx: 6, maxApertureIdx: 11, fixedAperture: false, focalLengthMm: 400, minMm: 200, maxMm: 600, label: 'Sony FE 200–600mm f/5.6–6.3 G' },
+  // Canon RF-Mount
+  canon_15_35_l:   { brand: 'Canon', minApertureIdx: 3, maxApertureIdx: 10, fixedAperture: false, focalLengthMm: 24,  minMm: 15,  maxMm: 35,  label: 'Canon RF 15–35mm f/2.8L IS' },
+  canon_24_70_l:   { brand: 'Canon', minApertureIdx: 3, maxApertureIdx: 10, fixedAperture: false, focalLengthMm: 50,  minMm: 24,  maxMm: 70,  label: 'Canon RF 24–70mm f/2.8L IS' },
+  canon_50_18:     { brand: 'Canon', minApertureIdx: 1, maxApertureIdx: 10, fixedAperture: false, focalLengthMm: 50,  minMm: 50,  maxMm: 50,  label: 'Canon RF 50mm f/1.8 STM' },
+  canon_85_12_l:   { brand: 'Canon', minApertureIdx: 0, maxApertureIdx: 9,  fixedAperture: false, focalLengthMm: 85,  minMm: 85,  maxMm: 85,  label: 'Canon RF 85mm f/1.2L' },
+  canon_70_200_l:  { brand: 'Canon', minApertureIdx: 3, maxApertureIdx: 10, fixedAperture: false, focalLengthMm: 135, minMm: 70,  maxMm: 200, label: 'Canon RF 70–200mm f/2.8L IS' },
+  canon_100_500_l: { brand: 'Canon', minApertureIdx: 5, maxApertureIdx: 11, fixedAperture: false, focalLengthMm: 300, minMm: 100, maxMm: 500, label: 'Canon RF 100–500mm f/4.5–7.1L' },
+  // Nikon Z-Mount
+  nikon_14_24_s:  { brand: 'Nikon', minApertureIdx: 3, maxApertureIdx: 10, fixedAperture: false, focalLengthMm: 20,  minMm: 14,  maxMm: 24,  label: 'NIKKOR Z 14–24mm f/2.8 S' },
+  nikon_24_70_s:  { brand: 'Nikon', minApertureIdx: 3, maxApertureIdx: 10, fixedAperture: false, focalLengthMm: 50,  minMm: 24,  maxMm: 70,  label: 'NIKKOR Z 24–70mm f/2.8 S' },
+  nikon_35_18_s:  { brand: 'Nikon', minApertureIdx: 1, maxApertureIdx: 9,  fixedAperture: false, focalLengthMm: 35,  minMm: 35,  maxMm: 35,  label: 'NIKKOR Z 35mm f/1.8 S' },
+  nikon_50_18_s:  { brand: 'Nikon', minApertureIdx: 1, maxApertureIdx: 9,  fixedAperture: false, focalLengthMm: 50,  minMm: 50,  maxMm: 50,  label: 'NIKKOR Z 50mm f/1.8 S' },
+  nikon_85_12_s:  { brand: 'Nikon', minApertureIdx: 0, maxApertureIdx: 9,  fixedAperture: false, focalLengthMm: 85,  minMm: 85,  maxMm: 85,  label: 'NIKKOR Z 85mm f/1.2 S' },
+  nikon_70_200_s: { brand: 'Nikon', minApertureIdx: 3, maxApertureIdx: 10, fixedAperture: false, focalLengthMm: 135, minMm: 70,  maxMm: 200, label: 'NIKKOR Z 70–200mm f/2.8 VR S' },
+  // Fujifilm X & GFX
+  fuji_16_55:    { brand: 'Fujifilm', minApertureIdx: 3, maxApertureIdx: 10, fixedAperture: false, focalLengthMm: 35, minMm: 16, maxMm: 55, label: 'Fujinon XF 16–55mm f/2.8' },
+  fuji_23_14:    { brand: 'Fujifilm', minApertureIdx: 0, maxApertureIdx: 9,  fixedAperture: false, focalLengthMm: 23, minMm: 23, maxMm: 23, label: 'Fujinon XF 23mm f/1.4' },
+  fuji_35_14:    { brand: 'Fujifilm', minApertureIdx: 0, maxApertureIdx: 9,  fixedAperture: false, focalLengthMm: 35, minMm: 35, maxMm: 35, label: 'Fujinon XF 35mm f/1.4' },
+  fuji_56_12:    { brand: 'Fujifilm', minApertureIdx: 0, maxApertureIdx: 9,  fixedAperture: false, focalLengthMm: 56, minMm: 56, maxMm: 56, label: 'Fujinon XF 56mm f/1.2' },
+  fuji_gf_32_64: { brand: 'Fujifilm', minApertureIdx: 5, maxApertureIdx: 11, fixedAperture: false, focalLengthMm: 45, minMm: 32, maxMm: 64, label: 'Fujinon GF 32–64mm f/4' },
+  // Lumix L-Mount & MFT
+  lumix_24_70_s: { brand: 'Lumix', minApertureIdx: 3, maxApertureIdx: 10, fixedAperture: false, focalLengthMm: 50, minMm: 24, maxMm: 70, label: 'Lumix S PRO 24–70mm f/2.8' },
+  lumix_50_18_s: { brand: 'Lumix', minApertureIdx: 1, maxApertureIdx: 10, fixedAperture: false, focalLengthMm: 50, minMm: 50, maxMm: 50, label: 'Lumix S 50mm f/1.8' },
+  lumix_12_60:   { brand: 'Lumix', minApertureIdx: 3, maxApertureIdx: 10, fixedAperture: false, focalLengthMm: 25, minMm: 12, maxMm: 60, label: 'Leica DG 12–60mm f/2.8–4' },
+  lumix_42_5:    { brand: 'Lumix', minApertureIdx: 0, maxApertureIdx: 9,  fixedAperture: false, focalLengthMm: 42, minMm: 42, maxMm: 42, label: 'Leica DG 42.5mm f/1.2' },
+  // Smartphone Cameras
+  phone_13_uw:    { brand: 'Phone', minApertureIdx: 2, maxApertureIdx: 2, fixedAperture: true, focalLengthMm: 13,  minMm: 13,  maxMm: 13,  label: 'Ultrawide (13mm f/2.2)' },
+  phone_77_tele:  { brand: 'Phone', minApertureIdx: 3, maxApertureIdx: 3, fixedAperture: true, focalLengthMm: 77,  minMm: 77,  maxMm: 77,  label: 'Telephoto (77mm f/2.8)' },
+  phone_120_tele: { brand: 'Phone', minApertureIdx: 3, maxApertureIdx: 3, fixedAperture: true, focalLengthMm: 120, minMm: 120, maxMm: 120, label: 'Periscope Tele (120mm f/2.8)' }
 };
 
 export const BRAND_CAMERA_MODES = {

@@ -4,6 +4,7 @@ import {
   ISOS,
   DEFAULT_CAMERAS,
   DEFAULT_LENSES,
+  BRAND_LENS_IDS,
   BRAND_CAMERA_MODES,
   CAMERA_CONTROL_GUIDE,
   PRESET_LOCATIONS,
@@ -858,8 +859,20 @@ class AppState {
   setCamera(val) {
     this.camera = val;
     saveRawLocal('luminary_active_camera', val);
+
+    // If active lens is brand-specific to a different brand, switch to the new brand's primary lens
+    const activeLensObj = DEFAULT_LENSES[this.gear];
+    const nextBrand = this.activeCamera?.brand;
+    if (activeLensObj?.brand && nextBrand && activeLensObj.brand !== nextBrand) {
+      const nextBrandLenses = BRAND_LENS_IDS[nextBrand];
+      if (nextBrandLenses?.length > 0) {
+        this.gear = nextBrandLenses[0];
+        saveRawLocal('luminary_active_lens', this.gear);
+      }
+    }
+
     this.recalculate();
-    this.showToast(`Selected Camera: ${this.activeCamera.name} (${this.activeCamera.brand})`);
+    this.showToast(`Selected: ${this.activeCamera.name}`);
   }
 
   setGear(val) {
