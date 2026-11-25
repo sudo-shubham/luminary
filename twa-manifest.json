@@ -1,6 +1,6 @@
 {
   "packageId": "io.github.sudoshubham.luminary",
-  "host": "sudo-shubham.github.io",
+  "host": "luminary.shubhampatel.dev",
   "name": "Luminary",
   "launcherName": "Luminary",
   "minSdkVersion": 24,
@@ -12,38 +12,38 @@
   "navigationDividerColorDark": "#00000000",
   "backgroundColor": "#0b0d10",
   "enableNotifications": false,
-  "startUrl": "/luminary.github.io/index.html",
-  "iconUrl": "https://sudo-shubham.github.io/luminary.github.io/luminary-icon-512x512.png",
-  "maskableIconUrl": "https://sudo-shubham.github.io/luminary.github.io/luminary-icon-maskable-512x512.png",
+  "startUrl": "/index.html",
+  "iconUrl": "https://luminary.shubhampatel.dev/luminary-icon-512x512.png",
+  "maskableIconUrl": "https://luminary.shubhampatel.dev/luminary-icon-maskable-512x512.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
     "path": "./android.keystore",
     "alias": "android"
   },
-  "appVersionName": "1.5.1",
-  "appVersionCode": 7,
+  "appVersionName": "1.5.2",
+  "appVersionCode": 8,
   "shortcuts": [
     {
       "name": "Astro Photography",
       "shortName": "Astro",
-      "url": "https://sudo-shubham.github.io/luminary.github.io/index.html?style=astro",
-      "chosenIconUrl": "https://sudo-shubham.github.io/luminary.github.io/luminary-icon-192x192.png"
+      "url": "https://luminary.shubhampatel.dev/index.html?style=astro",
+      "chosenIconUrl": "https://luminary.shubhampatel.dev/luminary-icon-192x192.png"
     },
     {
       "name": "Portrait Settings",
       "shortName": "Portrait",
-      "url": "https://sudo-shubham.github.io/luminary.github.io/index.html?style=portrait",
-      "chosenIconUrl": "https://sudo-shubham.github.io/luminary.github.io/luminary-icon-192x192.png"
+      "url": "https://luminary.shubhampatel.dev/index.html?style=portrait",
+      "chosenIconUrl": "https://luminary.shubhampatel.dev/luminary-icon-192x192.png"
     },
     {
       "name": "Landscape Settings",
       "shortName": "Scenic",
-      "url": "https://sudo-shubham.github.io/luminary.github.io/index.html?style=landscape",
-      "chosenIconUrl": "https://sudo-shubham.github.io/luminary.github.io/luminary-icon-192x192.png"
+      "url": "https://luminary.shubhampatel.dev/index.html?style=landscape",
+      "chosenIconUrl": "https://luminary.shubhampatel.dev/luminary-icon-192x192.png"
     }
   ],
   "generatorApp": "pwabuilder",
-  "webManifestUrl": "https://sudo-shubham.github.io/luminary.github.io/manifest.json",
+  "webManifestUrl": "https://luminary.shubhampatel.dev/manifest.json",
   "fallbackType": "customtabs",
   "features": {
     "locationDelegation": {

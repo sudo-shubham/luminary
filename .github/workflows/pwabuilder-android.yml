@@ -223,7 +223,7 @@ jobs:
             - **Package ID:** `io.github.sudoshubham.luminary`
             - **Min SDK:** 24 (Android 7.0+)
             - **Signature:** Release RSA 2048-bit Keystore (Verified)
-            - **Digital Asset Links:** Verified for `sudo-shubham.github.io` (address bar hidden in standalone mode)
+            - **Digital Asset Links:** Verified for `luminary.shubhampatel.dev` (address bar hidden in standalone mode)
           files: |
             luminary-v${{ steps.release_info.outputs.VERSION }}.apk
             app-release-signed.apk
