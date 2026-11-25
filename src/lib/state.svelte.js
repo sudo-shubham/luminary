@@ -174,6 +174,7 @@ class AppState {
   nearbySpotsFilter = $state('all');
   topSpotPhoto = $state(null);
   topSpotPhotoLoading = $state(false);
+  spotPhotos = $state({});
   lastSpotsKey = '';
 
   // Derived: Active Camera Object
@@ -353,6 +354,41 @@ class AppState {
       this.weather.precipitationProb ?? (this.weather.isRain ? 70 : 0)
     );
     return { sunrise: fallback, sunset: fallback };
+  });
+
+  // Derived: 24-Hour Hourly Sky & Rain Timeline for the selected day
+  hourlyTimeline = $derived.by(() => {
+    const hourly = this.rawWeatherData?.hourly;
+    const solar = this.solarData;
+    const dayBase = this.dayOffset * 24;
+    const hasHourly = hourly?.cloud_cover?.length >= dayBase + 24;
+    const activeHour = Math.floor((solar.localHour + 24) % 24);
+
+    const hours = [];
+    for (let h = 0; h < 24; h++) {
+      const idx = dayBase + h;
+      const cloudCover = hasHourly
+        ? Math.round(hourly.cloud_cover[idx] ?? this.weather.cloudCover)
+        : Math.round(this.weather.cloudCover);
+      const precipProb = hasHourly
+        ? Math.round(hourly.precipitation_probability?.[idx] ?? this.weather.precipitationProb ?? 0)
+        : Math.round(this.weather.precipitationProb ?? (this.weather.isRain ? 70 : 0));
+
+      const nearSunrise = Math.abs(h - solar.sunriseLocal) <= 1.0;
+      const nearSunset = Math.abs(h - solar.sunsetLocal) <= 1.0;
+
+      hours.push({
+        hour: h,
+        shortLabel: String(h).padStart(2, '0'),
+        label: `${String(h).padStart(2, '0')}:00`,
+        cloudCover,
+        precipProb,
+        isGoldenOrBlue: nearSunrise || nearSunset,
+        isActive: activeHour === h,
+        isOfflineFallback: !hasHourly
+      });
+    }
+    return hours;
   });
 
   // Derived: Light Diagnosis
@@ -914,6 +950,18 @@ class AppState {
     this.recalculate();
     const dayLabel = this.dayOffset === 1 ? 'Tomorrow ' : '';
     this.showToast(`✨ Snapped to ${dayLabel}${label}`);
+  }
+
+  jumpToHour(targetHour) {
+    this.triggerHaptic('click');
+    const curHour = this.getCurrentLocalHour();
+    const diff = targetHour - curHour;
+    this.timeOffsetHours = Math.round(diff * 100) / 100;
+    this.forcedSunAlt = null;
+    this.exposure.manualOverride = false;
+    this.recalculate();
+    const dayLabel = this.dayOffset === 1 ? 'Tomorrow ' : '';
+    this.showToast(`🕒 Previewing ${dayLabel}${String(targetHour).padStart(2, '0')}:00`);
   }
 
   setManualHeading(val) {
@@ -1645,24 +1693,48 @@ class AppState {
       this.nearbySpotsSource = result.source;
       this.lastSpotsKey = key;
 
-      // Fetch photo for the top featured spot asynchronously
+      // Fetch photos for every spot card asynchronously (concurrency-limited)
       this.topSpotPhoto = null;
+      this.spotPhotos = {};
       if (result.spots.length > 0) {
         this.topSpotPhotoLoading = true;
-        fetchSpotPhoto(result.spots[0])
-          .then((photoUrl) => {
-            this.topSpotPhoto = photoUrl;
-          })
-          .catch(() => {})
-          .finally(() => {
-            this.topSpotPhotoLoading = false;
-          });
+        this.loadSpotPhotosBatch(result.spots.slice(0, 20), key);
       }
     } catch {
       this.nearbySpotsError = 'Could not load nearby scenic spots. Check connection and try again.';
     } finally {
       this.nearbySpotsLoading = false;
     }
+  }
+
+  async loadSpotPhotosBatch(spots, expectedKey) {
+    const queue = [...spots];
+    const concurrency = 4;
+
+    const worker = async () => {
+      while (queue.length > 0) {
+        if (this.lastSpotsKey !== expectedKey) return;
+        const spot = queue.shift();
+        if (!spot) continue;
+        try {
+          const photoUrl = await fetchSpotPhoto(spot);
+          if (this.lastSpotsKey !== expectedKey) return;
+          if (photoUrl) {
+            this.spotPhotos = { ...this.spotPhotos, [spot.id]: photoUrl };
+            if (spot.id === spots[0]?.id) {
+              this.topSpotPhoto = photoUrl;
+            }
+          }
+        } catch {} finally {
+          if (spot.id === spots[0]?.id) {
+            this.topSpotPhotoLoading = false;
+          }
+        }
+      }
+    };
+
+    await Promise.all(Array.from({ length: Math.min(concurrency, queue.length) }, () => worker()));
+    this.topSpotPhotoLoading = false;
   }
 
   scoutCoordinates(lat, lon, customLabel = null) {

@@ -182,6 +182,10 @@ test.describe('Luminary Photography Assistant', () => {
     // City name itself should not appear in the spots list
     await expect(page.locator('h4', { hasText: /^New Delhi$/ })).toHaveCount(0);
     await expect(page.locator('text=Nearest Featured Spot')).toBeVisible({ timeout: 5000 });
+    // Photos appear on every spot card (featured banner + card thumbnails)
+    await expect(page.locator('img[alt="Yamuna Riverfront"]')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('img[alt="Ridge Sunset Overlook"]')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('img[alt="Parliament Heritage Palace"]')).toBeVisible({ timeout: 5000 });
 
     // Switch to interactive Leaflet Scouting Map and verify container renders
     await page.getByRole('button', { name: /^Map$/i }).click();
@@ -248,5 +252,17 @@ test.describe('Luminary Photography Assistant', () => {
     await expect(page.locator('text=Dhantoli')).toHaveCount(0);
     await expect(page.locator('text=Central Provinces')).toHaveCount(0);
     await expect(page.locator('text=Kingdom of Nagpur')).toHaveCount(0);
+  });
+
+  test('should display 24-Hour Hourly Sky & Rain Timeline and preview clicked hour', async ({ page }) => {
+    const timeline = page.getByLabel('24-Hour Hourly Sky and Rain Timeline');
+    await expect(timeline).toBeVisible();
+    await expect(timeline.locator('text=24H SKY & RAIN')).toBeVisible();
+    const hourButtons = timeline.locator('button');
+    await expect(hourButtons).toHaveCount(24);
+
+    // Click 06:00 bar to preview that hour
+    await hourButtons.nth(6).click();
+    await expect(page.locator('#solar-ephemeris-card')).toContainText('06:00');
   });
 });

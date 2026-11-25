@@ -12,7 +12,7 @@
   let mapInstance = null;
   let markersLayer = null;
   let pinnedCoords = $state(null); // { lat, lon }
-  let photoBroken = $state(false);
+  let brokenPhotos = $state({});
 
   const filteredSpots = $derived.by(() => {
     const f = appState.nearbySpotsFilter;
@@ -20,10 +20,10 @@
     return appState.nearbySpots.filter((s) => s.category === f);
   });
 
-  // Reset photoBroken when top spot changes
+  // Reset brokenPhotos when spot list reloads
   $effect(() => {
-    const _ = appState.topSpotPhoto;
-    photoBroken = false;
+    const _ = appState.spotPhotos;
+    brokenPhotos = {};
   });
 
   // Reset view & pinned coords when modal closes
@@ -358,14 +358,16 @@
           {:else}
             {#each filteredSpots as spot, idx (spot.id)}
               {@const align = getLightAlignment(spot.bearingDeg, solar.sunriseAzimuth ?? 90, solar.sunsetAzimuth ?? 270)}
-              {@const isTopFeatured = idx === 0 && appState.nearbySpots[0]?.id === spot.id && appState.topSpotPhoto && !photoBroken}
+              {@const spotPhoto = appState.spotPhotos[spot.id] || (idx === 0 && appState.nearbySpots[0]?.id === spot.id ? appState.topSpotPhoto : null)}
+              {@const hasPhoto = Boolean(spotPhoto && !brokenPhotos[spot.id])}
+              {@const isTopFeatured = idx === 0 && appState.nearbySpots[0]?.id === spot.id && hasPhoto}
               <div class="rounded-xl bg-dial/60 border border-borderline hover:border-amber-500/40 transition overflow-hidden">
                 {#if isTopFeatured}
                   <div class="relative h-36 sm:h-44 w-full bg-obsidian overflow-hidden">
                     <img
-                      src={appState.topSpotPhoto}
+                      src={spotPhoto}
                       alt={spot.name}
-                      onerror={() => { photoBroken = true; }}
+                      onerror={() => { brokenPhotos = { ...brokenPhotos, [spot.id]: true }; }}
                       class="w-full h-full object-cover" />
                     <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                     <span class="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-black/65 backdrop-blur-sm text-[10px] font-mono text-amber-300 border border-amber-500/30 font-semibold">
@@ -374,7 +376,16 @@
                   </div>
                 {/if}
                 <div class="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                  <div class="space-y-1 min-w-0">
+                  <div class="flex items-center gap-3 min-w-0">
+                    {#if !isTopFeatured && hasPhoto}
+                      <img
+                        src={spotPhoto}
+                        alt={spot.name}
+                        loading="lazy"
+                        onerror={() => { brokenPhotos = { ...brokenPhotos, [spot.id]: true }; }}
+                        class="w-14 h-14 sm:w-16 sm:h-16 rounded-lg object-cover border border-borderline/70 shrink-0 bg-obsidian" />
+                    {/if}
+                    <div class="space-y-1 min-w-0">
                     <div class="flex items-center gap-1.5 flex-wrap">
                       <span class="text-sm">{getCategoryIcon(spot.category)}</span>
                       <span class="text-xs font-bold text-white truncate">{spot.name}</span>
@@ -400,6 +411,7 @@
                       </span>
                       <span class="capitalize text-slate-500">{spot.tagLabel}</span>
                     </div>
+                  </div>
                   </div>
 
                   <div class="flex items-center gap-1.5 shrink-0">

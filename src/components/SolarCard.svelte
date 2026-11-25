@@ -9,6 +9,7 @@
   const solar = $derived(appState.solarData);
   const phase = $derived(appState.lightPhase);
   const quality = $derived(appState.skyQuality);
+  const timeline = $derived(appState.hourlyTimeline);
 
   // Sunset countdown calculation
   const countdownText = $derived.by(() => {
@@ -252,6 +253,58 @@
         <span class={`px-1.5 py-0.5 rounded border font-semibold ${quality.sunset.badgeClass}`}>
           {quality.sunset.score}% • {quality.sunset.label}
         </span>
+      </div>
+    </div>
+
+    <!-- 24-Hour Hourly Sky & Rain Timeline -->
+    <div class="mt-2.5 pt-2.5 border-t border-borderline/60" aria-label="24-Hour Hourly Sky and Rain Timeline">
+      <div class="flex items-center justify-between gap-2 text-[10px] font-mono text-slate-400 mb-1.5 flex-wrap">
+        <span class="font-bold text-slate-300">24H SKY &amp; RAIN</span>
+        <div class="flex items-center gap-2.5 text-[9px]">
+          <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-xs bg-emerald-400/80"></span>Clear</span>
+          <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-xs bg-slate-400/70"></span>Cloudy</span>
+          <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-xs bg-sky-400"></span>Rain</span>
+          <span class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>Golden</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-24 gap-0.5 sm:gap-1 items-end h-12 bg-obsidian/45 rounded-lg p-1.5 border border-borderline/50">
+        {#each timeline as slot (slot.hour)}
+          {@const barHeight = Math.max(14, slot.cloudCover)}
+          {@const barColor =
+            slot.precipProb >= 35
+              ? 'bg-sky-400/85'
+              : slot.cloudCover <= 35
+              ? 'bg-emerald-400/75'
+              : slot.cloudCover <= 65
+              ? 'bg-amber-400/75'
+              : 'bg-slate-400/75'}
+          <button
+            type="button"
+            onclick={() => appState.jumpToHour(slot.hour)}
+            title={`${slot.label} • Clouds ${slot.cloudCover}% • Rain ${slot.precipProb}% (Tap to preview)`}
+            aria-label={`${slot.label} Clouds ${slot.cloudCover} percent Rain ${slot.precipProb} percent`}
+            class={`group relative h-full flex flex-col justify-end items-center rounded-xs transition cursor-pointer ${slot.isActive ? 'ring-1 ring-amber-400 bg-amber-500/15' : 'hover:bg-white/5'}`}>
+            {#if slot.isGoldenOrBlue}
+              <span class="absolute -top-0.5 w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+            {/if}
+            <div
+              class={`w-full rounded-xs transition-all ${barColor}`}
+              style={`height: ${barHeight}%;`}>
+            </div>
+            {#if slot.precipProb >= 20}
+              <span class="w-full h-0.5 bg-sky-300 mt-0.5 rounded-full"></span>
+            {/if}
+          </button>
+        {/each}
+      </div>
+
+      <div class="flex items-center justify-between text-[9px] font-mono text-slate-500 mt-1 px-0.5">
+        <span>00h</span>
+        <span>06h</span>
+        <span>12h</span>
+        <span>18h</span>
+        <span>23h</span>
       </div>
     </div>
   </div>
