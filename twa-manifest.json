@@ -20,8 +20,8 @@
     "path": "./android.keystore",
     "alias": "android"
   },
-  "appVersionName": "1.5.3",
-  "appVersionCode": 9,
+  "appVersionName": "1.5.4",
+  "appVersionCode": 10,
   "shortcuts": [
     {
       "name": "Astro Photography",
