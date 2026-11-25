@@ -49,7 +49,7 @@ export function getLightAlignment(bearingDeg, sunriseAz, sunsetAz) {
   if (angularDiff(bearingDeg, sunsetAz) <= 28) {
     return {
       label: 'Sunset Aligned',
-      badgeClass: 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30'
+      badgeClass: 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30'
     };
   }
   if (angularDiff(bearingDeg, (sunriseAz + 180) % 360) <= 25) {

@@ -187,9 +187,12 @@ test.describe('Luminary Photography Assistant', () => {
     await expect(page.locator('img[alt="Ridge Sunset Overlook"]')).toBeVisible({ timeout: 5000 });
     await expect(page.locator('img[alt="Parliament Heritage Palace"]')).toBeVisible({ timeout: 5000 });
 
-    // Switch to interactive Leaflet Scouting Map and verify container renders
+    // Switch to interactive Leaflet Scouting Map and verify container + Sun-Time Ray slider render
     await page.getByRole('button', { name: /^Map$/i }).click();
     await expect(page.locator('.leaflet-container')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByLabel('Sun-Time Ray Hour')).toBeVisible();
+    await page.getByRole('button', { name: /^Noon$/i }).click();
+    await expect(page.locator('text=Sun-Time Ray: 12:00')).toBeVisible();
     await page.getByRole('button', { name: /^List$/i }).click();
 
     // Verify Maps link searches by actual place name centered at coordinates

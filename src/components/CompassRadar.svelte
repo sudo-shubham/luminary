@@ -81,8 +81,8 @@
 
         <!-- Sunset Azimuth Pin (Outer Ring) -->
         <g transform={`rotate(${solar.sunsetAzimuth ?? 270} 100 100)`}>
-          <line x1="100" y1="12" x2="100" y2="21" stroke="#f43f5e" stroke-width="2" stroke-linecap="round" />
-          <circle cx="100" cy="12" r="4" fill="#f43f5e" stroke="#0b0d10" stroke-width="1" />
+          <line x1="100" y1="12" x2="100" y2="21" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" />
+          <circle cx="100" cy="12" r="4" fill="#3b82f6" stroke="#0b0d10" stroke-width="1" />
           <title>Sunset Azimuth: {solar.sunsetAzimuth ?? 270}°</title>
         </g>
 
@@ -113,7 +113,7 @@
           onclick={() => appState.setManualHeading(solar.sunsetAzimuth ?? 270)}
           class="px-1.5 py-0.5 rounded bg-obsidian/70 hover:bg-slate-700/70 border border-borderline flex items-center gap-1 transition active:scale-95"
           title="Aim camera toward Sunset azimuth">
-          <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
           <span>SS {solar.sunsetAzimuth ?? 270}° {getCardinal(solar.sunsetAzimuth ?? 270)}</span>
         </button>
       </div>

@@ -1,6 +1,7 @@
 <script>
   import { appState } from '../../lib/state.svelte.js';
   import { getLightAlignment, destinationPoint } from '../../lib/spots.js';
+  import { calculateSolarData, formatDecimalHour } from '../../lib/solar.js';
   import { X, Compass, Mountain, Waves, Eye, Landmark, ExternalLink, RefreshCw, MapPin, Map as MapIcon, List } from '@lucide/svelte';
   import L from 'leaflet';
   import 'leaflet/dist/leaflet.css';
@@ -13,6 +14,17 @@
   let markersLayer = null;
   let pinnedCoords = $state(null); // { lat, lon }
   let brokenPhotos = $state({});
+  let mapHourOverride = $state(null);
+
+  const activeMapHour = $derived(mapHourOverride ?? Math.round((solar.localHour ?? 12) * 4) / 4);
+
+  const customMapSolar = $derived.by(() => {
+    const originLat = pinnedCoords ? pinnedCoords.lat : appState.location.lat;
+    const originLon = pinnedCoords ? pinnedCoords.lon : appState.location.lon;
+    const deltaHours = activeMapHour - (solar.localHour ?? 12);
+    const targetDate = new Date(appState.effectiveDate.getTime() + deltaHours * 3600000);
+    return calculateSolarData(originLat, originLon, targetDate, null, appState.location.timezone);
+  });
 
   const filteredSpots = $derived.by(() => {
     const f = appState.nearbySpotsFilter;
@@ -30,6 +42,7 @@
   $effect(() => {
     if (!appState.isSpotsModalOpen) {
       pinnedCoords = null;
+      mapHourOverride = null;
       if (mapInstance) {
         mapInstance.remove();
         mapInstance = null;
@@ -71,12 +84,28 @@
       .addTo(markersLayer);
 
     L.polyline([[originLat, originLon], ssEnd], {
-      color: '#f43f5e',
+      color: '#3b82f6',
       weight: 2.5,
       dashArray: '6 5',
       opacity: 0.9
     })
       .bindTooltip(`🌇 Sunset ${ssAz}°`, { sticky: true })
+      .addTo(markersLayer);
+
+    // 1b. Custom Sun-Time Ray (9 km)
+    const customSun = customMapSolar;
+    const customEnd = destinationPoint(originLat, originLon, customSun.azimuth, 9);
+    const isDaylight = customSun.altitude >= 0;
+    L.polyline([[originLat, originLon], customEnd], {
+      color: isDaylight ? '#facc15' : '#818cf8',
+      weight: 3,
+      dashArray: isDaylight ? null : '3 5',
+      opacity: isDaylight ? 0.95 : 0.65
+    })
+      .bindTooltip(
+        `${isDaylight ? '☀️' : '🌙'} ${formatDecimalHour(activeMapHour)} • Az ${customSun.azimuth}° • Alt ${customSun.altitude.toFixed(0)}°`,
+        { sticky: true }
+      )
       .addTo(markersLayer);
 
     // 2. Active Location Pin
@@ -297,7 +326,45 @@
       <!-- Body -->
       {#if viewMode === 'map'}
         <div class="flex-1 flex flex-col min-h-[340px]">
-          <div bind:this={mapContainerEl} class="w-full h-[340px] sm:h-[400px] z-10 bg-obsidian"></div>
+          <div bind:this={mapContainerEl} class="w-full h-[300px] sm:h-[360px] z-10 bg-obsidian"></div>
+          <!-- Sun-Time Ray Slider -->
+          <div class="px-4 py-2 border-t border-borderline/70 bg-obsidian/70 flex flex-col gap-1.5 text-[10px] font-mono">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-amber-300 font-semibold">
+                {customMapSolar.altitude >= 0 ? '☀️' : '🌙'} Sun-Time Ray: {formatDecimalHour(activeMapHour)} • Az {customMapSolar.azimuth}° • Alt {customMapSolar.altitude.toFixed(0)}°
+              </span>
+              <div class="flex items-center gap-1">
+                <button
+                  type="button"
+                  onclick={() => { mapHourOverride = Math.round((solar.sunriseLocal ?? 6) * 4) / 4; }}
+                  class="px-1.5 py-0.5 rounded bg-dial hover:bg-slate-700/80 border border-borderline text-orange-300 transition">
+                  Sunrise
+                </button>
+                <button
+                  type="button"
+                  onclick={() => { mapHourOverride = 12; }}
+                  class="px-1.5 py-0.5 rounded bg-dial hover:bg-slate-700/80 border border-borderline text-amber-300 transition">
+                  Noon
+                </button>
+                <button
+                  type="button"
+                  onclick={() => { mapHourOverride = Math.round((solar.sunsetLocal ?? 18) * 4) / 4; }}
+                  class="px-1.5 py-0.5 rounded bg-dial hover:bg-slate-700/80 border border-borderline text-blue-300 transition">
+                  Sunset
+                </button>
+              </div>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="23.75"
+              step="0.25"
+              value={activeMapHour}
+              oninput={(e) => { mapHourOverride = parseFloat(e.currentTarget.value); }}
+              aria-label="Sun-Time Ray Hour"
+              class="w-full accent-amber-400 cursor-pointer h-1.5" />
+          </div>
+
           <div class="px-4 py-2.5 border-t border-borderline bg-dial/40 flex items-center justify-between gap-2 flex-wrap text-[11px] font-mono">
             {#if pinnedCoords}
               <span class="text-amber-300 font-semibold">
@@ -321,7 +388,7 @@
               </div>
             {:else}
               <span class="text-slate-400">
-                Tap anywhere on the map to drop an exact pin • Orange = Sunrise • Rose = Sunset
+                Tap map to drop pin • Orange = Sunrise • Blue = Sunset • Gold = Sun-Time Ray
               </span>
             {/if}
           </div>
