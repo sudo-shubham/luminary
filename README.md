@@ -25,9 +25,10 @@ Detailed guides and optical formulas are maintained in the **[Luminary Wiki](htt
 
 - **[Home](https://github.com/sudo-shubham/luminary.github.io/wiki)** — Overview & quick start
 - **[Exposure Engine & Shooting Modes](https://github.com/sudo-shubham/luminary.github.io/wiki/Exposure-Engine)** — EV meter, locks, 500-Rule, DoF & Hyperfocal math
-- **[Solar Ephemeris & Weather](https://github.com/sudo-shubham/luminary.github.io/wiki/Solar-Ephemeris-and-Weather)** — +1d planning, Afterglow Forecast, rain alerts, `.ics` export
+- **[Solar Ephemeris & Weather](https://github.com/sudo-shubham/luminary.github.io/wiki/Solar-Ephemeris-and-Weather)** — +1d planning, Afterglow Forecast, 24h Sky/Rain timeline, rain alerts, `.ics` export
+- **[Nearby Scenic Spots](https://github.com/sudo-shubham/luminary.github.io/wiki/Nearby-Scenic-Spots)** — Overpass/Wikipedia scenic spots, photos, Leaflet Scouting Map & Sun-Time Rays
 - **[Compass Light Radar](https://github.com/sudo-shubham/luminary.github.io/wiki/Compass-Radar)** — Sensor sync, lighting angles, Sunrise/Sunset azimuth pins
-- **[Gear Bag & Shot Journal](https://github.com/sudo-shubham/luminary.github.io/wiki/Gear-and-Shot-Journal)** — Custom bodies/lenses, EXIF recipe logging, filter advice
+- **[Gear Bag & Shot Journal](https://github.com/sudo-shubham/luminary.github.io/wiki/Gear-and-Shot-Journal)** — Brand + Sensor profiles, mount lenses, EXIF recipe logging, filter advice
 - **[Development & Testing](https://github.com/sudo-shubham/luminary.github.io/wiki/Development-and-Testing)** — Local setup, PWA validation, Playwright E2E tests
 
 ---
