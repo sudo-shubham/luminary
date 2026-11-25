@@ -184,22 +184,22 @@ export const CAMERA_CONTROL_GUIDE = {
     }
   },
   canon_r5: {
-    modeDial: 'Press Mode button in the center of the rear dial, rotate to Av, Tv, or M',
+    modeDial: 'Rotate the Mode Dial (or press the Mode button on pro bodies) to Av, Tv, or M',
     aperture: {
       location: 'Top Main Dial (or Lens Control Ring)',
       detail: 'Rotate the main electronic dial on the grip just behind the shutter button, or the customizable control ring on RF lenses.'
     },
     shutter: {
-      location: 'Quick Control Dial 1 (Back Wheel)',
-      detail: 'Rotate the large circular Quick Control dial on the back panel with your thumb.'
+      location: 'Quick Control Dial (Back Wheel)',
+      detail: 'Rotate the circular Quick Control dial on the back panel with your thumb.'
     },
     iso: {
       location: 'M-Fn Button (or Top Dial 2)',
-      detail: 'Tap the M-Fn button next to the shutter button and turn the main dial, or rotate the top-plate Quick Control Dial 2.'
+      detail: 'Tap the M-Fn button next to the shutter button and turn the main dial, or rotate the top-plate Quick Control dial.'
     }
   },
   nikon_z6: {
-    modeDial: 'Hold Mode button on top left and rotate main command dial to A, S, or M',
+    modeDial: 'Turn the top-left Mode Dial (or hold Mode button + rear dial on pro bodies) to A, S, or M',
     aperture: {
       location: 'Sub-Command Dial (Front)',
       detail: 'Rotate the front sub-command dial on the grip under your right index finger.'
@@ -259,18 +259,18 @@ export const CAMERA_CONTROL_GUIDE = {
     }
   },
   nikon_z50: {
-    modeDial: 'Turn Mode Dial to A, S, or M (or top mechanical dials on Z fc)',
+    modeDial: 'Turn the Mode Dial to A, S, or M (or use top mechanical dials on retro-style bodies)',
     aperture: {
       location: 'Sub-Command Dial (Front)',
       detail: 'Rotate the front sub-command dial on the grip under your index finger.'
     },
     shutter: {
       location: 'Main Command Dial (Rear)',
-      detail: 'Rotate the rear command dial under your thumb (or top mechanical dial on Z fc).'
+      detail: 'Rotate the rear command dial under your thumb (or top mechanical shutter dial on retro bodies).'
     },
     iso: {
       location: 'ISO Button + Rear Command Dial',
-      detail: 'Press the physical ISO button on top and turn the rear command dial (or dedicated ISO dial on Z fc).'
+      detail: 'Press the physical ISO button on top and turn the rear command dial (or dedicated ISO dial on retro bodies).'
     }
   },
   canon_r7: {
