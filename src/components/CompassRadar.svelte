@@ -4,6 +4,7 @@
   import { Compass } from '@lucide/svelte';
 
   const solar = $derived(appState.solarData);
+  const moon = $derived(appState.lunarData);
   const diag = $derived(appState.lightDiagnosis);
   const heading = $derived(appState.orientation.heading);
   const pitch = $derived(appState.orientation.pitch);
@@ -86,6 +87,13 @@
           <title>Sunset Azimuth: {solar.sunsetAzimuth ?? 270}°</title>
         </g>
 
+        <!-- Moon Azimuth Pin (Outer Ring) -->
+        <g transform={`rotate(${moon.azimuth ?? 180} 100 100)`}>
+          <line x1="100" y1="13" x2="100" y2="21" stroke="#c4b5fd" stroke-width="1.5" stroke-linecap="round" />
+          <circle cx="100" cy="13" r="3.5" fill="#c4b5fd" stroke="#0b0d10" stroke-width="1" />
+          <title>Moon Azimuth: {moon.azimuth}° {moon.cardinal} ({moon.illumination}%)</title>
+        </g>
+
         <!-- Sun Azimuth Marker -->
         <g transform={`rotate(${solar.azimuth} 100 100)`}>
           <line x1="100" y1="100" x2="100" y2="20" stroke="#f59e0b" stroke-width="1.5" opacity="0.5" />
@@ -115,6 +123,14 @@
           title="Aim camera toward Sunset azimuth">
           <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
           <span>SS {solar.sunsetAzimuth ?? 270}° {getCardinal(solar.sunsetAzimuth ?? 270)}</span>
+        </button>
+        <button
+          type="button"
+          onclick={() => appState.setManualHeading(moon.azimuth ?? 180)}
+          class="px-1.5 py-0.5 rounded bg-obsidian/70 hover:bg-slate-700/70 border border-borderline flex items-center gap-1 transition active:scale-95"
+          title="Aim camera toward Moon azimuth">
+          <span class="w-1.5 h-1.5 rounded-full bg-violet-300"></span>
+          <span>{moon.phaseEmoji} {moon.azimuth}° {moon.cardinal}</span>
         </button>
       </div>
     </div>

@@ -10,6 +10,7 @@
   const phase = $derived(appState.lightPhase);
   const quality = $derived(appState.skyQuality);
   const timeline = $derived(appState.hourlyTimeline);
+  const moon = $derived(appState.lunarData);
 
   // Sunset countdown calculation
   const countdownText = $derived.by(() => {
@@ -252,6 +253,26 @@
         <span class="text-slate-400">🌇 Sunset Light</span>
         <span class={`px-1.5 py-0.5 rounded border font-semibold ${quality.sunset.badgeClass}`}>
           {quality.sunset.score}% • {quality.sunset.label}
+        </span>
+      </div>
+    </div>
+
+    <!-- Lunar Phase, Moonrise/Moonset & Milky Way Dark-Sky Window -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 text-[10px] font-mono">
+      <div
+        class="flex items-center justify-between gap-2 bg-obsidian/40 rounded-lg px-2.5 py-1.5"
+        title={`Moon Azimuth: ${moon.azimuth}° ${moon.cardinal} • Alt ${moon.altitude}°`}>
+        <span class="text-slate-300 truncate">{moon.phaseEmoji} {moon.phaseName} ({moon.illumination}%)</span>
+        <span class="text-slate-400 shrink-0 tabular-nums">
+          ↑{moon.moonriseLabel} ↓{moon.moonsetLabel}
+        </span>
+      </div>
+      <div
+        class="flex items-center justify-between gap-2 bg-obsidian/40 rounded-lg px-2.5 py-1.5"
+        title={moon.darkSkyWindow.detail}>
+        <span class="text-slate-400">🌌 Milky Way Window</span>
+        <span class={`px-1.5 py-0.5 rounded border font-semibold ${moon.darkSkyWindow.badgeClass}`}>
+          {moon.darkSkyWindow.label}
         </span>
       </div>
     </div>

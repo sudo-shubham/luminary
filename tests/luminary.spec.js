@@ -294,4 +294,50 @@ test.describe('Luminary Photography Assistant', () => {
     await expect(page.locator('text=Canon Full Frame').first()).toBeVisible();
     await expect(page.locator('#gearSelectInput optgroup[label="Canon Mount Lenses"]')).toBeAttached();
   });
+
+  test('should display Moon phase, rise/set and Milky Way Dark-Sky Window', async ({ page }) => {
+    const solarCard = page.locator('#solar-ephemeris-card');
+    await expect(solarCard.locator('text=Milky Way Window')).toBeVisible();
+    await expect(solarCard).toContainText(/%\)/);
+  });
+
+  test('should export full backup and restore saved data and current state', async ({ page }) => {
+    await page.getByRole('button', { name: /Journal/i }).click();
+    await expect(page.locator('h2:has-text("Shot Journal")')).toBeVisible();
+
+    // 1. Export Full Backup
+    const downloadPromise = page.waitForEvent('download');
+    await page.getByRole('button', { name: /^Backup$/i }).click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toMatch(/^luminary-backup-\d{4}-\d{2}-\d{2}\.json$/);
+
+    // 2. Restore a custom backup JSON
+    const backupPayload = JSON.stringify({
+      app: 'Luminary',
+      backupVersion: 1,
+      saved: {
+        theme: 'dark',
+        camera: 'fuji_xt5',
+        gear: 'fuji_23_14',
+        shootingMode: 'M',
+        customCameras: {},
+        customLenses: {},
+        journal: []
+      },
+      currentState: {
+        location: { name: 'Spiti Valley', lat: 32.246, lon: 78.034, timezone: 'Asia/Kolkata' },
+        style: 'astro',
+        support: 'tripod'
+      }
+    });
+
+    await page.getByLabel('Import Luminary Backup JSON').setInputFiles({
+      name: 'luminary-backup-test.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from(backupPayload, 'utf-8')
+    });
+
+    await expect(page.locator('text=Spiti Valley').first()).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('text=Fujifilm APS-C').first()).toBeVisible();
+  });
 });

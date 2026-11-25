@@ -18,6 +18,7 @@ import {
   getTimezoneOffsetHours,
   formatDecimalHour
 } from './solar.js';
+import { calculateLunarData } from './moon.js';
 import {
   getHandheldMinShutterIdx,
   getAstro500RuleShutterIdx,
@@ -390,6 +391,17 @@ class AppState {
       });
     }
     return hours;
+  });
+
+  // Derived: Lunar Phase, Moonrise/Moonset & Milky Way Dark-Sky Window
+  lunarData = $derived.by(() => {
+    return calculateLunarData(
+      this.location.lat,
+      this.location.lon,
+      this.effectiveDate,
+      this.location.timezone,
+      this.solarData
+    );
   });
 
   // Derived: Light Diagnosis
@@ -1576,6 +1588,114 @@ class AppState {
     a.click();
     a.remove();
     this.showToast('Exported Shot Journal to JSON file!');
+  }
+
+  exportFullBackup() {
+    const payload = {
+      app: 'Luminary',
+      backupVersion: 1,
+      exportedAt: new Date().toISOString(),
+      saved: {
+        theme: this.theme,
+        camera: this.camera,
+        gear: this.gear,
+        shootingMode: this.shootingMode,
+        customCameras: this.customCameras,
+        customLenses: this.customLenses,
+        journal: this.journal
+      },
+      currentState: {
+        location: this.location,
+        style: this.style,
+        support: this.support,
+        dayOffset: this.dayOffset,
+        timeOffsetHours: this.timeOffsetHours,
+        dofSubjectDistance: this.dofSubjectDistance,
+        customLens: this.customLens,
+        locked: this.locked,
+        exposure: this.exposure,
+        nearbySpotsRadiusKm: this.nearbySpotsRadiusKm
+      }
+    };
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `luminary-backup-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    this.showToast('💾 Full backup exported (saved data + current state)!');
+  }
+
+  importFullBackup(jsonText) {
+    try {
+      const data = JSON.parse(jsonText);
+      if (!data || typeof data !== 'object' || data.app !== 'Luminary' || !data.saved) {
+        this.showToast('Invalid Luminary backup file.');
+        return false;
+      }
+
+      const s = data.saved;
+      if (s.theme === 'dark' || s.theme === 'light') {
+        this.applyTheme(s.theme);
+      }
+      if (s.customCameras && typeof s.customCameras === 'object' && !Array.isArray(s.customCameras)) {
+        this.customCameras = s.customCameras;
+        saveLocal('luminary_custom_cameras', this.customCameras);
+      }
+      if (s.customLenses && typeof s.customLenses === 'object' && !Array.isArray(s.customLenses)) {
+        this.customLenses = s.customLenses;
+        saveLocal('luminary_custom_lenses', this.customLenses);
+      }
+      if (Array.isArray(s.journal)) {
+        this.journal = s.journal;
+        saveLocal('luminary_shot_journal', this.journal);
+      }
+      if (typeof s.camera === 'string' && s.camera) {
+        this.camera = s.camera;
+        saveRawLocal('luminary_active_camera', s.camera);
+      }
+      if (typeof s.gear === 'string' && s.gear) {
+        this.gear = s.gear;
+        if (s.gear !== 'custom') saveRawLocal('luminary_active_lens', s.gear);
+      }
+      if (typeof s.shootingMode === 'string' && ['M', 'A', 'S', 'P', 'AUTO'].includes(s.shootingMode)) {
+        this.shootingMode = s.shootingMode;
+        saveRawLocal('luminary_shooting_mode', s.shootingMode);
+      }
+
+      const cs = data.currentState;
+      if (cs && typeof cs === 'object') {
+        if (cs.location && typeof cs.location.lat === 'number' && typeof cs.location.lon === 'number') {
+          this.location = {
+            name: String(cs.location.name || 'Restored Location'),
+            lat: cs.location.lat,
+            lon: cs.location.lon,
+            timezone: String(cs.location.timezone || this.location.timezone)
+          };
+        }
+        if (typeof cs.style === 'string') this.style = cs.style;
+        if (cs.support === 'handheld' || cs.support === 'tripod') this.support = cs.support;
+        if (cs.dayOffset === 0 || cs.dayOffset === 1) this.dayOffset = cs.dayOffset;
+        if (typeof cs.timeOffsetHours === 'number') this.timeOffsetHours = cs.timeOffsetHours;
+        if (typeof cs.dofSubjectDistance === 'number') this.dofSubjectDistance = cs.dofSubjectDistance;
+        if (cs.customLens && typeof cs.customLens === 'object') this.customLens = { ...this.customLens, ...cs.customLens };
+        if (cs.locked && typeof cs.locked === 'object') this.locked = { ...this.locked, ...cs.locked };
+        if (cs.exposure && typeof cs.exposure === 'object') this.exposure = { ...this.exposure, ...cs.exposure };
+        if (typeof cs.nearbySpotsRadiusKm === 'number') this.nearbySpotsRadiusKm = cs.nearbySpotsRadiusKm;
+      }
+
+      this.recalculate();
+      this.fetchWeatherForCoords(this.location.lat, this.location.lon);
+      this.showToast(`✅ Restored backup (${this.journal.length} shots)!`);
+      return true;
+    } catch {
+      this.showToast('Could not read backup JSON file.');
+      return false;
+    }
   }
 
   updateJournalNote(id, note) {

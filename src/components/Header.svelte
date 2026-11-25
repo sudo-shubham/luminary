@@ -57,7 +57,8 @@
         type="button"
         onclick={() => { appState.triggerHaptic('click'); appState.isShotJournalModalOpen = true; }}
         class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-dial hover:bg-slate-700/80 border border-borderline text-xs font-semibold text-slate-200 transition active:scale-95 shadow-sm"
-        title="Open Shot Journal & EXIF Recipes">
+        title="Open Shot Journal & EXIF Recipes"
+        aria-label="Open Shot Journal">
         <BookOpen class="w-3.5 h-3.5 text-amber-400 shrink-0" />
         <span class="hidden sm:inline">Journal</span>
         <span class="bg-amber-500 text-slate-950 text-[10px] font-bold px-1.5 py-0.2 rounded-full font-mono">
