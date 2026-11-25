@@ -515,7 +515,7 @@ class AppState {
       document.documentElement.classList.toggle('dark', theme === 'dark');
       const metaTheme = document.querySelector('meta[name="theme-color"]');
       if (metaTheme) {
-        metaTheme.setAttribute('content', theme === 'dark' ? '#090d14' : '#f5f7fa');
+        metaTheme.setAttribute('content', theme === 'dark' ? '#111622' : '#ffffff');
       }
     }
   }
@@ -1182,25 +1182,44 @@ class AppState {
     }
 
     this.showToast('Acquiring precision GPS coordinates...');
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const lat = pos.coords.latitude;
-        const lon = pos.coords.longitude;
-        this.location.lat = lat;
-        this.location.lon = lon;
-        this.timeOffsetHours = 0;
+    const onSuccess = async (pos) => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      this.location.lat = lat;
+      this.location.lon = lon;
+      this.timeOffsetHours = 0;
 
-        const resolvedName = await this.reverseGeocode(lat, lon);
-        this.location.name = resolvedName;
-        this.showToast(`Location set: ${resolvedName}`);
-        this.fetchWeatherForCoords(lat, lon);
-      },
+      const resolvedName = await this.reverseGeocode(lat, lon);
+      this.location.name = resolvedName;
+      this.showToast(`Location set: ${resolvedName}`);
+      this.fetchWeatherForCoords(lat, lon);
+    };
+
+    const onFinalError = (err) => {
+      let msg = 'Could not acquire GPS position.';
+      if (err.code === 1) {
+        msg = 'Location blocked. Enable Location in Android App Info → Permissions (or Chrome Site Settings).';
+      } else if (err.code === 2) {
+        msg = 'GPS signal unavailable. Try again.';
+      } else if (err.code === 3) {
+        msg = 'GPS request timed out.';
+      }
+      this.showToast(msg);
+    };
+
+    navigator.geolocation.getCurrentPosition(
+      onSuccess,
       (err) => {
-        let msg = 'Could not acquire GPS position.';
-        if (err.code === 1) msg = 'Location access denied. Using current coordinates.';
-        else if (err.code === 2) msg = 'GPS signal unavailable. Try again.';
-        else if (err.code === 3) msg = 'GPS request timed out.';
-        this.showToast(msg);
+        if (err.code === 2 || err.code === 3) {
+          // Fallback to coarse network/Wi-Fi location when high-accuracy GPS times out indoors
+          navigator.geolocation.getCurrentPosition(onSuccess, onFinalError, {
+            timeout: 10000,
+            enableHighAccuracy: false,
+            maximumAge: 300000
+          });
+        } else {
+          onFinalError(err);
+        }
       },
       { timeout: 8000, enableHighAccuracy: true, maximumAge: 60000 }
     );

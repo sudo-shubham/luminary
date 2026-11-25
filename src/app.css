@@ -32,6 +32,7 @@ html.dark {
 
 /* Frosted glass header styling (iOS / macOS glassmorphism) */
 .frosted-header {
+  padding-top: env(safe-area-inset-top, 0px);
   background-color: rgb(var(--color-camera-rgb) / 82%);
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);

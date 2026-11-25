@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b0d10" />
+  <meta name="theme-color" content="#111622" />
   <title>Luminary — Photography Assistant &amp; Solar Ephemeris</title>
   <meta name="description" content="Location-aware camera settings, solar ephemeris, and real-time compass light-source radar for photographers." />
 
@@ -26,6 +26,8 @@
         } else {
           document.documentElement.classList.remove('dark');
         }
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', theme === 'dark' ? '#111622' : '#ffffff');
       } catch (e) {}
     })();
   </script>

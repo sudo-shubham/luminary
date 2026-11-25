@@ -13,8 +13,8 @@
     "minimal-ui"
   ],
   "orientation": "portrait-primary",
-  "background_color": "#0b0d10",
-  "theme_color": "#0b0d10",
+  "background_color": "#090d14",
+  "theme_color": "#111622",
   "categories": [
     "photography",
     "utilities"
