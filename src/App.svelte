@@ -158,7 +158,7 @@
     <span>Luminary • 100% Client-Side Exposure &amp; Solar Ephemeris Calculator</span>
     <span class="hidden sm:inline">•</span>
     <a
-      href="https://github.com/sudo-shubham/luminary.github.io"
+      href="https://github.com/sudo-shubham/luminary"
       target="_blank"
       rel="noopener noreferrer"
       class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-dial hover:bg-slate-700/80 border border-borderline text-xs font-semibold text-slate-200 hover:text-amber-300 transition active:scale-95 shadow-sm">

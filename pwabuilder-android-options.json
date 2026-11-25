@@ -6,16 +6,16 @@
   "version": "1.0.0",
   "versionCode": 1,
   "appVersion": "1.0.0",
-  "host": "sudo-shubham.github.io",
-  "startUrl": "/luminary.github.io/index.html",
-  "webManifestUrl": "https://sudo-shubham.github.io/luminary.github.io/manifest.json",
-  "themeColor": "#0b0d10",
-  "navigationColor": "#0b0d10",
-  "backgroundColor": "#0b0d10",
+  "host": "luminary.shubhampatel.dev",
+  "startUrl": "/index.html",
+  "webManifestUrl": "https://luminary.shubhampatel.dev/manifest.json",
+  "themeColor": "#111622",
+  "navigationColor": "#090d14",
+  "backgroundColor": "#090d14",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "iconUrl": "https://sudo-shubham.github.io/luminary.github.io/luminary-icon-512x512.png",
-  "maskableIconUrl": "https://sudo-shubham.github.io/luminary.github.io/luminary-icon-maskable-512x512.png",
+  "iconUrl": "https://luminary.shubhampatel.dev/luminary-icon-512x512.png",
+  "maskableIconUrl": "https://luminary.shubhampatel.dev/luminary-icon-maskable-512x512.png",
   "splashScreenFadeOutDuration": 300,
   "enableNotifications": false,
   "locationDelegation": true,
@@ -24,17 +24,17 @@
     {
       "name": "Astro Photography",
       "shortName": "Astro",
-      "url": "https://sudo-shubham.github.io/luminary.github.io/index.html?style=astro"
+      "url": "https://luminary.shubhampatel.dev/index.html?style=astro"
     },
     {
       "name": "Portrait Settings",
       "shortName": "Portrait",
-      "url": "https://sudo-shubham.github.io/luminary.github.io/index.html?style=portrait"
+      "url": "https://luminary.shubhampatel.dev/index.html?style=portrait"
     },
     {
       "name": "Landscape Settings",
       "shortName": "Scenic",
-      "url": "https://sudo-shubham.github.io/luminary.github.io/index.html?style=landscape"
+      "url": "https://luminary.shubhampatel.dev/index.html?style=landscape"
     }
   ]
 }

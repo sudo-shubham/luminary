@@ -3,7 +3,7 @@
 > **Location-aware camera settings calculator, solar ephemeris, 24h sky & rain timeline, compass light radar, and nearby scenic photo spots for photographers.**
 
 - **Live Web App (PWA):** [luminary.shubhampatel.dev](https://luminary.shubhampatel.dev/)
-- **Android APK (`v1.5.3`):** [Download Latest Release](https://github.com/sudo-shubham/luminary.github.io/releases/latest)
+- **Android APK (`v1.5.4`):** [Download Latest Release](https://github.com/sudo-shubham/luminary/releases/latest)
 
 ---
 
@@ -21,15 +21,15 @@
 
 ## 📚 Documentation (GitHub Wiki)
 
-Detailed guides and optical formulas are maintained in the **[Luminary Wiki](https://github.com/sudo-shubham/luminary.github.io/wiki)**:
+Detailed guides and optical formulas are maintained in the **[Luminary Wiki](https://github.com/sudo-shubham/luminary/wiki)**:
 
-- **[Home](https://github.com/sudo-shubham/luminary.github.io/wiki)** — Overview & quick start
-- **[Exposure Engine & Shooting Modes](https://github.com/sudo-shubham/luminary.github.io/wiki/Exposure-Engine)** — EV meter, locks, 500-Rule, DoF & Hyperfocal math
-- **[Solar Ephemeris & Weather](https://github.com/sudo-shubham/luminary.github.io/wiki/Solar-Ephemeris-and-Weather)** — +1d planning, Afterglow Forecast, 24h Sky/Rain timeline, rain alerts, `.ics` export
-- **[Nearby Scenic Spots](https://github.com/sudo-shubham/luminary.github.io/wiki/Nearby-Scenic-Spots)** — Overpass/Wikipedia scenic spots, photos, Leaflet Scouting Map & Sun-Time Rays
-- **[Compass Light Radar](https://github.com/sudo-shubham/luminary.github.io/wiki/Compass-Radar)** — Sensor sync, lighting angles, Sunrise/Sunset azimuth pins
-- **[Gear Bag & Shot Journal](https://github.com/sudo-shubham/luminary.github.io/wiki/Gear-and-Shot-Journal)** — Brand + Sensor profiles, mount lenses, EXIF recipe logging, filter advice
-- **[Development & Testing](https://github.com/sudo-shubham/luminary.github.io/wiki/Development-and-Testing)** — Local setup, PWA validation, Playwright E2E tests
+- **[Home](https://github.com/sudo-shubham/luminary/wiki)** — Overview & quick start
+- **[Exposure Engine & Shooting Modes](https://github.com/sudo-shubham/luminary/wiki/Exposure-Engine)** — EV meter, locks, 500-Rule, DoF & Hyperfocal math
+- **[Solar Ephemeris & Weather](https://github.com/sudo-shubham/luminary/wiki/Solar-Ephemeris-and-Weather)** — +1d planning, Afterglow Forecast, 24h Sky/Rain timeline, rain alerts, `.ics` export
+- **[Nearby Scenic Spots](https://github.com/sudo-shubham/luminary/wiki/Nearby-Scenic-Spots)** — Overpass/Wikipedia scenic spots, photos, Leaflet Scouting Map & Sun-Time Rays
+- **[Compass Light Radar](https://github.com/sudo-shubham/luminary/wiki/Compass-Radar)** — Sensor sync, lighting angles, Sunrise/Sunset azimuth pins
+- **[Gear Bag & Shot Journal](https://github.com/sudo-shubham/luminary/wiki/Gear-and-Shot-Journal)** — Brand + Sensor profiles, mount lenses, EXIF recipe logging, filter advice
+- **[Development & Testing](https://github.com/sudo-shubham/luminary/wiki/Development-and-Testing)** — Local setup, PWA validation, Playwright E2E tests
 
 ---
 
