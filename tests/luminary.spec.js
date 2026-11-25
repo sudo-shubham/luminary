@@ -112,6 +112,41 @@ test.describe('Luminary Photography Assistant', () => {
               id: 102,
               center: { lat: 28.63, lon: 77.26 },
               tags: { name: 'Yamuna Riverfront', waterway: 'river' }
+            },
+            {
+              type: 'node',
+              id: 103,
+              lat: 28.62,
+              lon: 77.22,
+              tags: { name: 'Rajiv Chowk Metro Station', railway: 'station' }
+            },
+            {
+              type: 'node',
+              id: 104,
+              lat: 28.6139,
+              lon: 77.209,
+              tags: { name: 'New Delhi', historic: 'monument' }
+            },
+            {
+              type: 'node',
+              id: 105,
+              lat: 28.615,
+              lon: 77.21,
+              tags: { name: 'North Block Secretariat', office: 'government' }
+            },
+            {
+              type: 'node',
+              id: 106,
+              lat: 28.616,
+              lon: 77.211,
+              tags: { name: 'Municipal Corporation Building' }
+            },
+            {
+              type: 'node',
+              id: 107,
+              lat: 28.656,
+              lon: 77.241,
+              tags: { name: 'Parliament Heritage Palace', historic: 'palace' }
             }
           ]
         })
@@ -140,6 +175,12 @@ test.describe('Luminary Photography Assistant', () => {
     await expect(page.locator('h3:has-text("Nearby Scenic Spots")')).toBeVisible();
     await expect(page.locator('text=Ridge Sunset Overlook')).toBeVisible({ timeout: 5000 });
     await expect(page.locator('text=Yamuna Riverfront')).toBeVisible();
+    await expect(page.locator('text=Parliament Heritage Palace')).toBeVisible();
+    await expect(page.locator('text=Rajiv Chowk Metro Station')).toHaveCount(0);
+    await expect(page.locator('text=North Block Secretariat')).toHaveCount(0);
+    await expect(page.locator('text=Municipal Corporation Building')).toHaveCount(0);
+    // City name itself should not appear in the spots list
+    await expect(page.locator('h4', { hasText: /^New Delhi$/ })).toHaveCount(0);
     await expect(page.locator('text=Nearest Featured Spot')).toBeVisible({ timeout: 5000 });
 
     // Switch to interactive Leaflet Scouting Map and verify container renders

@@ -1638,7 +1638,8 @@ class AppState {
       const result = await fetchNearbyScenicSpots(
         this.location.lat,
         this.location.lon,
-        this.nearbySpotsRadiusKm
+        this.nearbySpotsRadiusKm,
+        this.location.name
       );
       this.nearbySpots = result.spots;
       this.nearbySpotsSource = result.source;

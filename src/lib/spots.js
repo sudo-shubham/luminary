@@ -67,37 +67,94 @@ export function getLightAlignment(bearingDeg, sunriseAz, sunsetAz) {
   return null;
 }
 
+const NON_PHOTO_SPOT_REGEX =
+  /\b(metro|subway|railway|train station|rail station|bus stop|bus stand|bus terminal|station|airport|helipad|hospital|clinic|medical|pharmacy|school|college|university|bank|atm|police|post office|mall|supermarket|hypermarket|hotel|hostel|motel|petrol|gas station|fuel|parking|office|apartment|flyover|junction|interchange|roundabout|chowk)\b/i;
+
+const SCENIC_TITLE_REGEX =
+  /\b(viewpoint|overlook|lookout|scenic|observatory|mountain|peak|hill|ridge|summit|valley|cliff|pass|mount|waterfall|falls|river|lake|pond|reservoir|dam|lagoon|beach|coast|island|park|garden|forest|sanctuary|reserve|fort|palace|castle|temple|mosque|cathedral|church|monument|memorial|tomb|ruins|gate|tower|bridge|ghat)\b/i;
+
+const GOVT_BUILDING_REGEX =
+  /\b(secretariat|ministry|parliament|legislature|assembly|vidhan sabha|lok sabha|rajya sabha|municipal|municipality|corporation|collectorate|court|courthouse|tribunal|embassy|consulate|tehsil|taluka|panchayat|cantonment|revenue|tax office|passport|rto|town hall|city hall|civic center|civic centre|government|govt)\b/i;
+
+const PHOTO_SPOT_EXCEPTION_REGEX =
+  /\b(fort|palace|castle|monument|memorial|tomb|ruins|heritage|viewpoint|overlook|lookout|scenic|observatory|garden|park)\b/i;
+
+function extractCityTokens(locationName = '') {
+  if (!locationName) return [];
+  const lower = locationName.toLowerCase().trim();
+  if (lower.startsWith('pinned spot') || lower === 'current gps' || lower === 'unknown') {
+    return [];
+  }
+  const primary = lower.split(',')[0].trim();
+  if (!primary || primary.length < 2) return [];
+  return [primary];
+}
+
+function isCitySelfMatch(name = '', locationName = '') {
+  const normalized = name.toLowerCase().trim();
+  if (!normalized) return false;
+  const cities = extractCityTokens(locationName);
+  for (const city of cities) {
+    if (
+      normalized === city ||
+      normalized === `${city} city` ||
+      normalized === `city of ${city}` ||
+      normalized === `${city} district`
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isScenicPhotoSpot(name = '', tags = {}, locationName = '') {
+  if (!name || NON_PHOTO_SPOT_REGEX.test(name)) return false;
+  if (isCitySelfMatch(name, locationName)) return false;
+  if (tags.railway || tags.public_transport || tags.highway || tags.amenity || tags.office || tags.place) {
+    return false;
+  }
+  if (GOVT_BUILDING_REGEX.test(name)) {
+    const isScenicException =
+      tags.tourism === 'viewpoint' ||
+      PHOTO_SPOT_EXCEPTION_REGEX.test(name);
+    if (!isScenicException) return false;
+  }
+  return true;
+}
+
 function classifyOsmTags(tags = {}) {
   if (tags.tourism === 'viewpoint') return 'viewpoint';
-  if (tags.natural === 'peak' || tags.natural === 'volcano' || tags.natural === 'cliff' || tags.natural === 'ridge') return 'mountain';
-  if (tags.waterway === 'waterfall' || tags.waterway === 'river' || tags.natural === 'water' || tags.water) return 'water';
+  if (tags.natural === 'peak' || tags.natural === 'volcano' || tags.natural === 'cliff' || tags.natural === 'ridge' || tags.natural === 'saddle') return 'mountain';
+  if (tags.waterway === 'waterfall' || tags.waterway === 'river' || tags.natural === 'water' || tags.natural === 'beach' || tags.water) return 'water';
   return 'landmark';
 }
 
 function classifyTitleHeuristic(title = '') {
   const t = title.toLowerCase();
   if (/(viewpoint|overlook|lookout|scenic|observatory)/.test(t)) return 'viewpoint';
-  if (/(mountain|peak|hill|ridge|summit|pass|mount |mt\.)/.test(t)) return 'mountain';
-  if (/(river|lake|waterfall|falls|reservoir|dam|canal|bay|beach|stream|creek)/.test(t)) return 'water';
+  if (/(mountain|peak|hill|ridge|summit|pass|valley|cliff|mount |mt\.)/.test(t)) return 'mountain';
+  if (/(river|lake|pond|waterfall|falls|reservoir|dam|lagoon|bay|beach|coast|island|ghat)/.test(t)) return 'water';
   return 'landmark';
 }
 
 /**
  * Fetches nearby scenic photography spots using OpenStreetMap Overpass API,
  * falling back to Wikipedia Geosearch if Overpass is unavailable or empty.
+ * Strictly excludes transit hubs (metro/bus/train stations), city names,
+ * and non-scenic government buildings.
  */
-export async function fetchNearbyScenicSpots(lat, lon, radiusKm = 20) {
+export async function fetchNearbyScenicSpots(lat, lon, radiusKm = 20, locationName = '') {
   const radiusM = Math.round(radiusKm * 1000);
   const query = `
     [out:json][timeout:10];
     (
       node["tourism"="viewpoint"]["name"](around:${radiusM},${lat},${lon});
-      node["natural"="peak"]["name"](around:${radiusM},${lat},${lon});
+      node["natural"~"peak|volcano|cliff|saddle|beach"]["name"](around:${radiusM},${lat},${lon});
       node["waterway"="waterfall"]["name"](around:${radiusM},${lat},${lon});
-      way["natural"="water"]["name"](around:${radiusM},${lat},${lon});
+      way["natural"="water"]["water"~"lake|pond|reservoir|lagoon"]["name"](around:${radiusM},${lat},${lon});
       way["waterway"="river"]["name"](around:${radiusM},${lat},${lon});
-      node["tourism"="attraction"]["name"](around:${radiusM},${lat},${lon});
-      node["historic"~"castle|monument|ruins"]["name"](around:${radiusM},${lat},${lon});
+      node["historic"~"castle|monument|ruins|fort|palace|memorial"]["name"](around:${radiusM},${lat},${lon});
+      way["historic"~"castle|monument|ruins|fort|palace|memorial"]["name"](around:${radiusM},${lat},${lon});
     );
     out center 45;
   `.trim();
@@ -124,6 +181,7 @@ export async function fetchNearbyScenicSpots(lat, lon, radiusKm = 20) {
         const sLat = el.lat ?? el.center?.lat;
         const sLon = el.lon ?? el.center?.lon;
         if (!name || typeof sLat !== 'number' || typeof sLon !== 'number') continue;
+        if (!isScenicPhotoSpot(name, el.tags, locationName)) continue;
 
         const key = name.toLowerCase();
         if (seen.has(key)) continue;
@@ -157,9 +215,9 @@ export async function fetchNearbyScenicSpots(lat, lon, radiusKm = 20) {
     // Fall through to Wikipedia Geosearch
   }
 
-  // Fallback: Wikipedia Geosearch API (CORS-enabled, zero API key)
+  // Fallback: Wikipedia Geosearch API (CORS-enabled, zero API key), strictly filtered to scenic photo spots
   const wikiRadius = Math.min(10000, radiusM);
-  const wikiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=${lat.toFixed(5)}|${lon.toFixed(5)}&gsradius=${wikiRadius}&gslimit=25&format=json&origin=*`;
+  const wikiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=${lat.toFixed(5)}|${lon.toFixed(5)}&gsradius=${wikiRadius}&gslimit=40&format=json&origin=*`;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 6000);
   const res = await fetch(wikiUrl, { signal: controller.signal });
@@ -171,22 +229,29 @@ export async function fetchNearbyScenicSpots(lat, lon, radiusKm = 20) {
 
   const data = await res.json();
   const list = data?.query?.geosearch || [];
-  const spots = list.map((item) => {
-    const distanceKm = item.dist ? item.dist / 1000 : haversineDistanceKm(lat, lon, item.lat, item.lon);
-    const bearingDeg = calculateBearingDeg(lat, lon, item.lat, item.lon);
-    return {
-      id: `wiki-${item.pageid}`,
-      name: item.title,
-      lat: item.lat,
-      lon: item.lon,
-      category: classifyTitleHeuristic(item.title),
-      distanceKm,
-      bearingDeg,
-      cardinal: getCardinal(bearingDeg),
-      elevationM: null,
-      tagLabel: 'landmark'
-    };
-  });
+  const spots = list
+    .filter(
+      (item) =>
+        item?.title &&
+        isScenicPhotoSpot(item.title, {}, locationName) &&
+        SCENIC_TITLE_REGEX.test(item.title)
+    )
+    .map((item) => {
+      const distanceKm = item.dist ? item.dist / 1000 : haversineDistanceKm(lat, lon, item.lat, item.lon);
+      const bearingDeg = calculateBearingDeg(lat, lon, item.lat, item.lon);
+      return {
+        id: `wiki-${item.pageid}`,
+        name: item.title,
+        lat: item.lat,
+        lon: item.lon,
+        category: classifyTitleHeuristic(item.title),
+        distanceKm,
+        bearingDeg,
+        cardinal: getCardinal(bearingDeg),
+        elevationM: null,
+        tagLabel: 'scenic'
+      };
+    });
 
   spots.sort((a, b) => a.distanceKm - b.distanceKm);
   return { spots, source: 'Wikipedia' };
