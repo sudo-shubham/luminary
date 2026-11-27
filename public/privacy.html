@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#111622" />
+  <title>Privacy Policy — Luminary Photography Assistant</title>
+  <link rel="icon" type="image/png" sizes="192x192" href="./luminary-icon-192x192.png" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #090d14;
+      --card: #111622;
+      --border: #232d3f;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Inter, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 2rem 1rem 4rem;
+    }
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 0.9rem;
+      border-radius: 0.75rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+    .back-btn:hover { border-color: var(--accent); }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.6rem;
+      color: #ffffff;
+    }
+    .updated {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 0.25rem;
+    }
+    h2 {
+      margin: 0 0 0.6rem;
+      font-size: 1.05rem;
+      color: var(--accent);
+    }
+    p, li {
+      font-size: 0.94rem;
+      color: var(--text);
+      margin: 0.4rem 0;
+    }
+    ul {
+      padding-left: 1.25rem;
+      margin: 0.4rem 0;
+    }
+    a { color: #38bdf8; }
+    code {
+      background: #171e2c;
+      padding: 0.1rem 0.35rem;
+      border-radius: 0.35rem;
+      font-size: 0.85em;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <div class="header">
+      <div>
+        <h1>Privacy Policy — Luminary</h1>
+        <div class="updated">Last updated: November 27, 2026 • Applies to Web PWA &amp; Android App (<code>io.github.sudoshubham.luminary</code>)</div>
+      </div>
+      <a class="back-btn" href="./">← Back to Luminary</a>
+    </div>
+
+    <section class="card">
+      <h2>1. Summary</h2>
+      <p><strong>Luminary</strong> is a 100% client-side, open-source photography assistant. We do not operate user accounts, backend databases, analytics trackers, or advertising SDKs. We do not collect, sell, or share your personal data.</p>
+    </section>
+
+    <section class="card">
+      <h2>2. Data Stored on Your Device</h2>
+      <p>Your preferences and photography logs are stored locally on your own device using browser <code>localStorage</code>:</p>
+      <ul>
+        <li>Selected theme (Dark / Daylight), camera brand/sensor profile, lens selection, and shooting mode.</li>
+        <li>Custom camera bodies, custom lenses, and Shot Journal entries (including any notes you write).</li>
+      </ul>
+      <p>This data never leaves your device unless you explicitly export a JSON backup file yourself.</p>
+    </section>
+
+    <section class="card">
+      <h2>3. Optional Location &amp; Device Sensors</h2>
+      <ul>
+        <li><strong>GPS Location:</strong> Only accessed when you tap the GPS detect button. Your coordinates are used locally for solar/lunar calculations and sent directly from your browser to public weather/map services (listed below) to fetch forecasts and nearby viewpoints.</li>
+        <li><strong>Compass / Orientation Sensors:</strong> Only accessed when you tap <em>Sync Compass</em> to align the on-screen light radar. Sensor readings are processed strictly in memory on your device and never transmitted.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>4. Third-Party Public Services</h2>
+      <p>When online, Luminary makes direct client-side requests to free public APIs to provide weather, maps, and scenic spot discovery:</p>
+      <ul>
+        <li><strong>Open-Meteo</strong> (<code>api.open-meteo.com</code>, <code>geocoding-api.open-meteo.com</code>) — weather forecasts and city search.</li>
+        <li><strong>OpenStreetMap / Nominatim / Overpass API</strong> (<code>overpass-api.de</code>, <code>nominatim.openstreetmap.org</code>, <code>tile.openstreetmap.org</code>) — reverse geocoding, map tiles, and nearby scenic spots.</li>
+        <li><strong>BigDataCloud</strong> (<code>api.bigdatacloud.net</code>) — reverse geocoding fallback.</li>
+        <li><strong>Wikipedia &amp; Wikimedia Commons</strong> (<code>en.wikipedia.org</code>, <code>commons.wikimedia.org</code>, <code>upload.wikimedia.org</code>) — scenic spot fallback and spot thumbnails.</li>
+      </ul>
+      <p>These providers receive standard HTTP request metadata (such as IP address and requested coordinates/search query) subject to their respective privacy policies.</p>
+    </section>
+
+    <section class="card">
+      <h2>5. Children's Privacy</h2>
+      <p>Luminary does not knowingly collect personal information from anyone, including children under 13.</p>
+    </section>
+
+    <section class="card">
+      <h2>6. Contact &amp; Source Code</h2>
+      <p>Luminary is open-source. You can inspect the source code or ask privacy questions via GitHub Issues: <a href="https://github.com/sudo-shubham/luminary/issues" target="_blank" rel="noopener noreferrer">github.com/sudo-shubham/luminary/issues</a>.</p>
+    </section>
+  </main>
+</body>
+</html>

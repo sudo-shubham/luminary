@@ -158,6 +158,12 @@
     <span>Luminary • 100% Client-Side Exposure &amp; Solar Ephemeris Calculator</span>
     <span class="hidden sm:inline">•</span>
     <a
+      href="./privacy.html"
+      class="text-slate-400 hover:text-amber-300 underline decoration-slate-600 hover:decoration-amber-400 transition">
+      Privacy Policy
+    </a>
+    <span class="hidden sm:inline">•</span>
+    <a
       href="https://github.com/sudo-shubham/luminary"
       target="_blank"
       rel="noopener noreferrer"
